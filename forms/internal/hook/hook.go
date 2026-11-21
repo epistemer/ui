@@ -7,3 +7,7 @@ package hook
 // other value unchanged. forms applies it to the rules of a Date field
 // (interface §9.4).
 var DateOnly func(r any) any
+
+// LabelSet, set by package forms, reports whether a forms.Control's label
+// was set rather than defaulted, for formstest.AssertLabelled.
+var LabelSet func(c any) bool

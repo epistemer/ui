@@ -3,6 +3,7 @@ package forms
 import (
 	"encoding/json"
 	"fmt"
+	"slices"
 	"strings"
 )
 
@@ -97,22 +98,98 @@ func combine(op string, cs []Cond) *condNode {
 // closes a cycle panics.
 func (h *Field[T]) When(c Cond) *Field[T] {
 	fd := h.builder("When")
+	fd.when = checkWhen(fd, fd.path(), fd.when, c)
+	return h
+}
+
+// checkWhen validates a condition given to node's When and returns it.
+// A condition may read fields of the same form or of forms around it, or
+// of a group anywhere, but never into a list's items from outside them.
+func checkWhen(node any, path string, existing *condNode, c Cond) *condNode {
 	if c.n == nil {
-		panic(fmt.Sprintf("forms: When on field %q with a zero Cond", fd.name))
+		panic(fmt.Sprintf("forms: When on %q with a zero Cond", path))
 	}
-	if fd.when != nil {
-		panic(fmt.Sprintf("forms: When called twice on field %q; combine the conditions with All or Any", fd.name))
+	if existing != nil {
+		panic(fmt.Sprintf("forms: When called twice on %q; combine the conditions with All or Any", path))
 	}
+	mine := chain(node)
 	c.n.walk(func(ref *field) {
-		if ref.form.root() != fd.form.root() {
-			panic(fmt.Sprintf("forms: field %q's condition reads field %q of another form", fd.name, ref.name))
+		theirs := chain(ref)
+		if theirs[len(theirs)-1] != mine[len(mine)-1] {
+			panic(fmt.Sprintf("forms: %q's condition reads field %q of another form", path, ref.path()))
 		}
-		if ref == fd || ref.dependsOn(fd) {
-			panic(fmt.Sprintf("forms: field %q's condition reads field %q, which depends on %q: a cycle", fd.name, ref.name, fd.name))
+		for _, x := range theirs {
+			if f, ok := x.(*Form); ok && f.item != nil && !slices.Contains(mine, x) {
+				panic(fmt.Sprintf("forms: %q's condition reads %q inside a list's item from outside it", path, ref.path()))
+			}
+		}
+		if requires(ref, node, map[any]bool{}) {
+			panic(fmt.Sprintf("forms: %q's condition reads %q, whose activity depends on %q: a cycle", path, ref.path(), path))
 		}
 	})
-	fd.when = c.n
-	return h
+	return c.n
+}
+
+// chain returns x and every node around it, innermost first, ending with
+// the root form. A list item's chain passes through its list.
+func chain(x any) []any {
+	var out []any
+	for x != nil {
+		out = append(out, x)
+		switch n := x.(type) {
+		case *field:
+			x = n.form
+		case *list:
+			x = n.form
+		case *Form:
+			switch {
+			case n.item != nil:
+				x = n.item
+			case n.parent != nil:
+				x = n.parent
+			default:
+				x = nil
+			}
+		}
+	}
+	return out
+}
+
+func whenOf(x any) *condNode {
+	switch n := x.(type) {
+	case *field:
+		return n.when
+	case *list:
+		return n.when
+	case *Form:
+		return n.when
+	}
+	return nil
+}
+
+// requires reports whether ref's activity depends on target's: target is
+// around ref, or a condition on ref's chain reads a field that requires it.
+// Each field is visited once, so chains and diamonds stay linear.
+func requires(ref *field, target any, seen map[any]bool) bool {
+	refs := chain(ref)
+	if slices.Contains(refs, target) {
+		return true
+	}
+	found := false
+	for _, x := range refs {
+		if w := whenOf(x); w != nil {
+			w.walk(func(r *field) {
+				if !found && !seen[r] {
+					seen[r] = true
+					found = requires(r, target, seen)
+				}
+			})
+		}
+		if found {
+			return true
+		}
+	}
+	return false
 }
 
 func (n *condNode) walk(fn func(*field)) {
@@ -124,44 +201,22 @@ func (n *condNode) walk(fn func(*field)) {
 	}
 }
 
-// dependsOn reports whether fd's activity reads target, directly or not.
-// Each field is visited once, so chains and diamonds stay linear.
-func (fd *field) dependsOn(target *field) bool {
-	return fd.reaches(target, map[*field]bool{})
-}
-
-func (fd *field) reaches(target *field, seen map[*field]bool) bool {
-	if fd.when == nil || seen[fd] {
-		return false
-	}
-	seen[fd] = true
-	found := false
-	fd.when.walk(func(ref *field) {
-		if !found && (ref == target || ref.reaches(target, seen)) {
-			found = true
-		}
-	})
-	return found
-}
-
-// active reports whether fd's condition holds, reading the fields' current
-// state: bound text, or initial values before Bind. memo caches one pass.
-func (fd *field) active(memo map[*field]bool) bool {
-	if fd.when == nil {
-		return true
-	}
+// active reports whether fd and every node around it are active, reading
+// the fields' current state: bound text, or initial values before Bind.
+// memo caches one pass.
+func (fd *field) active(memo map[any]bool) bool {
 	if memo == nil {
-		memo = map[*field]bool{}
+		memo = map[any]bool{}
 	}
 	if v, ok := memo[fd]; ok {
 		return v
 	}
-	v := fd.when.eval(memo)
+	v := fd.form.active(memo) && (fd.when == nil || fd.when.eval(memo))
 	memo[fd] = v
 	return v
 }
 
-func (n *condNode) eval(memo map[*field]bool) bool {
+func (n *condNode) eval(memo map[any]bool) bool {
 	switch n.op {
 	case "eq":
 		if !n.field.active(memo) || !n.field.present {
