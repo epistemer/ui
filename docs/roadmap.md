@@ -108,8 +108,8 @@ The designs are [brief.md](brief.md) (kernel) and
 
 | ✓ | ID | Item | Done when |
 |---|---|---|---|
-| ☐ | F3.1 | Conv and As, with the dead-handle check | Rules before and after As check T and U; the old handle panics |
-| ☐ | F3.2 | Number, Parsed (Enum and Options landed with F2, which the store example needed) | A models-style enum binds; `All<Type>Options()` passes to Options unchanged; decimal precision round-trips in examples/shop |
+| ☑ | F3.1 | Conv and As, with the dead-handle check | Rules before and after As check T and U; the old handle panics |
+| ☑ | F3.2 | Number, Parsed (Enum and Options landed with F2, which the store example needed) | A models-style enum binds; `All<Type>Options()` passes to Options unchanged; decimal precision round-trips in examples/shop |
 
 ### F4 — Conditions
 
