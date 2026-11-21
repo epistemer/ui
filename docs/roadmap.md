@@ -75,10 +75,10 @@ The designs are [brief.md](brief.md) (kernel) and
 
 | ✓ | ID | Item | Done when |
 |---|---|---|---|
-| ☐ | M4.1 | NewSlot, NewSlotOf, Slotted, Place, filling, Value and Filled: rules 1 to 4 and 6 | A test counts executions: the block runs once, a fill once per placement, a fallback only when its slot is unfilled. A fill that renders nothing still replaces its fallback |
-| ☐ | M4.2 | Lexical slot lookups, rule 5 | The shop's order row places its actions slot inside a dropdown menu's fill, and a modal nested in another modal's body renders each body in its own dialog |
-| ☐ | M4.3 | The errors and their messages | One test per row of the error table, asserting the sentinel with errors.Is and the declaring file and line in the message |
-| ☐ | M4.4 | ErrInBlock in Provide, Scope and Place, rule 7 | Each of the three returns ErrInBlock when written directly in a block, and reaches the fills when opened around the component call |
+| ☑ | M4.1 | NewSlot, NewSlotOf, Slotted, Place, filling, Value and Filled: rules 1 to 4 and 6 | A test counts executions: the block runs once, a fill once per placement, a fallback only when its slot is unfilled. A fill that renders nothing still replaces its fallback |
+| ☑ | M4.2 | Lexical slot lookups, rule 5 | The shop's order row places its actions slot inside a dropdown menu's fill, and a modal nested in another modal's body renders each body in its own dialog |
+| ☑ | M4.3 | The errors and their messages | One test per row of the error table, asserting the sentinel with errors.Is and the declaring file and line in the message |
+| ☑ | M4.4 | ErrInBlock in Provide, Scope and Place, rule 7 | Each of the three returns ErrInBlock when written directly in a block, and reaches the fills when opened around the component call |
 | ☐ | M4.5 | Shop examples with goldens: cart modal, dropdown, order table with row actions, and a product card that uses Filled to drop an empty footer | The goldens pass, and uitest.CheckIDs passes on every example |
 | ☐ | M4.6 | Benchmarks: a component with three slots, and slotted components nested five deep | The numbers are in status.md, and the kernel's allocations per render do not grow with the size of the fills |
 

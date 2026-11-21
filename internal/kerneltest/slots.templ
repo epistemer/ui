@@ -1,0 +1,238 @@
+package kerneltest
+
+import (
+	"strconv"
+
+	"github.com/epistemer/ui"
+)
+
+var (
+	CartToggle = ui.NewSlotOf[templ.Attributes]()
+	CartBody   = ui.NewSlot()
+	cartDialog = ui.NewID("cart-dialog")
+)
+
+// CartModal is the brief's example: a valued toggle slot and a body slot
+// with a fallback.
+func CartModal(title string) templ.Component {
+	return ui.Slotted(cartModal(title), CartToggle, CartBody)
+}
+
+templ cartModal(title string) {
+	@ui.Scope(cartDialog) {
+		@CartToggle.Place(templ.Attributes{"aria-controls": cartDialog.Get(ctx), "aria-haspopup": "dialog"}) {
+			<button { CartToggle.Value(ctx)... }>Cart</button>
+		}
+		<dialog id={ cartDialog.Get(ctx) }>
+			<h2>{ title }</h2>
+			@CartBody.Place() {
+				<p>Your cart is empty.</p>
+			}
+		</dialog>
+	}
+}
+
+templ CartPage(items []string) {
+	@CartModal("Your cart") {
+		@CartToggle {
+			<button { CartToggle.Value(ctx)... } class="badge">{ strconv.Itoa(len(items)) }</button>
+		}
+		if len(items) > 0 {
+			@CartBody {
+				<ul>
+					for _, it := range items {
+						<li>{ it }</li>
+					}
+				</ul>
+			}
+		}
+	}
+}
+
+var (
+	MenuItems  = ui.NewSlot()
+	RowActions = ui.NewSlot()
+)
+
+func Dropdown(label string) templ.Component { return ui.Slotted(dropdown(label), MenuItems) }
+
+templ dropdown(label string) {
+	<details>
+		<summary>{ label }</summary>
+		<menu>
+			@MenuItems.Place()
+		</menu>
+	</details>
+}
+
+// OrderRow places its own actions slot inside the fill it gives Dropdown:
+// rule 5.
+func OrderRow(id string) templ.Component { return ui.Slotted(orderRow(id), RowActions) }
+
+templ orderRow(id string) {
+	<tr>
+		<td>{ id }</td>
+		<td>
+			@Dropdown("Actions") {
+				@MenuItems {
+					@RowActions.Place() {
+						<li>No actions</li>
+					}
+				}
+			}
+		</td>
+	</tr>
+}
+
+templ Orders() {
+	<table>
+		<tbody>
+			@OrderRow("1042") {
+				@RowActions {
+					<li>Refund</li>
+				}
+			}
+			@OrderRow("1043")
+		</tbody>
+	</table>
+}
+
+templ NestedModals() {
+	@CartModal("Outer") {
+		@CartBody {
+			<p>outer body</p>
+			@CartModal("Inner") {
+				@CartBody {
+					<p>inner body</p>
+				}
+			}
+		}
+	}
+}
+
+var CardFooter = ui.NewSlot()
+
+// Card drops its footer element when the caller gives none.
+func Card(name string) templ.Component { return ui.Slotted(card(name), CardFooter) }
+
+templ card(name string) {
+	<article>
+		<h3>{ name }</h3>
+		if CardFooter.Filled(ctx) {
+			<footer>
+				@CardFooter.Place()
+			</footer>
+		}
+	</article>
+}
+
+templ Cards() {
+	@Card("Tea") {
+		@CardFooter {
+			<button>Add</button>
+		}
+	}
+	@Card("Coffee")
+}
+
+var TwiceBody = ui.NewSlot()
+
+// TwicePlaced places one slot twice.
+func TwicePlaced() templ.Component { return ui.Slotted(twicePlaced(), TwiceBody) }
+
+templ twicePlaced() {
+	@TwiceBody.Place() {
+		<i>fallback</i>
+	}
+	@TwiceBody.Place() {
+		<i>fallback</i>
+	}
+}
+
+// PlacesUndeclared places a slot its component doesn't list.
+func PlacesUndeclared() templ.Component { return ui.Slotted(placesUndeclared(), TwiceBody) }
+
+templ placesUndeclared() {
+	@CardFooter.Place()
+}
+
+// ProvidedBody reads the Currency in its fill: open Provide around the call.
+templ ProvidedBody() {
+	@Currency.Provide("EGP") {
+		@CartModal("t") {
+			@CartBody {
+				@Price()
+			}
+		}
+	}
+}
+
+// ProvideInBlock writes Provide directly in the block: ErrInBlock.
+templ ProvideInBlock() {
+	@CartModal("t") {
+		@Currency.Provide("EGP") {
+			@CartBody {
+				@Price()
+			}
+		}
+	}
+}
+
+templ ScopeInBlock() {
+	@CartModal("t") {
+		@ui.Scope(Email) {
+			@CartBody {
+				<p></p>
+			}
+		}
+	}
+}
+
+templ PlaceInBlock() {
+	@CartModal("t") {
+		@CardFooter.Place()
+	}
+}
+
+templ Stray() {
+	@CartModal("t") {
+		<p>loose</p>
+		@CartBody {
+			<p></p>
+		}
+	}
+}
+
+templ FilledTwice() {
+	@CartModal("t") {
+		for range 2 {
+			@CartBody {
+				<p></p>
+			}
+		}
+	}
+}
+
+templ FillsUndeclared() {
+	@CartModal("t") {
+		@MenuItems {
+			<li></li>
+		}
+	}
+}
+
+templ FillOutside() {
+	@CartBody {
+		<p></p>
+	}
+}
+
+templ PlaceOutside() {
+	@CartBody.Place()
+}
+
+templ SlottedInBlock() {
+	@CartModal("t") {
+		@Card("x")
+	}
+}
