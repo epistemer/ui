@@ -1,6 +1,9 @@
-# Roadmap to v0.1.0
+# Roadmap
 
-The module reaches v0.1.0 with its first two packages: the kernel (root
+v0.1.0 shipped on 2026-11-21 (M0–M5, F1–F6, R). Section D designs the
+visual packages that come next.
+
+The module reached v0.1.0 with its first two packages: the kernel (root
 package `ui`, plus `ui/uitest`) and forms (`ui/forms`, `ui/forms/rule`,
 `ui/forms/formstest`). M0 is shared. After it, the kernel's milestones
 (M1–M5) and forms' (F1–F6) are independent tracks: forms imports no templ,
@@ -138,6 +141,24 @@ The designs are [brief.md](brief.md) (kernel) and
 |---|---|---|---|
 | ☑ | R.1 | API review of every exported identifier of both packages against interface.md, in docs/api-review.md | A written review lists each identifier and how it was checked, and its findings are fixed or filed |
 | ☑ | R.2 | CHANGELOG, the v0.1.0 tag, and a global Claude Code skill (`~/.claude/skills/ui/`) covering the kernel and forms | `go get github.com/epistemer/ui@v0.1.0` works through the module proxy |
+
+## D — Design of the visual packages
+
+After v0.1.0. The visual packages (theme, icons, elements, inputs,
+components, layout, catalog) are designed together, then built package by
+package. The design is [visual-design.md](visual-design.md); its API
+decisions are epistemer's. Milestones after D6 are planned when D6 locks
+the interface.
+
+| ✓ | ID | Item | Done when |
+|---|---|---|---|
+| ☑ | D1 | Inventory of zp's UI as a record of needs, in docs/ui-inventory.md | Every page shape, component and client runtime is counted, with findings, and no zp business names |
+| ☑ | D2 | ADR 0004 (ui's own CSS; accepted by epistemer 2026-11-21) and ADR 0005 (client behaviour; accepted by epistemer 2026-11-22) | epistemer accepts or changes ADR 0005 |
+| ☑ | D3 | visual-design.md: layers, tokens, conventions, behaviour, accessibility, catalogue, open questions Q1–Q9 | Reviewed by the other model family (review 0002, done), and epistemer has answered Q1–Q9 or taken the defaults |
+| ☐ | D4 | Slice spike in `internal/spike` (design §10): Button, a text input on `forms.Control`, Dialog with the shared confirmation, Menu; the run-time theme with contrast derivation; the catalogue; the CSS, names and selector checks; the ui script with the invoker-command fallback, `<ui-menu>` and the condition evaluator | The catalogue runs; `go test` covers goldens, ids, names and selectors for every story and the evaluator's conformance vectors; findings amend visual-design.md |
+| ☐ | D5 | interface.md sections for what Q9 locks, with a cross-model review | The review's findings are fixed or answered |
+| ☐ | D6 | epistemer locks the visual packages' interface | Locked; milestones V1… planned in this file |
+| ☐ | D7 | Design of the server-state components (table, server table, pagination, filters, remote select, uploads) over models' `listing` interfaces | Its own design and review, then an amendment to the lock |
 
 ## Backlog
 
