@@ -1,0 +1,66 @@
+<table>
+  <thead>
+    <tr>
+      <th>
+        Order ID
+      </th>
+      <th>
+        Customer
+      </th>
+      <th>
+        Total
+      </th>
+      <th>
+        Actions
+      </th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr id="order-row-1042">
+      <td>
+        1042
+      </td>
+      <td>
+        Alice
+      </td>
+      <td>
+        $42.00
+      </td>
+      <td>
+        <details>
+          <summary>
+            Actions
+          </summary>
+          <menu>
+            <button hx-post="/orders/1042/refund" hx-target="#order-row-1042">
+              Refund
+            </button>
+          </menu>
+        </details>
+      </td>
+    </tr>
+    <tr id="order-row-1043">
+      <td>
+        1043
+      </td>
+      <td>
+        Bob
+      </td>
+      <td>
+        $15.50
+      </td>
+      <td>
+        <details>
+          <summary>
+            Actions
+          </summary>
+          <menu>
+            <button hx-delete="/orders/1043" hx-target="#order-row-1043">
+              Delete
+            </button>
+          </menu>
+        </details>
+      </td>
+    </tr>
+  </tbody>
+</table>

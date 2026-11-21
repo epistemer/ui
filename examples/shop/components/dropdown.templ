@@ -1,0 +1,19 @@
+package components
+
+import "github.com/epistemer/ui"
+
+var MenuItems = ui.NewSlot()
+
+// Dropdown is a collapsible menu with a MenuItems slot.
+func Dropdown(label string) templ.Component {
+	return ui.Slotted(dropdown(label), MenuItems)
+}
+
+templ dropdown(label string) {
+	<details>
+		<summary>{ label }</summary>
+		<menu>
+			@MenuItems.Place()
+		</menu>
+	</details>
+}
