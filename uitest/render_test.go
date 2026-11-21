@@ -33,3 +33,29 @@ func TestRenderErr(t *testing.T) {
 		t.Errorf("got %v", err)
 	}
 }
+
+func TestContextOrderAndNil(t *testing.T) {
+	first := uitest.Context(func(ctx context.Context) context.Context { return kerneltest.Currency.With(ctx, "AAA") })
+	second := uitest.Context(func(ctx context.Context) context.Context { return kerneltest.Currency.With(ctx, "BBB") })
+	if got := uitest.Render(t, kerneltest.Price(), first, nil, second); got != "<b>BBB</b>" {
+		t.Errorf("got %s: steps run in order, and a nil Option does nothing", got)
+	}
+	if got, err := uitest.RenderErr(kerneltest.Price(), second); err != nil || got != "<b>BBB</b>" {
+		t.Errorf("RenderErr with options: %s %v", got, err)
+	}
+	defer func() {
+		if recover() == nil {
+			t.Error("Context(nil) did not panic")
+		}
+	}()
+	uitest.Context(nil)
+}
+
+func TestRenderUsesTheTestContext(t *testing.T) {
+	var done <-chan struct{}
+	probe := templ.ComponentFunc(func(ctx context.Context, _ io.Writer) error { done = ctx.Done(); return nil })
+	uitest.Render(t, probe)
+	if done == nil {
+		t.Error("Render's context is not the test's")
+	}
+}

@@ -35,11 +35,11 @@ func Context(f func(context.Context) context.Context) Option {
 	return func(o *options) { o.ctx = append(o.ctx, f) }
 }
 
-// Render renders c with generated ids from ui.Sequence("t") and returns
-// its HTML. A render error fails t.
+// Render renders c with generated ids from ui.Sequence("t"), in a context
+// derived from t.Context(), and returns its HTML. A render error fails t.
 func Render(t testing.TB, c templ.Component, opts ...Option) string {
 	t.Helper()
-	html, err := RenderErr(c, opts...)
+	html, err := render(t.Context(), c, opts)
 	if err != nil {
 		t.Fatalf("uitest: render: %v", err)
 	}
@@ -48,11 +48,17 @@ func Render(t testing.TB, c templ.Component, opts ...Option) string {
 
 // RenderErr is Render for a test that expects an error.
 func RenderErr(c templ.Component, opts ...Option) (string, error) {
+	return render(context.Background(), c, opts)
+}
+
+func render(ctx context.Context, c templ.Component, opts []Option) (string, error) {
 	var o options
 	for _, opt := range opts {
-		opt(&o)
+		if opt != nil { // a zero Option, as in a table test, does nothing
+			opt(&o)
+		}
 	}
-	ctx := ui.WithIDs(context.Background(), ui.Sequence("t"))
+	ctx = ui.WithIDs(ctx, ui.Sequence("t"))
 	for _, f := range o.ctx {
 		ctx = f(ctx)
 	}
