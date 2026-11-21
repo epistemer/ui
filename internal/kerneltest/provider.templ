@@ -1,0 +1,62 @@
+package kerneltest
+
+import (
+	"github.com/epistemer/ui"
+	"github.com/epistemer/ui/internal/templcontract"
+)
+
+// Currency is the provider the tests use; its default is USD.
+var Currency = ui.NewProvider("USD")
+
+// Label is a second provider of the same type, which must never see
+// Currency's values.
+var Label = ui.NewProvider("none")
+
+templ Price() {
+	<b>{ Currency.Value(ctx) }</b>
+}
+
+templ Nested() {
+	@Price()
+	@Currency.Provide("EGP") {
+		@Price()
+		@Currency.Provide("EUR") {
+			@Price()
+		}
+		@Price()
+	}
+	@Price()
+}
+
+templ Deep() {
+	@Currency.Provide("JPY") {
+		@level1()
+	}
+}
+
+templ level1() {
+	<div>
+		@level2()
+	</div>
+}
+
+templ level2() {
+	<p>
+		@Price()
+	</p>
+}
+
+templ Labelled() {
+	@Label.Provide("sale") {
+		@Price()
+		<s>{ Label.Value(ctx) }</s>
+	}
+}
+
+// ChildInProvide calls a component that renders its children, without a
+// block, inside Provide.
+templ ChildInProvide() {
+	@Currency.Provide("EGP") {
+		@templcontract.Child()
+	}
+}
