@@ -1,0 +1,18 @@
+package stories
+
+import (
+	"github.com/epistemer/ui/forms"
+	"github.com/epistemer/ui/internal/spike/elements"
+	"github.com/epistemer/ui/internal/spike/inputs"
+)
+
+templ promotionForm(f *forms.Form) {
+	<form class="catalog-form" method="post" action="/catalog/none" novalidate>
+		for c := range f.Controls() {
+			@inputs.Field(c)
+		}
+		@elements.Button().Submit() {
+			Save
+		}
+	</form>
+}

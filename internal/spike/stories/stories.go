@@ -25,5 +25,19 @@ func All() []catalog.Story {
 			variant("sizes", buttonSizes()),
 			variant("states", buttonStates()),
 		}},
+		{Name: "inputs/field", Variants: []catalog.Variant{
+			variant("fresh", promotionForm(promotionFresh())),
+			variant("filled", promotionForm(promotionFilled())),
+			variant("errors", promotionForm(promotionErrors())),
+		}},
+		{Name: "components/dialog", Variants: []catalog.Variant{
+			variant("basic", dialogBasic()),
+			variant("custom-trigger", dialogCustomTrigger()),
+			variant("confirm", confirmForm()),
+		}},
+		{Name: "components/menu", Variants: []catalog.Variant{
+			variant("basic", menuBasic()),
+			variant("in-a-table", menuInTable()),
+		}},
 	}
 }

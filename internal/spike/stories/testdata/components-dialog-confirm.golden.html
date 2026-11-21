@@ -1,0 +1,23 @@
+<form action="/catalog/none" class="catalog-row" method="post">
+  <button class="ui-button" data-tone="danger" data-ui-confirm="Delete the store? Its orders stay." type="submit">
+    Delete the store
+  </button>
+</form>
+<dialog aria-describedby="ui-confirm-question" aria-labelledby="ui-confirm-title" class="ui-dialog" data-ui-confirm-dialog="" id="ui-confirm">
+  <header class="ui-dialog-header">
+    <h2 class="ui-dialog-title" id="ui-confirm-title">
+      Are you sure?
+    </h2>
+  </header>
+  <div class="ui-dialog-body">
+    <p id="ui-confirm-question"></p>
+  </div>
+  <footer class="ui-dialog-actions">
+    <button class="ui-button" command="close" commandfor="ui-confirm" data-variant="ghost" type="button" value="cancel">
+      Cancel
+    </button>
+    <button class="ui-button" command="close" commandfor="ui-confirm" data-tone="danger" type="button" value="confirm">
+      Confirm
+    </button>
+  </footer>
+</dialog>

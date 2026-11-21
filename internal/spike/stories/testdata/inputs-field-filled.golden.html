@@ -1,0 +1,54 @@
+<form action="/catalog/none" class="catalog-form" method="post" novalidate="">
+  <div class="ui-field">
+    <label class="ui-field-label" for="field--t-1">
+      Type
+      <span aria-hidden="true" class="ui-field-required">
+        *
+      </span>
+    </label>
+    <select class="ui-input" id="field--t-1" name="type" required="">
+      <option selected="" value="fixed">
+        Fixed amount
+      </option>
+      <option value="percentage">
+        Percentage
+      </option>
+    </select>
+  </div>
+  <div class="ui-field" data-ui-when="{&#34;typ&#34;:&#34;c&#34;,&#34;k&#34;:&#34;type&#34;,&#34;op&#34;:&#34;eq&#34;,&#34;v&#34;:&#34;fixed&#34;}">
+    <label class="ui-field-label" for="field--t-2">
+      Amount
+      <span aria-hidden="true" class="ui-field-required">
+        *
+      </span>
+    </label>
+    <input aria-describedby="field--t-2-help" class="ui-input" id="field--t-2" name="amount" required="" type="text" value="12.50">
+    <p class="ui-field-help" id="field--t-2-help">
+      In the store&#39;s currency.
+    </p>
+  </div>
+  <div class="ui-field" data-ui-when="{&#34;typ&#34;:&#34;c&#34;,&#34;k&#34;:&#34;type&#34;,&#34;op&#34;:&#34;eq&#34;,&#34;v&#34;:&#34;percentage&#34;}" hidden="">
+    <label class="ui-field-label" for="field--t-3">
+      Percentage
+      <span aria-hidden="true" class="ui-field-required">
+        *
+      </span>
+    </label>
+    <input class="ui-input" disabled="" id="field--t-3" max="100" min="1" name="percentage" required="" type="number">
+  </div>
+  <div class="ui-field">
+    <label class="ui-field-label" for="field--t-4">
+      Contact email
+    </label>
+    <input class="ui-input" dir="ltr" id="field--t-4" name="email" type="email" value="shop@example.com">
+  </div>
+  <div class="ui-field">
+    <input checked="" class="ui-input" id="field--t-5" name="agree" required="" type="checkbox" value="true">
+    <label class="ui-field-label" for="field--t-5">
+      The terms are agreed
+    </label>
+  </div>
+  <button class="ui-button" type="submit">
+    Save
+  </button>
+</form>

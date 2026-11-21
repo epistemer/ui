@@ -225,7 +225,7 @@ Everything not listed below is native HTML or CSS.
 |---|---|
 | Dialog | `<dialog>` opened by `commandfor` and `command="show-modal"`; the ui script stands in where invoker commands are missing |
 | Confirmation | one shared dialog in the layout shell, driven by `htmx:confirm` and `data-ui-confirm` |
-| Menu | `popover` and `<ui-menu>`: focus to the first item, arrow keys, `aria-expanded` kept in step; anchor positioning, or the script's positioning where it is missing |
+| Menu | `popover` opened by `popovertarget` (Baseline 2024), which also makes the trigger the popover's implicit anchor, so `position-area` places it with no anchor name and no inline style; `<ui-menu>`: focus to the first item, arrow keys, `aria-expanded` kept in step, and placement where anchoring is missing |
 | Tooltip | CSS on hover and focus, the text referenced by `aria-describedby`, Esc to dismiss from the delegated listener |
 | Disclosure | `<details>` |
 | Fieldset | `<fieldset>` with `<legend>` (so the group has a name, and `disabled` reaches every control); a collapsible one wraps its content in `<details>` |
@@ -346,7 +346,8 @@ locks the interface (D6). The spike's findings amend this draft (§11).
 
 ## 11. Spike findings
 
-From D4 so far: the theme pipeline, Button and the catalogue.
+From D4: the theme pipeline, Button and the catalogue (part 1); the
+forms-backed field, Dialog, the shared confirmation and Menu (part 2).
 
 1. **Shades move away from the on-colour.** The first spike mixed hover and
    active towards black in light mode and white in dark mode, in the
@@ -386,3 +387,50 @@ From D4 so far: the theme pipeline, Button and the catalogue.
 
    In `go test`, the selector check confirmed that every `ui-*` class and
    variant attribute in the goldens has a rule in ui's CSS.
+9. **Implicit anchors answer the anchoring question.** A popover opened by
+   `popovertarget` takes its trigger as its implicit anchor. So
+   `position-area: block-end span-inline-end` placed every menu under its
+   own trigger, at the start edge in LTR and in RTL:
+   - with no anchor name;
+   - with no inline style;
+   - in a table of menus;
+   - in a row inserted after load.
+
+   That held in the pane's Chromium. Where anchoring is missing,
+   `<ui-menu>` places the popover.
+10. **Custom elements keep state in private fields.** On a custom element,
+    `this.popover` is the reflection of the `popover` attribute. Assigning
+    the panel to it wrote `popover="[object HTMLDivElement]"`, and the
+    menu never set itself up. Found in the browser, not by any check.
+11. **A select needs an empty first option.** Without one, the browser
+    chooses the first option when nothing is chosen, so the page disagreed
+    with the server: the evaluator showed a field the server had hidden.
+    `ChooseText` (`ui.inputs.choose`) fills it, and `required` makes the
+    browser ask.
+12. **forms' `Placeholder` falls back to the label.** ui's fields always
+    show their label, so a placeholder repeating it is noise for a screen
+    reader. The field renders one only on text inputs, and only when its
+    text differs from the label's. It compares texts, because an
+    `i18n.Ter` can be a func, which `==` can't compare.
+13. **The confirmation answers on its own buttons.** Chromium dispatches a
+    dialog's `close` event with rendering, which a page in the background
+    holds back. Answering on the click keeps the action in the person's
+    own task, and Esc still cancels through `close`. A confirmed submit
+    runs once, with its original submitter.
+14. **Fills see the placement's context, and it pays.**
+    `components.DialogClose(ctx, value)`, written inside the caller's fill,
+    names the dialog around it. The kernel carries the generated id to the
+    caller's buttons with no plumbing.
+15. **A control's edge needs 3:1** (WCAG 1.4.11), which a decorative
+    border doesn't reach. `--ui-color-border-strong` does, tested in both
+    schemes.
+16. **The evaluator agrees with the server.** It passes forms' 21 vectors in
+    `go test` (goja, ADR 0006), and in the browser the type select shows,
+    hides and disables the dependent fields.
+17. **Not yet exercised in a browser:**
+    - the invoker-command fallback and the menu's own placement (the
+      pane's Chromium supports both natively);
+    - htmx paths (`htmx:confirm`, `htmx:afterSwap`), because the catalogue
+      loads no htmx.
+
+    They wait for the browser test job.

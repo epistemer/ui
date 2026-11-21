@@ -1,1 +1,106 @@
-/* ui.components: filled by the D4 slice. */
+/* Dialog and the shared confirmation (design §6). Native <dialog>: Esc,
+   focus trapping and focus return are the browser's. */
+.ui-dialog {
+	inline-size: min(36em, 92vw);
+	padding: 0;
+	border: 1px solid var(--ui-color-border);
+	border-radius: var(--ui-radius-l);
+	color: var(--ui-color-text);
+	background-color: var(--ui-color-surface-raised);
+	box-shadow: var(--ui-shadow-3);
+
+	&::backdrop {
+		background-color: color-mix(in oklab, var(--ui-color-text) 40%, transparent);
+	}
+}
+
+.ui-dialog-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: var(--ui-space-3);
+	padding-block-start: var(--ui-space-4);
+	padding-inline: var(--ui-space-5) var(--ui-space-4);
+}
+
+.ui-dialog-title {
+	margin: 0;
+	font-size: var(--ui-text-l);
+}
+
+.ui-dialog-body {
+	padding-block: var(--ui-space-4);
+	padding-inline: var(--ui-space-5);
+
+	& > :first-child {
+		margin-block-start: 0;
+	}
+
+	& > :last-child {
+		margin-block-end: 0;
+	}
+}
+
+.ui-dialog-actions {
+	display: flex;
+	justify-content: flex-end;
+	gap: var(--ui-space-2);
+	padding-block-end: var(--ui-space-5);
+	padding-inline: var(--ui-space-5);
+}
+
+/* Menu (design §6): a popover anchored to its trigger. Where the browser
+   can't anchor it, <ui-menu> places it (ADR 0004). */
+.ui-menu {
+	display: inline-block;
+}
+
+.ui-menu-popover {
+	min-inline-size: 12em;
+	margin: 0;
+	margin-block-start: var(--ui-space-1);
+	padding: var(--ui-space-1);
+	inset: auto;
+	position-area: block-end span-inline-end;
+	position-try-fallbacks: flip-block;
+	border: 1px solid var(--ui-color-border);
+	border-radius: var(--ui-radius-m);
+	color: var(--ui-color-text);
+	background-color: var(--ui-color-surface-raised);
+	box-shadow: var(--ui-shadow-2);
+}
+
+.ui-menu-item {
+	display: flex;
+	align-items: center;
+	gap: var(--ui-space-2);
+	inline-size: 100%;
+	padding-block: var(--ui-space-2);
+	padding-inline: var(--ui-space-3);
+	border: 0;
+	border-radius: var(--ui-radius-s);
+	font: inherit;
+	text-align: start;
+	text-decoration: none;
+	color: inherit;
+	background-color: transparent;
+	cursor: pointer;
+
+	&:hover,
+	&:focus-visible {
+		background-color: var(--ui-color-brand-subtle);
+	}
+
+	&:focus-visible {
+		outline-offset: calc(-1 * var(--ui-focus-width));
+	}
+
+	&[data-tone="danger"] {
+		color: var(--ui-color-danger-text);
+
+		&:hover,
+		&:focus-visible {
+			background-color: var(--ui-color-danger-subtle);
+		}
+	}
+}

@@ -1,0 +1,62 @@
+package inputs
+
+import (
+	"github.com/epistemer/errors"
+	"github.com/epistemer/ui"
+	"github.com/epistemer/ui/forms"
+)
+
+templ field(f FieldSpec, wrapper templ.Attributes) {
+	@ui.Scope(fieldID) {
+		<div { wrapper... }>
+			if f.c.Kind() == forms.KindCheckbox || f.c.Kind() == forms.KindToggle {
+				<input { f.controlAttrs(ctx)... }/>
+				@label(f)
+			} else {
+				@label(f)
+				switch f.c.Kind() {
+					case forms.KindSelect, forms.KindMultiSelect:
+						<select { f.controlAttrs(ctx)... }>
+							if f.c.Kind() == forms.KindSelect && (!f.c.Required() || !anySelected(f.c)) {
+								<option value="">{ ChooseText.T(ctx) }</option>
+							}
+							for o := range f.c.Options() {
+								<option value={ o.Value } selected?={ o.Selected }>{ o.Label.T(ctx) }</option>
+							}
+						</select>
+					case forms.KindMultiline:
+						<textarea { f.controlAttrs(ctx)... }>
+							if t := f.c.Text(); len(t) > 0 {
+								{ t[0] }
+							}
+						</textarea>
+					default:
+						<input { f.controlAttrs(ctx)... }/>
+				}
+			}
+			if f.c.Help() != nil {
+				<p class="ui-field-help" id={ fieldID.Part(ctx, "help") }>{ f.c.Help().T(ctx) }</p>
+			}
+			if err := f.c.Err(); err != nil {
+				<p class="ui-field-error" id={ fieldID.Part(ctx, "error") }>{ errors.T(ctx, err) }</p>
+			}
+		</div>
+	}
+}
+
+templ label(f FieldSpec) {
+	<label class="ui-field-label" for={ fieldID.Get(ctx) }>
+		if l := f.c.Label(); l != nil {
+			{ l.T(ctx) }
+		}
+		if f.c.Required() && f.c.Kind() != forms.KindCheckbox {
+			<span class="ui-field-required" aria-hidden="true">*</span>
+		}
+	</label>
+}
+
+templ hidden(name string, text []string) {
+	for _, t := range text {
+		<input type="hidden" name={ name } value={ t }/>
+	}
+}

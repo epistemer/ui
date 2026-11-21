@@ -1,1 +1,77 @@
-/* ui.inputs: filled by the D4 slice. */
+/* Fields rendered from forms controls (design §10). The control's edge is
+   the strong border: non-text contrast, 3:1. State comes from HTML and
+   ARIA: required, aria-invalid, disabled, hidden. */
+.ui-field {
+	display: grid;
+	gap: var(--ui-space-1);
+	margin-block-end: var(--ui-space-4);
+
+	&:has(> .ui-input[type="checkbox"]) {
+		grid-template-columns: auto 1fr;
+		align-items: center;
+		column-gap: var(--ui-space-2);
+
+		& > .ui-field-help,
+		& > .ui-field-error {
+			grid-column: 2;
+		}
+	}
+}
+
+.ui-field-label {
+	font-size: var(--ui-text-s);
+	font-weight: 600;
+}
+
+.ui-field-required {
+	margin-inline-start: var(--ui-space-1);
+	color: var(--ui-color-danger-text);
+}
+
+.ui-input {
+	min-block-size: 2.5em;
+	padding-block: var(--ui-space-2);
+	padding-inline: var(--ui-space-3);
+	border: 1px solid var(--ui-color-border-strong);
+	border-radius: var(--ui-radius-m);
+	font: inherit;
+	color: var(--ui-color-text);
+	background-color: var(--ui-color-surface-raised);
+
+	&:focus-visible {
+		border-color: var(--ui-color-focus);
+	}
+
+	&[aria-invalid="true"] {
+		border-color: var(--ui-color-danger-text);
+	}
+
+	&:disabled {
+		cursor: not-allowed;
+		opacity: 0.55;
+	}
+
+	&[type="checkbox"] {
+		inline-size: 1.25em;
+		min-block-size: 0;
+		block-size: 1.25em;
+		margin: 0;
+		padding: 0;
+		accent-color: var(--ui-color-brand);
+	}
+}
+
+.ui-field-help,
+.ui-field-error {
+	margin: 0;
+	font-size: var(--ui-text-xs);
+}
+
+.ui-field-help {
+	color: var(--ui-color-text-muted);
+}
+
+.ui-field-error {
+	font-weight: 600;
+	color: var(--ui-color-danger-text);
+}
