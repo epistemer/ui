@@ -183,7 +183,7 @@ func (h *Field[T]) Is(rules ...rule.Rule[T]) *Field[T] {
 			r = hook.DateOnly(r).(rule.Rule[T])
 		}
 		st.rules = append(st.rules, func(ctx context.Context, v any) error {
-			return rule.Check(ctx, v.(T), r)
+			return rule.Check(ctx, typed[T](v), r)
 		})
 		for k, v := range r.Attrs() {
 			st.attrs = append(st.attrs, [2]string{k, v})
@@ -266,8 +266,7 @@ func (h *Field[T]) Get() (T, bool) {
 	if !fd.present || fd.err != nil || len(fd.vals) <= h.stage {
 		return zero, false
 	}
-	v, ok := fd.vals[h.stage].(T)
-	return v, ok
+	return typed[T](fd.vals[h.stage]), true
 }
 
 // Ptr returns a pointer to the value, or nil when Get reports none, for
