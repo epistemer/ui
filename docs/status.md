@@ -3,6 +3,69 @@
 Newest entry first. Each working session adds one: what landed, decisions
 taken for epistemer, what's next, and what's waiting on epistemer.
 
+## 2026-11-22 — Design of the visual packages (D1–D3)
+
+**Landed** (this PR):
+- docs/ui-inventory.md (D1);
+- ADR 0004 (ui's own CSS) and ADR 0005 (client behaviour, proposed);
+- docs/visual-design.md (D3 draft);
+- review 0002;
+- the roadmap's D track (D1–D7).
+
+**Decided by epistemer (2026-11-21).** After a brainstorm on four axes
+(volume, atomic granularity, splitting logic from UI, a configurable
+theme), ui ships its own CSS, written in modern CSS, with no Tailwind and no
+Flowbite. Claude's reading of the other axes is in visual-design.md §2:
+- coverage instead of volume;
+- layers with one dependency rule instead of atomic design's vocabulary;
+- splitting logic from the view only where there is logic;
+- only tokens as configuration.
+
+**Storybook or our own catalogue.** templ ships `templ/storybook`, which
+runs Storybook's server mode. Claude recommends our own catalogue
+(visual-design.md §8, Q8):
+- `templ/storybook` brings Node back (`npx sb init`, `npm run
+  build-storybook`).
+- Its arguments are only text, booleans, ints, floats and objects. ui's
+  components take `i18n.Ter`, enums, slots and context values, so every
+  story would need a hand-written wrapper anyway.
+- It adds `rs/cors` and `x/mod` to go.mod.
+- Storybook's server mode is a less maintained corner of Storybook:
+  `@storybook/server-webpack5` is at 9.1.x, with no word on version 10.
+- Our own registry drives goldens, id and name checks inside `go test`.
+
+**Review 0002** (Gemini 4 Argon (High), about 71k tokens; Argon was out of
+cooldown): 19 findings. Two were rejected after checking:
+- Generated ids are process-wide, so htmx swaps don't collide.
+- Depending on models' interfaces is epistemer's chosen direction.
+
+Six blocking findings changed the design:
+- Tailwind v4's Preflight would beat ui's layers unless ui sits after
+  `base`.
+- A CSS-only popover fallback can't anchor in the top layer.
+- HTML keeps the first of two duplicate attributes, so behaviour
+  attributes are merged in Go.
+- A rendered `aria-expanded` goes stale.
+- Per-row confirm dialogs break inside menus and forms; one shared dialog
+  replaces them.
+- `embed` can't reach sibling packages, so all CSS lives in `theme/css/`.
+
+Q2's default moved from variadic options to builders, as in forms.
+
+**Tools.**
+- The `modern-web-guidance` skill can't run here: its package needs Node 22
+  or newer, and this machine has Node 20.20.2 (snap). The browser-support
+  claims in ADR 0004 come from web searches: invoker commands reached
+  Baseline in December 2025, anchor positioning in January 2026 (Firefox
+  147).
+- `templ/storybook` was read in the module cache (v0.3.1118).
+
+**Waiting on epistemer:**
+- ADR 0005 (Q7);
+- Q1–Q9 in visual-design.md §9, each with a default.
+
+**Next.** D4, the slice spike in `internal/spike`, built on the defaults.
+
 ## 2026-11-21 — v0.1.0
 
 **Landed.** PR #13 (F6.1), PR #14 (R.1), PR #15 (release review fixes),

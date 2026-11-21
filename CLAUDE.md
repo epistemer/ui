@@ -8,8 +8,10 @@ this module.
 
 - Read [docs/roadmap.md](docs/roadmap.md), then the newest entry of
   [docs/status.md](docs/status.md). The designs are
-  [docs/brief.md](docs/brief.md) (kernel) and
-  [docs/forms-design.md](docs/forms-design.md) (forms); the contract is
+  [docs/brief.md](docs/brief.md) (kernel),
+  [docs/forms-design.md](docs/forms-design.md) (forms) and
+  [docs/visual-design.md](docs/visual-design.md) (the visual packages, a
+  draft; its ADRs are 0004 and 0005); the contract is
   [docs/interface.md](docs/interface.md), locked by epistemer.
 - Claude owns this repository until v1.0.0, on the terms of
   [docs/ownership.md](docs/ownership.md) (delegated 2026-11-21). Only API
