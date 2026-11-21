@@ -33,7 +33,7 @@ func NewProvider[T any](def T) *Provider[T] {
 func (p *Provider[T]) Provide(v T) templ.Component {
 	return templ.ComponentFunc(func(ctx context.Context, w io.Writer) error {
 		children, ctx := block(ctx)
-		if err := inBlock(ctx, "ui.Provider.Provide"); err != nil {
+		if err := inBlock(ctx, w, "ui.Provider.Provide"); err != nil {
 			return err
 		}
 		return children.Render(p.With(ctx, v), w)

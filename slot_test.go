@@ -120,7 +120,9 @@ func TestSlotErrors(t *testing.T) {
 		{"a slotted component in a block", kerneltest.SlottedInBlock(), ui.ErrStrayContent, "slotted component"},
 		{"Provide in a block", kerneltest.ProvideInBlock(), ui.ErrInBlock, "Provide"},
 		{"Scope in a block", kerneltest.ScopeInBlock(), ui.ErrInBlock, "ui.Scope"},
-		{"Place in a block", kerneltest.PlaceInBlock(), ui.ErrInBlock, "Place of the slot"},
+		{"Place in a block", kerneltest.PlaceInBlock(), ui.ErrInBlock, "slot declared at"},
+		{"stray before a second fill", kerneltest.StrayThenTwice(), ui.ErrStrayContent, `"<b>early`},
+		{"stray before Provide", kerneltest.StrayThenProvide(), ui.ErrStrayContent, `"<b>early`},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			_, err := uitest.RenderErr(tc.c)
@@ -188,5 +190,78 @@ func TestValuedSlotNilInterface(t *testing.T) {
 	})
 	if _, err := uitest.RenderErr(ui.Slotted(layout, s)); err != nil || got != nil {
 		t.Errorf("Place(nil) of an interface type: Value %v, err %v", got, err)
+	}
+}
+
+func TestStrayWhiteSpace(t *testing.T) {
+	run := func(text string) error {
+		block := templ.ComponentFunc(func(ctx context.Context, w io.Writer) error {
+			_, err := io.WriteString(w, text)
+			return err
+		})
+		_, err := uitest.RenderErr(kerneltest.CartModal("t"), uitest.Context(func(ctx context.Context) context.Context {
+			return templ.WithChildren(ctx, block)
+		}))
+		return err
+	}
+	if err := run(" \t\n\f\r"); err != nil {
+		t.Errorf("HTML white space: %v", err)
+	}
+	if err := run("\u00a0"); !errors.Is(err, ui.ErrStrayContent) {
+		t.Errorf("a non-breaking space is content: %v", err)
+	}
+	long := strings.Repeat("x", 100)
+	if err := run(long); err == nil || strings.Contains(err.Error(), strings.Repeat("x", 41)) || !strings.Contains(err.Error(), strings.Repeat("x", 40)) {
+		t.Errorf("the message quotes 40 bytes: %v", err)
+	}
+}
+
+func TestStrayIgnoredWriteError(t *testing.T) {
+	block := templ.ComponentFunc(func(ctx context.Context, w io.Writer) error {
+		io.WriteString(w, "<p>ignored</p>") // the error is dropped
+		return nil
+	})
+	_, err := uitest.RenderErr(kerneltest.CartModal("t"), uitest.Context(func(ctx context.Context) context.Context {
+		return templ.WithChildren(ctx, block)
+	}))
+	if !errors.Is(err, ui.ErrStrayContent) {
+		t.Errorf("a block that drops the write's error: %v", err)
+	}
+}
+
+func TestValueShadowing(t *testing.T) {
+	if got := squash(uitest.Render(t, kerneltest.NestedValued())); got != "<i>inner</i><i>outer</i>" {
+		t.Errorf("got %s: the nearest placement's value wins, the outer one returns after", got)
+	}
+}
+
+func TestSlottedInFallback(t *testing.T) {
+	if got := squash(uitest.Render(t, kerneltest.CardInFallback())); !strings.Contains(got, "<h3>Fallback card</h3>") {
+		t.Errorf("a slotted component inside a fallback: %s", got)
+	}
+}
+
+func TestNilAndZeroSlots(t *testing.T) {
+	var typedNil *ui.Slot
+	for name, fn := range map[string]func(){
+		"typed nil in Slotted": func() { ui.Slotted(kerneltest.Price(), typedNil) },
+		"zero Slot Place":      func() { (&ui.Slot{}).Place() },
+		"zero SlotOf Value":    func() { (&ui.SlotOf[int]{}).Value(context.Background()) },
+		"Filled undeclared": func() {
+			layout := templ.ComponentFunc(func(ctx context.Context, _ io.Writer) error {
+				kerneltest.CardFooter.Filled(ctx)
+				return nil
+			})
+			ui.Slotted(layout, kerneltest.CartBody).Render(context.Background(), io.Discard)
+		},
+	} {
+		t.Run(name, func(t *testing.T) {
+			defer func() {
+				if msg, _ := recover().(string); !strings.HasPrefix(msg, "ui:") {
+					t.Errorf("panic %q: want a ui: message", msg)
+				}
+			}()
+			fn()
+		})
 	}
 }

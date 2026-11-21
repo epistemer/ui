@@ -236,3 +236,58 @@ templ SlottedInBlock() {
 		@Card("x")
 	}
 }
+
+templ StrayThenTwice() {
+	@CartModal("t") {
+		<b>early</b>
+		@CartBody {
+			<p></p>
+		}
+		@CartBody {
+			<p></p>
+		}
+	}
+}
+
+templ StrayThenProvide() {
+	@CartModal("t") {
+		<b>early</b>
+		@Currency.Provide("EGP") {
+			<p></p>
+		}
+	}
+}
+
+var Valued = ui.NewSlotOf[string]()
+
+func ValuedBox() templ.Component { return ui.Slotted(valuedBox(), Valued) }
+
+templ valuedBox() {
+	@Valued.Place("outer") {
+		@Valued.Place("inner") {
+			<i>{ Valued.Value(ctx) }</i>
+		}
+		<i>{ Valued.Value(ctx) }</i>
+	}
+}
+
+templ NestedValued() {
+	@ValuedBox()
+}
+
+var ShelfItems = ui.NewSlot()
+
+// Shelf's fallback holds a slotted component of its own.
+func Shelf() templ.Component { return ui.Slotted(shelf(), ShelfItems) }
+
+templ shelf() {
+	<section>
+		@ShelfItems.Place() {
+			@Card("Fallback card")
+		}
+	</section>
+}
+
+templ CardInFallback() {
+	@Shelf()
+}

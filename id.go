@@ -71,7 +71,7 @@ func Scope(ids ...ID) templ.Component {
 	}
 	return templ.ComponentFunc(func(ctx context.Context, w io.Writer) error {
 		children, ctx := block(ctx)
-		if err := inBlock(ctx, "ui.Scope"); err != nil {
+		if err := inBlock(ctx, w, "ui.Scope"); err != nil {
 			return err
 		}
 		src := sourceOf(ctx)

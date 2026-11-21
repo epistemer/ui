@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"reflect"
 	"runtime"
 	"strings"
 
@@ -58,8 +59,27 @@ type slotHandle struct {
 	pos string // file:line of NewSlot, for messages
 }
 
-func (s *Slot) slot() *slotHandle      { return s.h }
-func (s *SlotOf[T]) slot() *slotHandle { return s.h }
+func (s *Slot) slot() *slotHandle {
+	if s == nil {
+		return nil
+	}
+	return s.h
+}
+
+func (s *SlotOf[T]) slot() *slotHandle {
+	if s == nil {
+		return nil
+	}
+	return s.h
+}
+
+// must returns h, panicking for a slot not made by NewSlot or NewSlotOf.
+func must(h *slotHandle) *slotHandle {
+	if h == nil {
+		panic("ui: a slot not made with ui.NewSlot or ui.NewSlotOf")
+	}
+	return h
+}
 
 // NewSlot declares a slot that passes no value.
 //
@@ -75,6 +95,8 @@ func NewSlot() *Slot { return &Slot{newSlotHandle()} }
 //go:noinline
 func NewSlotOf[T any]() *SlotOf[T] { return &SlotOf[T]{newSlotHandle()} }
 
+var pkgPath = reflect.TypeFor[slotHandle]().PkgPath()
+
 // newSlotHandle records where NewSlot or NewSlotOf was called. Callers
 // and CallersFrames, unlike Caller, see through inlining, which package
 // initializers get.
@@ -84,7 +106,7 @@ func newSlotHandle() *slotHandle {
 	frames := runtime.CallersFrames(pcs[:n])
 	for {
 		f, more := frames.Next()
-		if !strings.HasSuffix(f.Function, "ui.NewSlot") && !strings.Contains(f.Function, "ui.NewSlotOf[") {
+		if f.Function != pkgPath+".NewSlot" && !strings.HasPrefix(f.Function, pkgPath+".NewSlotOf[") {
 			return &slotHandle{pos: fmt.Sprintf("%s:%d", f.File, f.Line)}
 		}
 		if !more {
@@ -129,15 +151,20 @@ func Slotted(layout templ.Component, slots ...SlotRef) templ.Component {
 		if c := collectorOf(ctx); c != nil {
 			// A slotted component written directly in another's block is
 			// stray content, never a fill.
+			if err := flush(w); err != nil {
+				return err
+			}
 			return &slotError{ErrStrayContent, "ui: a slotted component written directly in another slotted component's block; wrap it in a slot fill"}
 		}
 		fr := &frame{declared: declared, fills: map[*slotHandle]*fill{}}
 		c := &collector{frame: fr, lexical: frameOf(ctx)}
 		sink := &sink{}
-		if err := children.Render(context.WithValue(ctx, collectorKey{}, c), sink); err != nil {
-			if sink.stray != "" {
-				return &slotError{ErrStrayContent, fmt.Sprintf("ui: a slotted component's block wrote %q outside any fill", sink.stray)}
-			}
+		err := children.Render(context.WithValue(ctx, collectorKey{}, c), sink)
+		switch {
+		case sink.err != nil && (err == nil || errors.Is(err, ErrStrayContent)):
+			// Also when the block ignored the write's error.
+			return sink.err
+		case err != nil:
 			return err
 		}
 		return layout.Render(context.WithValue(ctx, frameKey{}, fr), w)
@@ -177,18 +204,35 @@ func frameOf(ctx context.Context) *frame {
 }
 
 // inBlock returns ErrInBlock, naming what, when ctx is a block's collect
-// pass.
-func inBlock(ctx context.Context, what string) error {
-	if collectorOf(ctx) != nil {
-		return fmt.Errorf("%w: %s; open it around the component call", ErrInBlock, what)
+// pass. It first flushes what the block wrote before, so stray content
+// written earlier is reported first.
+func inBlock(ctx context.Context, w io.Writer, what string) error {
+	if collectorOf(ctx) == nil {
+		return nil
+	}
+	if err := flush(w); err != nil {
+		return err
+	}
+	return fmt.Errorf("%w: %s; open it around the component call", ErrInBlock, what)
+}
+
+// flush pushes what templ buffered for a block into the collect sink,
+// which reports stray content then.
+func flush(w io.Writer) error {
+	if f, ok := w.(interface{ Flush() error }); ok {
+		return f.Flush()
 	}
 	return nil
 }
 
-// sink keeps nothing and refuses anything but HTML white space.
-type sink struct{ stray string }
+// sink keeps nothing and refuses anything but HTML white space. It keeps
+// the first stray content it saw.
+type sink struct{ err error }
 
 func (s *sink) Write(p []byte) (int, error) {
+	if s.err != nil {
+		return 0, s.err
+	}
 	for i, c := range p {
 		switch c {
 		case ' ', '\t', '\n', '\f', '\r':
@@ -197,15 +241,18 @@ func (s *sink) Write(p []byte) (int, error) {
 			if len(rest) > 40 {
 				rest = rest[:40]
 			}
-			s.stray = string(rest)
-			return i, ErrStrayContent
+			s.err = &slotError{ErrStrayContent, fmt.Sprintf("ui: a slotted component's block wrote %q outside any fill", rest)}
+			return i, s.err
 		}
 	}
 	return len(p), nil
 }
 
 // record fills h in the block being collected.
-func record(ctx context.Context, h *slotHandle) error {
+func record(ctx context.Context, w io.Writer, h *slotHandle) error {
+	if err := flush(w); err != nil {
+		return err
+	}
 	c := collectorOf(ctx)
 	if c == nil {
 		return h.errorf(ErrNoComponent, "filled outside any slotted component's block")
@@ -222,28 +269,34 @@ func record(ctx context.Context, h *slotHandle) error {
 
 // Render fills the slot: rendered in a slotted component's block, it
 // records its own block as the fill and writes nothing.
-func (s *Slot) Render(ctx context.Context, _ io.Writer) error { return record(ctx, s.h) }
+func (s *Slot) Render(ctx context.Context, w io.Writer) error { return record(ctx, w, must(s.slot())) }
 
 // Render fills the slot, like Slot.Render.
-func (s *SlotOf[T]) Render(ctx context.Context, _ io.Writer) error { return record(ctx, s.h) }
+func (s *SlotOf[T]) Render(ctx context.Context, w io.Writer) error {
+	return record(ctx, w, must(s.slot()))
+}
 
 // Place renders the caller's fill if there is one, even one that renders
 // nothing; otherwise this call's own block, the fallback.
-func (s *Slot) Place() templ.Component { return place(s.h, nil) }
+func (s *Slot) Place() templ.Component { return place(must(s.slot()), nil) }
 
 // Place renders the caller's fill, or this call's own block, with v as the
 // slot's Value.
 func (s *SlotOf[T]) Place(v T) templ.Component {
-	return place(s.h, func(ctx context.Context) context.Context {
-		return context.WithValue(ctx, valueKey{s.h}, provided[T]{v})
+	h := must(s.slot())
+	return place(h, func(ctx context.Context) context.Context {
+		return context.WithValue(ctx, valueKey{h}, provided[T]{v})
 	})
 }
 
 func place(h *slotHandle, withValue func(context.Context) context.Context) templ.Component {
 	return templ.ComponentFunc(func(ctx context.Context, w io.Writer) error {
 		fallback, ctx := block(ctx)
-		if err := inBlock(ctx, "Place of the slot declared at "+h.pos); err != nil {
-			return err
+		if collectorOf(ctx) != nil {
+			if err := flush(w); err != nil {
+				return err
+			}
+			return h.errorf(ErrInBlock, "Place written directly in a slotted component's block; place it in the layout, or inside a fill")
 		}
 		fr := frameOf(ctx)
 		if fr == nil {
@@ -267,11 +320,11 @@ func place(h *slotHandle, withValue func(context.Context) context.Context) templ
 
 // Filled reports whether the current component's caller filled the slot.
 // It panics outside a layout, or for a slot the component doesn't list.
-func (s *Slot) Filled(ctx context.Context) bool { return filled(ctx, s.h) }
+func (s *Slot) Filled(ctx context.Context) bool { return filled(ctx, must(s.slot())) }
 
 // Filled reports whether the current component's caller filled the slot,
 // like Slot.Filled.
-func (s *SlotOf[T]) Filled(ctx context.Context) bool { return filled(ctx, s.h) }
+func (s *SlotOf[T]) Filled(ctx context.Context) bool { return filled(ctx, must(s.slot())) }
 
 func filled(ctx context.Context, h *slotHandle) bool {
 	fr := frameOf(ctx)
@@ -287,9 +340,10 @@ func filled(ctx context.Context, h *slotHandle) bool {
 // Value returns the value of the nearest placement of the slot, in its
 // fill or in its fallback. It panics outside one.
 func (s *SlotOf[T]) Value(ctx context.Context) T {
-	b, ok := ctx.Value(valueKey{s.h}).(provided[T])
+	h := must(s.slot())
+	b, ok := ctx.Value(valueKey{h}).(provided[T])
 	if !ok {
-		panic(s.h.errorf(ErrNoComponent, "Value outside a placement of the slot").Error())
+		panic(h.errorf(ErrNoComponent, "Value outside a placement of the slot").Error())
 	}
 	return b.v
 }
