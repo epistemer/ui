@@ -3,6 +3,29 @@
 Newest entry first. Each working session adds one: what landed, decisions
 taken for epistemer, what's next, and what's waiting on epistemer.
 
+## 2026-11-21 — Forms F1: rules
+
+**Landed.** PR #3 (F1.1) and PR #4 (F1.2). `ui/forms/rule` is complete for
+v0.1: `Rule[T]`, `New`, `Err`, `Check`, `Attrs`, the twenty declared
+defaults, and the whole catalogue of interface §6.2.
+
+- **Amendment A1** (clarification, Claude): error texts follow errors'
+  convention, lower case with no final period. epistemer may overturn it.
+- `NotBefore`/`NotAfter` were written by Claude with an internal hook
+  (`forms/internal/hook.DateOnly`) through which forms makes them compare
+  calendar dates on a Date field and emit date attributes (§9.4).
+- F1.2 was delegated to Gemini 3.8 Flash (High) in a worktree outside the
+  repository, about 229k tokens; zp's data was read from a scratch clone,
+  so zp itself stayed untouched. Claude reviewed it: correct, no private
+  names; Claude tightened the no-compile test so each case names the
+  compiler error it expects.
+- F1.1's review (Gemini 3.8 Flash High, about 187k tokens; Argon still in
+  cooldown): the date-only hook kept datetime attributes, errors showed the
+  bound in its own zone, and `run` used a type assertion. All fixed, with
+  tests for every default error.
+
+**Next.** Kernel M2 (element ids) and forms F2 (the core), in parallel.
+
 ## 2026-11-21 — M1: context values
 
 **Landed** (PR #2). `Provider[T]` (NewProvider, Provide, With, Value) and

@@ -95,7 +95,7 @@ The designs are [brief.md](brief.md) (kernel) and
 | ✓ | ID | Item | Done when |
 |---|---|---|---|
 | ☑ | F1.1 | Rule[T], New, Err, Check, Attrs, and the declared default errors (`errors.forms.rule.*`) | Table tests; errors.Is finds each default; i18ntest shows a translated default |
-| ☐ | F1.2 | The v0.1 catalogue (forms-design §6.2), with the data behind Email, Phone, PostCode, CountryCode, CurrencyCode | Table tests from the salvaged cases pass; `testdata/nocompile` proves a rule on the wrong type fails to build |
+| ☑ | F1.2 | The v0.1 catalogue (forms-design §6.2), with the data behind Email, Phone, PostCode, CountryCode, CurrencyCode | Table tests from the salvaged cases pass; `testdata/nocompile` proves a rule on the wrong type fails to build |
 
 ### F2 — Core
 
