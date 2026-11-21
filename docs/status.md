@@ -3,6 +3,28 @@
 Newest entry first. Each working session adds one: what landed, decisions
 taken for epistemer, what's next, and what's waiting on epistemer.
 
+## 2026-11-21 — Kernel M3 and forms F3
+
+**Landed.** PR #7 (F3, conversion) and PR #8 (M3, the test kit).
+
+- **F3.** `Conv`, `As`, `Number`, `Parsed`. Rules run stage by stage, and
+  an earlier stage's rule wins over a later conversion error. `Number`
+  picks its parser once per field (no reflection per call). examples/shop
+  wraps `Parsed` as `money.Decimal`; 0.10000000000000000001 binds exactly.
+- **M3.** `Render`, `RenderErr` and `Context` (Claude); ADR 0003 accepts
+  golang.org/x/net/html for uitest only, and a test checks the kernel
+  still links none of it. `Golden` with its normaliser and `CheckIDs` were
+  delegated to Gemini 3.8 Flash (High), about 327k tokens; Claude reviewed
+  them and made the normaliser escape text, so text that looks like markup
+  never reads as an element.
+- **Review** of F3 and M3.1: Gemini 4 Neon (Medium), about 33k tokens. A
+  nil interface value between conversion stages could panic on user input;
+  `As` after `Set` desynchronised value and text. Both fixed, with the
+  tests it asked for; `Render` now derives from `t.Context()`.
+
+**Next.** Kernel M4 (slots), the kernel's largest milestone, and forms F4
+(conditions).
+
 ## 2026-11-21 — Kernel M2 and forms F2
 
 **Landed.** PR #5 (M2, element ids) and PR #6 (F2, the forms core).
