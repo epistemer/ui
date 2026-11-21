@@ -214,7 +214,7 @@ func normaliseNode(sb *strings.Builder, n *nethtml.Node, depth int) {
 		t := cleanText(n.Data)
 		if t != "" {
 			sb.WriteString(indent)
-			sb.WriteString(t)
+			sb.WriteString(html.EscapeString(t)) // text "<b>" never reads as an element
 			sb.WriteByte('\n')
 		}
 	case nethtml.ElementNode:

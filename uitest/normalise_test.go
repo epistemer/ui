@@ -1,6 +1,7 @@
 package uitest_test
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/epistemer/ui/uitest"
@@ -101,5 +102,12 @@ func TestNormalise(t *testing.T) {
 				t.Errorf("Normalise() mismatch\ngot:\n%q\nwant:\n%q", got, tt.want)
 			}
 		})
+	}
+}
+
+func TestNormaliseEscapesText(t *testing.T) {
+	got := uitest.Normalise("<p>&lt;b&gt;bold&lt;/b&gt;</p>")
+	if !strings.Contains(got, "&lt;b&gt;bold&lt;/b&gt;") || strings.Contains(got, "\n  <b>") {
+		t.Errorf("text that looks like markup must stay escaped:\n%s", got)
 	}
 }
