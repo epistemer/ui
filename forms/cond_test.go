@@ -1,6 +1,7 @@
 package forms_test
 
 import (
+	"context"
 	"encoding/json"
 	"os"
 	"path/filepath"
@@ -9,6 +10,7 @@ import (
 	"strconv"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/epistemer/errors"
 	"github.com/epistemer/ui/forms"
@@ -68,6 +70,9 @@ func (h handles) cond(t *testing.T, n wireNode) forms.Cond {
 			}
 			return f.Eq(v)
 		}
+		if n.V != "true" && n.V != "false" {
+			t.Fatalf("a checkbox compares true or false, not %q", n.V)
+		}
 		return h.boxes[n.K].Eq(n.V == "true")
 	case "filled":
 		if f, ok := h.text[n.K]; ok {
@@ -112,15 +117,31 @@ func TestConformanceVectors(t *testing.T) {
 					h.ints[name] = f.Int(name)
 				case "checkbox":
 					h.boxes[name] = f.Checkbox(name)
+				default:
+					t.Fatalf("field %q: unknown kind %q", name, v.Fields[name])
 				}
 			}
 			for name, w := range v.When {
 				var n wireNode
-				json.Unmarshal(w, &n)
-				h.text[name].When(h.cond(t, n))
+				if err := json.Unmarshal(w, &n); err != nil {
+					t.Fatal(err)
+				}
+				c := h.cond(t, n)
+				switch {
+				case h.text[name] != nil:
+					h.text[name].When(c)
+				case h.ints[name] != nil:
+					h.ints[name].When(c)
+				case h.boxes[name] != nil:
+					h.boxes[name].When(c)
+				default:
+					t.Fatalf("when on unknown field %q", name)
+				}
 			}
 			var n wireNode
-			json.Unmarshal(v.Cond, &n)
+			if err := json.Unmarshal(v.Cond, &n); err != nil {
+				t.Fatal(err)
+			}
 			c := h.cond(t, n)
 			assertWire(t, c, v.Cond)
 			probe := f.Text("probe").When(c)
@@ -211,4 +232,130 @@ func TestConditionPanics(t *testing.T) {
 	if _, err := json.Marshal(forms.Cond{}); err == nil {
 		t.Error("MarshalJSON of a zero Cond must fail")
 	}
+}
+
+func TestInactiveClearedBeforeAnyRule(t *testing.T) {
+	f := forms.New()
+	gate := f.Checkbox("gate")
+	var seen string
+	f.Text("first").Is(rule.New(func(context.Context, string) error { seen = laterValue(); return nil }))
+	later := f.Text("later").When(gate.Filled())
+	laterValue = later.Value
+	bind(f, "first=x&later=stale")
+	f.Validate(bg)
+	if seen != "" {
+		t.Errorf("a rule read %q from a later inactive field", seen)
+	}
+}
+
+var laterValue func() string
+
+func TestCheckboxConditions(t *testing.T) {
+	for _, tc := range []struct {
+		q                       string
+		eqTrue, eqFalse, filled bool
+	}{
+		{"box=on", true, false, true},
+		{"box=true", true, false, true},
+		{"box=false&box=on", true, false, true},
+		{"", false, true, false},
+		{"box=false", false, true, false},
+	} {
+		f := forms.New()
+		box := f.Checkbox("box")
+		a := f.Text("a").When(box.Eq(true))
+		b := f.Text("b").When(box.Eq(false))
+		c := f.Text("c").When(box.Filled())
+		bind(f, tc.q+"&a=1&b=1&c=1")
+		f.Validate(bg)
+		if (a.Value() == "1") != tc.eqTrue || (b.Value() == "1") != tc.eqFalse || (c.Value() == "1") != tc.filled {
+			t.Errorf("%q: Eq(true) %v, Eq(false) %v, Filled %v", tc.q, a.Value() == "1", b.Value() == "1", c.Value() == "1")
+		}
+	}
+}
+
+func TestLongChainsStayFast(t *testing.T) {
+	f := forms.New()
+	prev := f.Text("f0")
+	start := time.Now()
+	for i := 1; i <= 40; i++ {
+		next := f.Text("f" + strconv.Itoa(i))
+		next.When(forms.All(prev.In("a", "b", "c", "d"), prev.Filled()))
+		prev = next
+	}
+	if d := time.Since(start); d > time.Second {
+		t.Errorf("declaring a 40-field chain took %v", d)
+	}
+}
+
+func TestConditionOnConvertedField(t *testing.T) {
+	f := forms.New()
+	raw := f.Int("secs")
+	before := raw.Eq(90) // built before As: stays valid
+	c := raw.As(seconds)
+	after := c.Eq(90 * time.Second)
+	x := f.Text("x").When(before)
+	y := f.Text("y").When(after)
+	bind(f, "secs=90&x=1&y=1")
+	f.Validate(bg)
+	if x.Value() != "1" || y.Value() != "1" {
+		t.Errorf("before As %q, after As %q", x.Value(), y.Value())
+	}
+}
+
+func TestInactiveConversionErrorDoesNotFail(t *testing.T) {
+	f := forms.New()
+	gate := f.Text("gate")
+	n := f.Int("n").When(gate.Filled())
+	bind(f, "n=abc")
+	if !f.Validate(bg) || n.Err() != nil {
+		t.Errorf("an inactive field's conversion error failed the form: %v", f.Err())
+	}
+}
+
+func TestCyclesInAnyOrder(t *testing.T) {
+	f := forms.New()
+	a, b, c := f.Text("a"), f.Text("b"), f.Text("c")
+	a.When(forms.Not(b.Filled()))
+	c.When(forms.Any(a.In("x")))
+	defer func() {
+		if recover() == nil {
+			t.Error("closing a -> b -> c -> a in the middle did not panic")
+		}
+	}()
+	b.When(c.Filled())
+}
+
+func TestMoreConditionPanics(t *testing.T) {
+	bound := forms.New()
+	h := bound.Text("x")
+	g := bound.Text("g")
+	bound.Bind(forms.FromValues(nil))
+	raw := forms.New().Int("r")
+	raw.As(seconds)
+	for name, fn := range map[string]func(){
+		"When after Bind":   func() { h.When(g.Filled()) },
+		"Not zero":          func() { forms.Not(forms.Cond{}) },
+		"Any zero":          func() { forms.Any(forms.Cond{}) },
+		"Eq on File":        func() { forms.New().File("f").Eq(nil) },
+		"In on Texts":       func() { forms.New().Texts("t").In() },
+		"Eq on dead handle": func() { raw.Eq(1) },
+	} {
+		t.Run(name, func(t *testing.T) {
+			defer func() {
+				if recover() == nil {
+					t.Error("did not panic")
+				}
+			}()
+			fn()
+		})
+	}
+}
+
+func TestWireEdges(t *testing.T) {
+	f := forms.New()
+	a := f.Text("a")
+	assertWire(t, a.Eq(""), json.RawMessage(`{"typ":"c","k":"a","op":"eq","v":""}`))
+	assertWire(t, a.In(), json.RawMessage(`{"typ":"l","op":"or","args":[]}`))
+	assertWire(t, a.Eq("  padded "), json.RawMessage(`{"typ":"c","k":"a","op":"eq","v":"padded"}`))
 }

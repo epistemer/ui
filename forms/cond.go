@@ -3,6 +3,7 @@ package forms
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 )
 
 // Cond is a condition on other fields, built from their typed handles:
@@ -54,16 +55,20 @@ func (fd *field) mustBeScalar(method string) {
 }
 
 // formatText formats v at this handle's stage down to the text a client
-// sees.
+// sees, trimmed as Bind trims submitted text.
 func (h *Field[T]) formatText(v T) string {
 	var x any = v
 	for k := h.stage; k > 0; k-- {
 		x = h.f.stages[k].format(x)
 	}
-	if t := h.f.base.format(x); len(t) > 0 {
+	t := h.f.base.format(x)
+	if len(t) == 0 {
+		return ""
+	}
+	if h.f.raw {
 		return t[0]
 	}
-	return ""
+	return strings.TrimSpace(t[0])
 }
 
 // All holds when every c holds; All() holds.
@@ -120,13 +125,19 @@ func (n *condNode) walk(fn func(*field)) {
 }
 
 // dependsOn reports whether fd's activity reads target, directly or not.
+// Each field is visited once, so chains and diamonds stay linear.
 func (fd *field) dependsOn(target *field) bool {
-	if fd.when == nil {
+	return fd.reaches(target, map[*field]bool{})
+}
+
+func (fd *field) reaches(target *field, seen map[*field]bool) bool {
+	if fd.when == nil || seen[fd] {
 		return false
 	}
+	seen[fd] = true
 	found := false
 	fd.when.walk(func(ref *field) {
-		if ref == target || ref.dependsOn(target) {
+		if !found && (ref == target || ref.reaches(target, seen)) {
 			found = true
 		}
 	})
@@ -139,6 +150,9 @@ func (fd *field) active(memo map[*field]bool) bool {
 	if fd.when == nil {
 		return true
 	}
+	if memo == nil {
+		memo = map[*field]bool{}
+	}
 	if v, ok := memo[fd]; ok {
 		return v
 	}
@@ -150,12 +164,18 @@ func (fd *field) active(memo map[*field]bool) bool {
 func (n *condNode) eval(memo map[*field]bool) bool {
 	switch n.op {
 	case "eq":
-		return n.field.active(memo) && n.field.present && len(n.field.text) > 0 && n.field.text[0] == n.text
+		if !n.field.active(memo) || !n.field.present {
+			return false
+		}
+		if n.field.base.box { // a Checkbox compares "true" or "false", as a client reads .checked
+			return len(n.field.vals) > 0 && fmt.Sprint(n.field.vals[0]) == n.text
+		}
+		return len(n.field.text) > 0 && n.field.text[0] == n.text
 	case "filled":
 		if !n.field.active(memo) || !n.field.present {
 			return false
 		}
-		if n.field.base.always { // a Checkbox: filled when ticked
+		if n.field.base.box { // a Checkbox: filled when ticked
 			return len(n.field.vals) > 0 && n.field.vals[0] == true
 		}
 		return true

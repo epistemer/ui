@@ -86,13 +86,16 @@ func (f *Form) Validate(ctx context.Context) bool {
 	for i, fd := range f.fields {
 		active[i] = fd.active(memo)
 	}
-	failed := false
+	// Clear every inactive field before any rule runs, so a rule never
+	// reads an inactive field's stale value, whatever the order.
 	for i, fd := range f.fields {
 		if !active[i] {
 			fd.clear()
-			continue
 		}
-		if fd.validate(ctx) != nil {
+	}
+	failed := false
+	for i, fd := range f.fields {
+		if active[i] && fd.validate(ctx) != nil {
 			failed = true
 		}
 	}

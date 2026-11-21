@@ -81,6 +81,7 @@ func (f *Form) Bool(name string) *Field[bool] {
 func (f *Form) Checkbox(name string) *Field[bool] {
 	return newField[bool](f, name, KindCheckbox, codec{
 		always: true,
+		box:    true,
 		parse: func(in input) (any, error) {
 			if len(in.texts) == 0 {
 				return false, nil
