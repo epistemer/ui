@@ -130,7 +130,7 @@ The designs are [brief.md](brief.md) (kernel) and
 
 | ✓ | ID | Item | Done when |
 |---|---|---|---|
-| ☐ | F6.1 | Godoc examples, README guide: declaring a form and handling it, and the rule contributor note (adding a rule and its error) | The examples run as tests; `go list -deps ./forms/...` shows no templ, web framework or decimal |
+| ☑ | F6.1 | Godoc examples, README guide: declaring a form and handling it, and the rule contributor note (adding a rule and its error) | The examples run as tests; `go list -deps ./forms/...` shows no templ, web framework or decimal |
 
 ## R — Release v0.1.0
 
