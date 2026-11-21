@@ -193,7 +193,7 @@ func (h *Handler) CreateToy(w http.ResponseWriter, r *http.Request) {
 		h.render(w, r, http.StatusUnprocessableEntity, f)
 		return
 	}
-	http.Redirect(w, r, "/toys", http.StatusSeeOther)
+	http.Redirect(w, r, "/toys/"+toy.ID, http.StatusSeeOther)
 }
 ```
 
