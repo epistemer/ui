@@ -65,9 +65,13 @@ against neozp as it stands:
   needs the wider constraint to accept `big.Int`, and `rule.MinItems(1)`
   cannot infer `T`.
 
-**Next.** The lock. After it, kernel M1 and forms F1 start in parallel.
+**Lock.** epistemer locked interface.md on 2026-11-21, including the items
+marked *(new)*, §9 and `Parsed`'s wider constraint. From here, a change to
+what an app writes is an amendment (interface §10).
 
-**Waiting on epistemer.** The lock of interface.md. Its new items, not in
+**Next.** Kernel M1 and forms F1, in parallel.
+
+**Was waiting on epistemer** (now done): the lock of interface.md. Its new items, not in
 either design, are marked *(new)*: formstest's API (§7), the error keys and
 texts of the catalogue and of forms (§5.9, §6.3), and the condition
 operator names on the wire (§5.7). Also new since the designs: §9's

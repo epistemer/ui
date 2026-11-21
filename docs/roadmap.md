@@ -43,7 +43,7 @@ The designs are [brief.md](brief.md) (kernel) and
 | ✓ | ID | Item | Done when |
 |---|---|---|---|
 | ☑ | M0.1 | Module `github.com/epistemer/ui` (Go 1.27, MIT), doc.go, CLAUDE.md, CI with a `templ generate` drift check, and an `examples/shop` module with its own go.mod | CI runs green on a PR |
-| ☐ | M0.2 | brief.md, forms-design.md, this roadmap, ADR 0001 (kernel primitives), ADR 0002 (forms model), interface.md for both packages, status.md, ownership.md; cross-model review of interface.md | epistemer locks the interface |
+| ☑ | M0.2 | brief.md, forms-design.md, this roadmap, ADR 0001 (kernel primitives), ADR 0002 (forms model), interface.md for both packages, status.md, ownership.md; cross-model review of interface.md | epistemer locks the interface |
 | ☑ | M0.3 | templ contract tests against the templ version pinned in go.mod, and forms' compiler spike (forms-design §13.1 step 2) | Two templ tests pass (a Go component that skips ClearChildren leaks its block, one that clears does not; a block of only component calls, `if` and `for` writes nothing but white space). The spike's results and any fallback are in status.md and interface.md |
 
 ## Kernel

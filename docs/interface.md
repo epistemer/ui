@@ -7,10 +7,11 @@ The designs and their reasons are [brief.md](brief.md) and
 on. Once epistemer locks it, a change to anything here that alters what an
 app writes or gets back is an amendment (§10).
 
-**Status: draft for epistemer's lock (M0.2).** Items marked *(new)* were not
-spelled out in either design and are proposed here: formstest's API (§7),
-the catalogue's error keys and texts (§6.3), forms' own error texts (§5.9),
-and the condition operator names on the wire (§5.7).
+**Status: locked by epistemer on 2026-11-21 (M0.2).** Items marked *(new)*
+were not spelled out in either design and were proposed with this document:
+formstest's API (§7), the catalogue's error keys and texts (§6.3), forms'
+own error texts (§5.9), the condition operator names on the wire (§5.7),
+and §9. They are locked with the rest.
 
 ## 1. Module
 
