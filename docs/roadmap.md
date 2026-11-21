@@ -52,8 +52,8 @@ The designs are [brief.md](brief.md) (kernel) and
 
 | ✓ | ID | Item | Done when |
 |---|---|---|---|
-| ☐ | M1.1 | `Provider[T]`: NewProvider, Provide, With, Value | Table tests cover the default, nesting (the inner value wins, and the next sibling sees the outer value again), With from Go code, a value read three components down, and two concurrent renders with different values under -race |
-| ☐ | M1.2 | The internal block helper every kernel component uses for K3 | A component that renders `{ children... }`, called without a block inside Provide, renders nothing |
+| ☑ | M1.1 | `Provider[T]`: NewProvider, Provide, With, Value | Table tests cover the default, nesting (the inner value wins, and the next sibling sees the outer value again), With from Go code, a value read three components down, and two concurrent renders with different values under -race |
+| ☑ | M1.2 | The internal block helper every kernel component uses for K3 | A component that renders `{ children... }`, called without a block inside Provide, renders nothing |
 
 ### M2 — Element IDs
 

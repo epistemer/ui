@@ -3,6 +3,21 @@
 Newest entry first. Each working session adds one: what landed, decisions
 taken for epistemer, what's next, and what's waiting on epistemer.
 
+## 2026-11-21 — M1: context values
+
+**Landed** (PR #2). `Provider[T]` (NewProvider, Provide, With, Value) and
+the internal `block` helper that every kernel component uses for K3.
+
+- Values are boxed in the context, so a provided nil interface value wins
+  over the default (found by review).
+- A padding byte keeps providers of zero-sized types distinct (K8).
+- Review: Gemini 3.8 Flash (High), about 193k tokens (Argon in cooldown).
+  Five findings: the nil-interface bug and three missing tests were fixed;
+  "missing package" was wrong (it is on main); `ErrInBlock` in `Provide` is
+  M4.4's, once the collect pass exists.
+
+**Next.** Forms F1 (rules), then kernel M2 (element ids).
+
 ## 2026-11-21 — M0: the repository, the designs, the interface draft
 
 **Before starting.** The two designs existed only as Google Docs ("neozp ui
