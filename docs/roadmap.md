@@ -136,7 +136,7 @@ The designs are [brief.md](brief.md) (kernel) and
 
 | ✓ | ID | Item | Done when |
 |---|---|---|---|
-| ☐ | R.1 | API review of every exported identifier of both packages against interface.md, in docs/api-review.md | A written review lists each identifier and how it was checked, and its findings are fixed or filed |
+| ☑ | R.1 | API review of every exported identifier of both packages against interface.md, in docs/api-review.md | A written review lists each identifier and how it was checked, and its findings are fixed or filed |
 | ☐ | R.2 | CHANGELOG, the v0.1.0 tag, and a global Claude Code skill (`~/.claude/skills/ui/`) covering the kernel and forms | `go get github.com/epistemer/ui@v0.1.0` works through the module proxy |
 
 ## Backlog
