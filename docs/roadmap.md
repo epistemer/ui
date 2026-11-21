@@ -59,9 +59,9 @@ The designs are [brief.md](brief.md) (kernel) and
 
 | ✓ | ID | Item | Done when |
 |---|---|---|---|
-| ☐ | M2.1 | NewID and its name check, Scope, Get, Part | Tests cover nesting, siblings getting different values, Get outside a scope panicking with the id's name, and a label and input rendering matching `for` and `id` |
-| ☐ | M2.2 | IDSource: the process-wide default, Sequence, WithIDs | 64 goroutines drawing 10,000 ids each under -race produce no duplicate, and Sequence output is byte-stable across runs |
-| ☐ | M2.3 | Key and part escaping | A fuzz test shows every output is a valid CSS identifier, decoding gives the parts back, and no keyed id equals a generated one |
+| ☑ | M2.1 | NewID and its name check, Scope, Get, Part | Tests cover nesting, siblings getting different values, Get outside a scope panicking with the id's name, and a label and input rendering matching `for` and `id` |
+| ☑ | M2.2 | IDSource: the process-wide default, Sequence, WithIDs | 64 goroutines drawing 10,000 ids each under -race produce no duplicate, and Sequence output is byte-stable across runs |
+| ☑ | M2.3 | Key and part escaping | A fuzz test shows every output is a valid CSS identifier, decoding gives the parts back, and no keyed id equals a generated one |
 
 ### M3 — Test kit
 
