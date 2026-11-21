@@ -116,6 +116,26 @@ Bugs found that way, all fixed (visual-design.md §11): `this.popover` on a
 custom element, a select without an empty option, and a confirmation
 waiting on a deferred `close` event.
 
+**Review 0004** (Gemini 4 Argon (High), about 80k tokens): 14 findings,
+plus a verdict that §11's conclusions needed correcting before D5. Two
+were rejected after checking:
+- htmx forms don't double-confirm;
+- relative units are allowed by ADR 0004.
+
+The rest were fixed and checked again in the browser:
+- the confirmation rebuilt as one capture-and-replay path;
+- `refresh` no longer enabling what the app disabled;
+- an htmx swap inside a form now refreshed;
+- groups as fieldsets that carry their conditions;
+- a three-state toggle as a Yes/No select;
+- `multiple` for files, and the server's ticked rule for checkboxes;
+- a textarea's leading newline kept;
+- disabled menu items, arrow keys on the trigger, and typeahead.
+
+Claude's own reading of forms' bind code found one more gap, which the
+reviewer missed: the client read `["fixed", " "]` as absent and the server
+as "fixed". Two vectors were added, and both evaluators pass them.
+
 D4 is done.
 
 **For epistemer (API):** forms' `Control.Placeholder` falls back to the

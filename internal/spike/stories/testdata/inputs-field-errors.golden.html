@@ -7,6 +7,9 @@
       </span>
     </label>
     <select class="ui-input" id="field--t-1" name="type" required="">
+      <option value="">
+        Choose…
+      </option>
       <option value="fixed">
         Fixed amount
       </option>
@@ -22,7 +25,7 @@
         *
       </span>
     </label>
-    <input aria-describedby="field--t-2-help" class="ui-input" disabled="" id="field--t-2" name="amount" required="" type="text">
+    <input aria-describedby="field--t-2-help" class="ui-input" data-ui-when-off="" disabled="" id="field--t-2" name="amount" required="" type="text">
     <p class="ui-field-help" id="field--t-2-help">
       In the store&#39;s currency.
     </p>
@@ -52,6 +55,9 @@
     <input aria-describedby="field--t-5-error" aria-invalid="true" class="ui-input" id="field--t-5" name="agree" required="" type="checkbox" value="true">
     <label class="ui-field-label" for="field--t-5">
       The terms are agreed
+      <span aria-hidden="true" class="ui-field-required">
+        *
+      </span>
     </label>
     <p class="ui-field-error" id="field--t-5-error">
       is required

@@ -7,6 +7,9 @@
       </span>
     </label>
     <select class="ui-input" id="field--t-1" name="type" required="">
+      <option value="">
+        Choose…
+      </option>
       <option selected="" value="fixed">
         Fixed amount
       </option>
@@ -34,7 +37,7 @@
         *
       </span>
     </label>
-    <input class="ui-input" disabled="" id="field--t-3" max="100" min="1" name="percentage" required="" type="number">
+    <input class="ui-input" data-ui-when-off="" disabled="" id="field--t-3" max="100" min="1" name="percentage" required="" type="number">
   </div>
   <div class="ui-field">
     <label class="ui-field-label" for="field--t-4">
@@ -46,6 +49,9 @@
     <input checked="" class="ui-input" id="field--t-5" name="agree" required="" type="checkbox" value="true">
     <label class="ui-field-label" for="field--t-5">
       The terms are agreed
+      <span aria-hidden="true" class="ui-field-required">
+        *
+      </span>
     </label>
   </div>
   <button class="ui-button" type="submit">

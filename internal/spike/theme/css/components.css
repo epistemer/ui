@@ -2,6 +2,7 @@
    focus trapping and focus return are the browser's. */
 .ui-dialog {
 	inline-size: min(36em, 92vw);
+	max-block-size: 90dvh;
 	padding: 0;
 	border: 1px solid var(--ui-color-border);
 	border-radius: var(--ui-radius-l);
@@ -11,6 +12,12 @@
 
 	&::backdrop {
 		background-color: color-mix(in oklab, var(--ui-color-text) 40%, transparent);
+	}
+
+	/* A tall dialog scrolls its body; header and actions stay. */
+	&[open] {
+		display: flex;
+		flex-direction: column;
 	}
 }
 
@@ -29,6 +36,7 @@
 }
 
 .ui-dialog-body {
+	overflow-y: auto;
 	padding-block: var(--ui-space-4);
 	padding-inline: var(--ui-space-5);
 
@@ -62,7 +70,7 @@
 	padding: var(--ui-space-1);
 	inset: auto;
 	position-area: block-end span-inline-end;
-	position-try-fallbacks: flip-block;
+	position-try-fallbacks: flip-block, flip-inline, flip-block flip-inline;
 	border: 1px solid var(--ui-color-border);
 	border-radius: var(--ui-radius-m);
 	color: var(--ui-color-text);
@@ -102,5 +110,11 @@
 		&:focus-visible {
 			background-color: var(--ui-color-danger-subtle);
 		}
+	}
+
+	&:is(:disabled, [aria-disabled="true"]) {
+		cursor: not-allowed;
+		opacity: 0.55;
+		background-color: transparent;
 	}
 }

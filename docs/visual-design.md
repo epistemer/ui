@@ -396,8 +396,10 @@ forms-backed field, Dialog, the shared confirmation and Menu (part 2).
    - in a table of menus;
    - in a row inserted after load.
 
-   That held in the pane's Chromium. Where anchoring is missing,
-   `<ui-menu>` places the popover.
+   That held in the pane's Chromium, and `position-try-fallbacks` flips on
+   both axes for menus near an edge. Where anchoring is missing,
+   `<ui-menu>` places the popover itself, through CSSOM, and follows
+   scrolling and resizing while it's open.
 10. **Custom elements keep state in private fields.** On a custom element,
     `this.popover` is the reflection of the `popover` attribute. Assigning
     the panel to it wrote `popover="[object HTMLDivElement]"`, and the
@@ -405,28 +407,44 @@ forms-backed field, Dialog, the shared confirmation and Menu (part 2).
 11. **A select needs an empty first option.** Without one, the browser
     chooses the first option when nothing is chosen, so the page disagreed
     with the server: the evaluator showed a field the server had hidden.
-    `ChooseText` (`ui.inputs.choose`) fills it, and `required` makes the
-    browser ask.
+    `ChooseText` (`ui.inputs.choose`) fills it on every render, fresh or
+    re-rendered, unless the options have an empty value of their own.
+    `required` makes the browser ask.
 12. **forms' `Placeholder` falls back to the label.** ui's fields always
     show their label, so a placeholder repeating it is noise for a screen
     reader. The field renders one only on text inputs, and only when its
     text differs from the label's. It compares texts, because an
     `i18n.Ter` can be a func, which `==` can't compare.
-13. **The confirmation answers on its own buttons.** Chromium dispatches a
-    dialog's `close` event with rendering, which a page in the background
-    holds back. Answering on the click keeps the action in the person's
-    own task, and Esc still cancels through `close`. A confirmed submit
-    runs once, with its original submitter.
+13. **The confirmation takes one path.**
+    - A capturing listener stops a click on an element carrying the
+      question before anything else sees it, asks, and on yes dispatches
+      the click again. So whatever the click starts follows: a link (with
+      its modifier keys), a submit button with its submitter, an htmx
+      request, the app's own listener.
+    - The dialog closes before the action runs, answering on its own
+      buttons. Chromium dispatches `close` with rendering, which a
+      background page holds back, so Esc alone cancels through `close`.
+    - `htmx:confirm` covers requests a click doesn't start. A form with its
+      own question asks on submit.
+
+    The first version of this flow broke in four cases, all found by
+    review 0004: a form carrying the question, a menu item with no action
+    of its own, a link opened in a new tab, and an action that ran while
+    the dialog was still open.
 14. **Fills see the placement's context, and it pays.**
     `components.DialogClose(ctx, value)`, written inside the caller's fill,
     names the dialog around it. The kernel carries the generated id to the
-    caller's buttons with no plumbing.
+    caller's buttons with no plumbing. Outside a dialog, the kernel's `Get`
+    panics, so a misplaced call fails loudly.
 15. **A control's edge needs 3:1** (WCAG 1.4.11), which a decorative
     border doesn't reach. `--ui-color-border-strong` does, tested in both
     schemes.
-16. **The evaluator agrees with the server.** It passes forms' 21 vectors in
-    `go test` (goja, ADR 0006), and in the browser the type select shows,
-    hides and disables the dependent fields.
+16. **The evaluator agrees with the server, now.** The server trims each
+    value, drops the blank ones and keeps the last, so `["fixed", " "]`
+    reads "fixed". The client took the last raw value and read it as
+    absent. Two new vectors pin the rule. The evaluator passes all 23 (goja,
+    ADR 0006) and a test of chained conditions, and in the browser the
+    dependent fields show, hide and disable as the server would.
 17. **Not yet exercised in a browser:**
     - the invoker-command fallback and the menu's own placement (the
       pane's Chromium supports both natively);
@@ -434,3 +452,13 @@ forms-backed field, Dialog, the shared confirmation and Menu (part 2).
       loads no htmx.
 
     They wait for the browser test job.
+18. **What a condition disables carries a marker.** The server marks every
+    control and fieldset it renders disabled for a condition
+    (`data-ui-when-off`), and the script marks what it disables. The script
+    enables only marked controls, so a control the app disabled itself
+    stays disabled. Without the marker, a group the script showed stayed
+    disabled. Groups render as a `<fieldset>` carrying their condition,
+    and a child without a condition of its own follows its group.
+19. **A three-state boolean isn't a checkbox.** A checkbox can't say "no
+    answer", so `Bool` (forms' toggle) renders as a Yes/No select with an
+    empty first option.

@@ -29,6 +29,8 @@ func All() []catalog.Story {
 			variant("fresh", promotionForm(promotionFresh())),
 			variant("filled", promotionForm(promotionFilled())),
 			variant("errors", promotionForm(promotionErrors())),
+			variant("kinds", promotionForm(shippingFresh())),
+			variant("kinds-gift", promotionForm(shippingGift())),
 		}},
 		{Name: "components/dialog", Variants: []catalog.Variant{
 			variant("basic", dialogBasic()),

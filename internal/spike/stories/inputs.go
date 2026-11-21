@@ -63,3 +63,43 @@ func promotionErrors() *forms.Form {
 	p.Validate(context.Background())
 	return p.Form
 }
+
+// shipping shows the other kinds: a group with its own condition, a
+// three-state toggle, a textarea, files and a hidden field.
+type shipping struct {
+	*forms.Form
+	Gift    *forms.Field[bool]
+	Address *address
+}
+
+type address struct {
+	*forms.Form
+	Street *forms.Field[string]
+	Note   *forms.Field[string]
+}
+
+func newShipping() *shipping {
+	s := &shipping{Form: forms.New()}
+	s.Text("ref").Hint(forms.KindHidden)
+	s.Gift = s.Bool("gift").Label(i18n.Static("Wrapped as a gift?")).Required()
+	s.Address = s.Group("address", func(g *forms.Form) *address {
+		a := &address{Form: g}
+		a.Street = g.Text("street").Label(i18n.Static("Street")).Required()
+		a.Note = g.Text("note").Label(i18n.Static("Note for the courier")).Hint(forms.KindMultiline).
+			Placeholder(i18n.Static("Ring twice"))
+		return a
+	})
+	s.Address.Label(i18n.Static("Gift address")).When(s.Gift.Eq(true))
+	s.Files("photos").Label(i18n.Static("Photos of the toy"))
+	return s
+}
+
+func shippingFresh() *forms.Form { return newShipping().Form }
+
+func shippingGift() *forms.Form {
+	s := newShipping()
+	s.Gift.Set(true)
+	s.Address.Street.Set("12 Corniche")
+	s.Address.Note.Set("\nleave with the doorman")
+	return s.Form
+}

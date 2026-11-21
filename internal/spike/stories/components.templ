@@ -53,6 +53,9 @@ templ menuBasic() {
 			@components.MenuItem() {
 				Duplicate
 			}
+			@components.MenuItem().Href("/stores/1/archive").Disabled(true) {
+				Archive
+			}
 			@components.MenuItem().Danger().Attrs(components.Confirm(ctx, i18n.Static("Delete this store?"))) {
 				Delete
 			}

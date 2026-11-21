@@ -15,21 +15,31 @@ export function evaluate(cond, env) {
 	const memo = new Map();
 	const visiting = new Set();
 
+	// The server rejects cycles when the form is declared, so none reaches
+	// a page; if one did, never loop, and don't cache what a cut cycle
+	// decided, so the answer can't depend on evaluation order.
+	let cut = false;
 	function active(name) {
 		if (memo.has(name)) return memo.get(name);
-		if (visiting.has(name)) return false; // the server rejects cycles; never loop
+		if (visiting.has(name)) {
+			cut = true;
+			return false;
+		}
 		visiting.add(name);
 		const conds = env.when(name) || [];
 		let ok = true;
 		for (let i = 0; i < conds.length && ok; i++) ok = holds(conds[i]);
 		visiting.delete(name);
-		memo.set(name, ok);
+		if (!cut) memo.set(name, ok);
+		if (visiting.size === 0) cut = false;
 		return ok;
 	}
 
+	// The server trims each value, drops the blank ones, and keeps the last
+	// that remains: ["fixed", " "] reads "fixed".
 	function last(name) {
-		const vs = env.values(name) || [];
-		return vs.length ? String(vs[vs.length - 1]).trim() : "";
+		const vs = (env.values(name) || []).map((v) => String(v).trim()).filter((v) => v !== "");
+		return vs.length ? vs[vs.length - 1] : "";
 	}
 
 	function ticked(name) {

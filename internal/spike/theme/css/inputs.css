@@ -38,12 +38,18 @@
 	color: var(--ui-color-text);
 	background-color: var(--ui-color-surface-raised);
 
+	&[aria-invalid="true"],
+	&:user-invalid {
+		border-color: var(--ui-color-danger-text);
+	}
+
+	/* After the invalid rule, so focus shows on an invalid control too. */
 	&:focus-visible {
 		border-color: var(--ui-color-focus);
 	}
 
-	&[aria-invalid="true"] {
-		border-color: var(--ui-color-danger-text);
+	&:is(textarea) {
+		resize: vertical;
 	}
 
 	&:disabled {
@@ -74,4 +80,20 @@
 .ui-field-error {
 	font-weight: 600;
 	color: var(--ui-color-danger-text);
+}
+
+/* A group (forms' Group): a fieldset, so its legend names its fields and
+   disabling it disables all of them. */
+.ui-group {
+	margin: 0;
+	margin-block-end: var(--ui-space-4);
+	padding-block: var(--ui-space-3);
+	padding-inline: var(--ui-space-4);
+	border: 1px solid var(--ui-color-border);
+	border-radius: var(--ui-radius-m);
+}
+
+.ui-group-legend {
+	padding-inline: var(--ui-space-1);
+	font-weight: 600;
 }

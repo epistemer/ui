@@ -36,8 +36,13 @@ DOM waits for the browser job ADR 0005 leaves open.
 
 ## Consequences
 
-- The evaluator's tests run in `go test`, beside the Go evaluator's, on the
-  same vector files. A change to the vectors runs both.
+- CI runs the evaluator's tests beside the Go evaluator's, on the same
+  vector files, so a change to the vectors runs both. Locally, the root
+  module's `go test ./...` skips a nested module: run `go test -count=1
+  ./...` in `internal/jstest`. The `-count=1` matters, because Go's test
+  cache doesn't track files outside the module, and the vectors live in
+  `forms/`. Review 0004 found a semantic gap that a cached pass had
+  hidden.
 - The evaluator is written in plain ES2017, with no optional chaining and
   no `Array.prototype.at`, so goja runs it unchanged apart from the export.
 - goja has no tagged releases; go.mod pins a pseudo-version, which tidy

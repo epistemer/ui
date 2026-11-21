@@ -10,6 +10,7 @@ import (
 
 	"github.com/epistemer/i18n"
 	"github.com/epistemer/ui"
+	"github.com/epistemer/ui/internal/spike/elements"
 )
 
 // ui's own text (Q5): keys under ui.<package>, English by default.
@@ -61,7 +62,8 @@ func triggerAttrs(ctx context.Context) templ.Attributes {
 // DialogClose returns the attributes of a button that closes the dialog
 // around it. Fills see the placement's context, so inside DialogBody or
 // DialogActions it names that dialog; value becomes the dialog's
-// returnValue.
+// returnValue. Outside a dialog the kernel's Get panics, so a misplaced
+// call can't produce a button that names nothing.
 func DialogClose(ctx context.Context, value string) templ.Attributes {
 	return templ.Attributes{"commandfor": dialogID.Get(ctx), "command": "close", "value": value}
 }
@@ -112,10 +114,15 @@ func menuTriggerAttrs(ctx context.Context) templ.Attributes {
 
 // MenuItemSpec is one item of a menu: a button, or a link with Href.
 type MenuItemSpec struct {
-	href  templ.SafeURL
-	tone  string
-	attrs templ.Attributes
+	href     templ.SafeURL
+	tone     string
+	disabled bool
+	attrs    templ.Attributes
 }
+
+// Disabled disables the item when d is true: arrow keys skip it, and a
+// link loses its href (design §5).
+func (m MenuItemSpec) Disabled(d bool) MenuItemSpec { m.disabled = d; return m }
 
 // MenuItem starts an item; its children are its text.
 func MenuItem() MenuItemSpec { return MenuItemSpec{} }
@@ -144,19 +151,25 @@ func (m MenuItemSpec) Attrs(a templ.Attributes) MenuItemSpec {
 }
 
 func (m MenuItemSpec) Render(ctx context.Context, w io.Writer) error {
-	own := templ.Attributes{"class": "ui-menu-item", "role": "menuitem", "tabindex": "-1"}
+	// type defaults to button; a caller may make the item submit a form
+	// (type="submit" form="…"). Role, tabindex and href stay the item's.
+	own := templ.Attributes{"class": "ui-menu-item", "role": "menuitem", "tabindex": "-1", "type": "button"}
 	if m.tone != "" {
 		own["data-tone"] = m.tone
 	}
-	for k, v := range m.attrs {
-		if _, taken := own[k]; !taken {
-			own[k] = v
+	if m.disabled {
+		own["aria-disabled"] = "true"
+	}
+	link := m.href != ""
+	if link {
+		delete(own, "type")
+		if !m.disabled {
+			own["href"] = m.href
 		}
 	}
-	if m.href != "" {
-		own["href"] = m.href
+	own = elements.Merge(own, []string{"role", "tabindex", "href", "aria-disabled", "data-tone"}, m.attrs)
+	if link {
 		return menuLink(own).Render(ctx, w)
 	}
-	own["type"] = "button"
 	return menuButton(own).Render(ctx, w)
 }

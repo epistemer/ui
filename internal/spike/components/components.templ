@@ -20,6 +20,7 @@ templ dialog(title i18n.Ter) {
 				@elements.Button().Variant(elements.Ghost).Size(elements.Small).Attrs(templ.Attributes{
 					"commandfor": dialogID.Get(ctx),
 					"command":    "close",
+					"value":      "",
 					"aria-label": CloseText.T(ctx),
 				}) {
 					@icons.X()
