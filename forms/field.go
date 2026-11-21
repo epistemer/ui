@@ -35,18 +35,20 @@ type field struct {
 	dateOnly                 bool // Date: time rules compare dates
 	options                  []option.SelectOption
 	optionsSet               bool // Options or Enum: the text must be one of options
+	when                     *condNode
 
 	base   codec
 	stages []*stage // stages[0] holds the base type's rules
 	live   int      // the stage of the only handle still usable
 
 	// State.
-	present bool
-	text    []string
-	vals    []any // per stage, up to the stage that failed to convert
-	convAt  int   // the stage whose conversion failed; -1 for none
-	convErr error
-	err     error // the field's error: conversion, required, rule or Fail
+	inactive bool // cleared by Validate because its condition failed
+	present  bool
+	text     []string
+	vals     []any // per stage, up to the stage that failed to convert
+	convAt   int   // the stage whose conversion failed; -1 for none
+	convErr  error
+	err      error // the field's error: conversion, required, rule or Fail
 }
 
 // codec reads the base type from submitted input and writes it back.
@@ -259,11 +261,11 @@ func (h *Field[T]) Value() T {
 }
 
 // Get returns the field's value and whether it has one: present, active
-// and without error.
+// (after Validate) and without error.
 func (h *Field[T]) Get() (T, bool) {
 	fd := h.use("Get")
 	var zero T
-	if !fd.present || fd.err != nil || len(fd.vals) <= h.stage {
+	if !fd.present || fd.inactive || fd.err != nil || len(fd.vals) <= h.stage {
 		return zero, false
 	}
 	return typed[T](fd.vals[h.stage]), true
@@ -292,7 +294,7 @@ func (h *Field[T]) Fail(err error) {
 }
 
 func (fd *field) bind(src Source) {
-	fd.vals, fd.text, fd.present, fd.convAt, fd.convErr, fd.err = nil, nil, false, -1, nil, nil
+	fd.vals, fd.text, fd.present, fd.convAt, fd.convErr, fd.err, fd.inactive = nil, nil, false, -1, nil, nil, false
 	var in input
 	if fd.base.files {
 		for _, fh := range src.Files(fd.name) {
@@ -338,6 +340,11 @@ func (fd *field) bind(src Source) {
 		}
 		fd.vals = append(fd.vals, v)
 	}
+}
+
+// clear drops an inactive field's value, text and error.
+func (fd *field) clear() {
+	fd.vals, fd.text, fd.present, fd.convAt, fd.convErr, fd.err, fd.inactive = nil, nil, false, -1, nil, nil, true
 }
 
 // validate decides the field's error (interface §5.1, §9.2) and returns it.

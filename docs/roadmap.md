@@ -115,8 +115,8 @@ The designs are [brief.md](brief.md) (kernel) and
 
 | ✓ | ID | Item | Done when |
 |---|---|---|---|
-| ☐ | F4.1 | Cond, Eq, In, Filled, All, Any, Not, When, evaluation and cycle detection | A required field under a false When is not required; a stale value is cleared; a cycle panics at the closing When |
-| ☐ | F4.2 | MarshalJSON in zp's wire format, and the conformance vectors in `testdata/cond/` | The Go evaluator passes every vector |
+| ☑ | F4.1 | Cond, Eq, In, Filled, All, Any, Not, When, evaluation and cycle detection | A required field under a false When is not required; a stale value is cleared; a cycle panics at the closing When |
+| ☑ | F4.2 | MarshalJSON in zp's wire format, and the conformance vectors in `testdata/cond/` | The Go evaluator passes every vector |
 
 ### F5 — Nesting and view
 

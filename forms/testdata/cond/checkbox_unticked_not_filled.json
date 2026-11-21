@@ -1,0 +1,1 @@
+{"fields":{"agree":"checkbox"},"cond":{"typ":"c","k":"agree","op":"filled"},"values":{"agree":["false"]},"want":false}

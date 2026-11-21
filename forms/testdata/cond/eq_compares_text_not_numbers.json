@@ -1,0 +1,1 @@
+{"fields":{"n":"int"},"cond":{"typ":"c","k":"n","op":"eq","v":"1"},"values":{"n":["01"]},"want":false}
