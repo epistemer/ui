@@ -3,6 +3,37 @@
 Newest entry first. Each working session adds one: what landed, decisions
 taken for epistemer, what's next, and what's waiting on epistemer.
 
+## 2026-11-21 — Forms F5 (nesting, Control, formstest) and kernel M5.1 (docs)
+
+**Landed.** PR #11 (F5) and PR #12 (M5.1). The kernel is feature-complete
+for v0.1.0 (M1–M5.1); forms has F1–F5.
+
+- **F5** (Claude). A form is a tree of fields, groups and lists. Groups
+  and lists post under paths; lists bind sparse indices, renumber, honour
+  limits, and expose a template row at `__i__`. Activity and cycle checks
+  follow container chains; conditions can't reach into a list's items
+  from outside. `Control` is the typed-free view for renderers; formstest
+  has `Submit`, `Errors`, `AssertLabelled`. examples/shop has the
+  promotion form of forms-design §11.2 (conditions, two groups, a list
+  with conditions inside items).
+- **F5 review** (Gemini 4 Neon High, about 86k tokens): junk list indices
+  could trigger `ErrMaxItems` and push out real items; the building flag
+  that lets a list declare items after Bind covered the whole form; list
+  items accepted `When` and ignored it; an inactive group kept its error;
+  `AssertLabelled` skipped empty lists; a template row inherited its
+  list's inactivity, so a renderer would emit it disabled. All fixed with
+  tests, recorded as **amendment A2** (clarifications; epistemer may
+  overturn them). staticcheck caught an unused test variable in CI.
+- **M5.1** (Gemini 3.8 Flash High, about 277k tokens; reviewed by
+  Claude): godoc examples that run as tests for Provider, ID, slots and
+  uitest; the package overview; README guides for writing and filling a
+  slotted component, with HTML from a real run. Claude corrected one name
+  (`Provider.Provide`).
+
+**Next.** F6 (forms docs: godoc examples, README guide, the rule
+contributor note), then R.1 (API review against interface.md) and R.2
+(CHANGELOG, v0.1.0, the `ui` skill).
+
 ## 2026-11-21 — Kernel M4 (slots) and forms F4 (conditions)
 
 **Landed.** PR #9 (F4) and PR #10 (M4). The kernel's milestones M1–M4 are
