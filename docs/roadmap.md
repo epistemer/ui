@@ -86,7 +86,7 @@ The designs are [brief.md](brief.md) (kernel) and
 
 | ✓ | ID | Item | Done when |
 |---|---|---|---|
-| ☐ | M5.1 | Godoc examples, and README guides: writing a slotted component, and filling one | The examples run as tests, and the README's output is pasted from a real run |
+| ☑ | M5.1 | Godoc examples, and README guides: writing a slotted component, and filling one | The examples run as tests, and the README's output is pasted from a real run |
 
 ## Forms
 
