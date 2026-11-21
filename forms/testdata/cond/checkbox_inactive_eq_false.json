@@ -1,0 +1,1 @@
+{"fields":{"gate":"text","agree":"checkbox"},"when":{"agree":{"typ":"c","k":"gate","op":"filled"}},"cond":{"typ":"c","k":"agree","op":"eq","v":"false"},"values":{},"want":false}
