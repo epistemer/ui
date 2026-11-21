@@ -205,14 +205,13 @@ func TestControlBeforeBind(t *testing.T) {
 
 func TestRedisplayThroughControl(t *testing.T) {
 	f := forms.New()
-	n := f.Int("n")
 	c := f.Int("c").As(seconds)
 	c.Set(90_000_000_000)
 	if !slices.Equal(c.Control().Text(), []string{"90"}) {
 		t.Errorf("formatted initial value %v", c.Control().Text())
 	}
 	g := forms.New()
-	n = g.Int("n")
+	n := g.Int("n")
 	formstest.Submit(t, bg, g, "n=abc")
 	if !slices.Equal(n.Control().Text(), []string{"abc"}) || !errors.Is(n.Control().Err(), forms.ErrInvalid) {
 		t.Errorf("redisplay %v %v", n.Control().Text(), n.Control().Err())
