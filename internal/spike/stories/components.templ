@@ -1,0 +1,93 @@
+package stories
+
+import (
+	"github.com/epistemer/i18n"
+	"github.com/epistemer/ui/internal/spike/components"
+	"github.com/epistemer/ui/internal/spike/elements"
+)
+
+templ dialogBasic() {
+	@components.Dialog(i18n.Static("Edit the store")) {
+		@components.DialogBody {
+			<p>The store's name and address appear on every receipt.</p>
+		}
+		@components.DialogActions {
+			@elements.Button().Variant(elements.Ghost).Attrs(components.DialogClose(ctx, "cancel")) {
+				Cancel
+			}
+			@elements.Button().Attrs(components.DialogClose(ctx, "save")) {
+				Save
+			}
+		}
+	}
+}
+
+templ dialogCustomTrigger() {
+	@components.Dialog(i18n.Static("Order details")) {
+		@components.DialogTrigger {
+			@elements.Button().Variant(elements.Outline).Attrs(components.DialogTrigger.Value(ctx)) {
+				Open the details
+			}
+		}
+		@components.DialogBody {
+			<p>Three items, shipped on Tuesday.</p>
+		}
+	}
+}
+
+templ confirmForm() {
+	<form class="catalog-row" method="post" action="/catalog/none">
+		@elements.Button().Submit().Tone(elements.Danger).Attrs(components.Confirm(ctx, i18n.Static("Delete the store? Its orders stay."))) {
+			Delete the store
+		}
+	</form>
+	@components.ConfirmDialog()
+}
+
+templ menuBasic() {
+	@components.Menu(i18n.Static("Actions")) {
+		@components.MenuItems {
+			@components.MenuItem().Href("/stores/1/edit") {
+				Edit
+			}
+			@components.MenuItem() {
+				Duplicate
+			}
+			@components.MenuItem().Href("/stores/1/archive").Disabled(true) {
+				Archive
+			}
+			@components.MenuItem().Danger().Attrs(components.Confirm(ctx, i18n.Static("Delete this store?"))) {
+				Delete
+			}
+		}
+	}
+	@components.ConfirmDialog()
+}
+
+templ menuInTable() {
+	<table class="catalog-table">
+		<thead>
+			<tr><th scope="col">Store</th><th scope="col">City</th><th scope="col"><span class="ui-visually-hidden">Actions</span></th></tr>
+		</thead>
+		<tbody>
+			for _, s := range []string{"Bricks & Co", "Puzzle Corner"} {
+				<tr>
+					<td>{ s }</td>
+					<td>Alexandria</td>
+					<td>
+						@components.Menu(i18n.Static("Actions")) {
+							@components.MenuItems {
+								@components.MenuItem().Href("/stores/edit") {
+									Edit
+								}
+								@components.MenuItem().Danger() {
+									Delete
+								}
+							}
+						}
+					</td>
+				</tr>
+			}
+		</tbody>
+	</table>
+}

@@ -1,0 +1,86 @@
+package components
+
+import (
+	"github.com/epistemer/i18n"
+	"github.com/epistemer/ui"
+	"github.com/epistemer/ui/internal/spike/elements"
+	"github.com/epistemer/ui/internal/spike/icons"
+)
+
+templ dialog(title i18n.Ter) {
+	@ui.Scope(dialogID) {
+		@DialogTrigger.Place(triggerAttrs(ctx)) {
+			@elements.Button().Attrs(DialogTrigger.Value(ctx)) {
+				{ title.T(ctx) }
+			}
+		}
+		<dialog class="ui-dialog" id={ dialogID.Get(ctx) } aria-labelledby={ dialogID.Part(ctx, "title") }>
+			<header class="ui-dialog-header">
+				<h2 class="ui-dialog-title" id={ dialogID.Part(ctx, "title") }>{ title.T(ctx) }</h2>
+				@elements.Button().Variant(elements.Ghost).Size(elements.Small).Attrs(templ.Attributes{
+					"commandfor": dialogID.Get(ctx),
+					"command":    "close",
+					"value":      "",
+					"aria-label": CloseText.T(ctx),
+				}) {
+					@icons.X()
+				}
+			</header>
+			<div class="ui-dialog-body">
+				@DialogBody.Place()
+			</div>
+			if DialogActions.Filled(ctx) {
+				<footer class="ui-dialog-actions">
+					@DialogActions.Place()
+				</footer>
+			}
+		</dialog>
+	}
+}
+
+templ confirmDialog() {
+	<dialog class="ui-dialog" id="ui-confirm" aria-labelledby="ui-confirm-title" aria-describedby="ui-confirm-question" data-ui-confirm-dialog>
+		<header class="ui-dialog-header">
+			<h2 class="ui-dialog-title" id="ui-confirm-title">{ ConfirmTitle.T(ctx) }</h2>
+		</header>
+		<div class="ui-dialog-body">
+			<p id="ui-confirm-question"></p>
+		</div>
+		<footer class="ui-dialog-actions">
+			@elements.Button().Variant(elements.Ghost).Attrs(templ.Attributes{"commandfor": "ui-confirm", "command": "close", "value": "cancel"}) {
+				{ ConfirmNo.T(ctx) }
+			}
+			@elements.Button().Tone(elements.Danger).Attrs(templ.Attributes{"commandfor": "ui-confirm", "command": "close", "value": "confirm"}) {
+				{ ConfirmYes.T(ctx) }
+			}
+		</footer>
+	</dialog>
+}
+
+templ menu(label i18n.Ter) {
+	@ui.Scope(menuID) {
+		<ui-menu class="ui-menu">
+			@MenuTrigger.Place(menuTriggerAttrs(ctx)) {
+				@elements.Button().Variant(elements.Outline).Attrs(MenuTrigger.Value(ctx)) {
+					{ label.T(ctx) }
+					@icons.ChevronDown()
+				}
+			}
+			<div class="ui-menu-popover" id={ menuID.Get(ctx) } popover role="menu" aria-labelledby={ menuID.Part(ctx, "trigger") }>
+				@MenuItems.Place()
+			</div>
+		</ui-menu>
+	}
+}
+
+templ menuButton(attrs templ.Attributes) {
+	<button { attrs... }>
+		{ children... }
+	</button>
+}
+
+templ menuLink(attrs templ.Attributes) {
+	<a { attrs... }>
+		{ children... }
+	</a>
+}

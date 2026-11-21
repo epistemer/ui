@@ -14,8 +14,14 @@ func TestNeutralTokensReadOnEverySurface(t *testing.T) {
 				}
 			}
 		}
-		// Borders are decoration (inputs also carry a label), but they must
-		// still be visible against both surfaces.
+		// A control's edge is non-text content that identifies it (WCAG
+		// 1.4.11): 3:1 against both surfaces.
+		for _, ground := range []string{"color-surface", "color-surface-raised"} {
+			if c := Contrast(surface("color-border-strong", s), surface(ground, s)); c < 3 {
+				t.Errorf("%s: strong border on %s is %.2f:1", s, ground, c)
+			}
+		}
+		// Decorative borders must still be visible against both surfaces.
 		for _, ground := range []string{"color-surface", "color-surface-raised"} {
 			if c := Contrast(surface("color-border", s), surface(ground, s)); c < 1.2 {
 				t.Errorf("%s: border on %s is %.2f:1", s, ground, c)

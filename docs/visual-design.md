@@ -225,7 +225,7 @@ Everything not listed below is native HTML or CSS.
 |---|---|
 | Dialog | `<dialog>` opened by `commandfor` and `command="show-modal"`; the ui script stands in where invoker commands are missing |
 | Confirmation | one shared dialog in the layout shell, driven by `htmx:confirm` and `data-ui-confirm` |
-| Menu | `popover` and `<ui-menu>`: focus to the first item, arrow keys, `aria-expanded` kept in step; anchor positioning, or the script's positioning where it is missing |
+| Menu | `popover` opened by `popovertarget` (Baseline 2024), which also makes the trigger the popover's implicit anchor, so `position-area` places it with no anchor name and no inline style; `<ui-menu>`: focus to the first item, arrow keys, `aria-expanded` kept in step, and placement where anchoring is missing |
 | Tooltip | CSS on hover and focus, the text referenced by `aria-describedby`, Esc to dismiss from the delegated listener |
 | Disclosure | `<details>` |
 | Fieldset | `<fieldset>` with `<legend>` (so the group has a name, and `disabled` reaches every control); a collapsible one wraps its content in `<details>` |
@@ -346,7 +346,8 @@ locks the interface (D6). The spike's findings amend this draft (§11).
 
 ## 11. Spike findings
 
-From D4 so far: the theme pipeline, Button and the catalogue.
+From D4: the theme pipeline, Button and the catalogue (part 1); the
+forms-backed field, Dialog, the shared confirmation and Menu (part 2).
 
 1. **Shades move away from the on-colour.** The first spike mixed hover and
    active towards black in light mode and white in dark mode, in the
@@ -386,3 +387,78 @@ From D4 so far: the theme pipeline, Button and the catalogue.
 
    In `go test`, the selector check confirmed that every `ui-*` class and
    variant attribute in the goldens has a rule in ui's CSS.
+9. **Implicit anchors answer the anchoring question.** A popover opened by
+   `popovertarget` takes its trigger as its implicit anchor. So
+   `position-area: block-end span-inline-end` placed every menu under its
+   own trigger, at the start edge in LTR and in RTL:
+   - with no anchor name;
+   - with no inline style;
+   - in a table of menus;
+   - in a row inserted after load.
+
+   That held in the pane's Chromium, and `position-try-fallbacks` flips on
+   both axes for menus near an edge. Where anchoring is missing,
+   `<ui-menu>` places the popover itself, through CSSOM, and follows
+   scrolling and resizing while it's open.
+10. **Custom elements keep state in private fields.** On a custom element,
+    `this.popover` is the reflection of the `popover` attribute. Assigning
+    the panel to it wrote `popover="[object HTMLDivElement]"`, and the
+    menu never set itself up. Found in the browser, not by any check.
+11. **A select needs an empty first option.** Without one, the browser
+    chooses the first option when nothing is chosen, so the page disagreed
+    with the server: the evaluator showed a field the server had hidden.
+    `ChooseText` (`ui.inputs.choose`) fills it on every render, fresh or
+    re-rendered, unless the options have an empty value of their own.
+    `required` makes the browser ask.
+12. **forms' `Placeholder` falls back to the label.** ui's fields always
+    show their label, so a placeholder repeating it is noise for a screen
+    reader. The field renders one only on text inputs, and only when its
+    text differs from the label's. It compares texts, because an
+    `i18n.Ter` can be a func, which `==` can't compare.
+13. **The confirmation takes one path.**
+    - A capturing listener stops a click on an element carrying the
+      question before anything else sees it, asks, and on yes dispatches
+      the click again. So whatever the click starts follows: a link (with
+      its modifier keys), a submit button with its submitter, an htmx
+      request, the app's own listener.
+    - The dialog closes before the action runs, answering on its own
+      buttons. Chromium dispatches `close` with rendering, which a
+      background page holds back, so Esc alone cancels through `close`.
+    - `htmx:confirm` covers requests a click doesn't start. A form with its
+      own question asks on submit.
+
+    The first version of this flow broke in four cases, all found by
+    review 0004: a form carrying the question, a menu item with no action
+    of its own, a link opened in a new tab, and an action that ran while
+    the dialog was still open.
+14. **Fills see the placement's context, and it pays.**
+    `components.DialogClose(ctx, value)`, written inside the caller's fill,
+    names the dialog around it. The kernel carries the generated id to the
+    caller's buttons with no plumbing. Outside a dialog, the kernel's `Get`
+    panics, so a misplaced call fails loudly.
+15. **A control's edge needs 3:1** (WCAG 1.4.11), which a decorative
+    border doesn't reach. `--ui-color-border-strong` does, tested in both
+    schemes.
+16. **The evaluator agrees with the server, now.** The server trims each
+    value, drops the blank ones and keeps the last, so `["fixed", " "]`
+    reads "fixed". The client took the last raw value and read it as
+    absent. Two new vectors pin the rule. The evaluator passes all 23 (goja,
+    ADR 0006) and a test of chained conditions, and in the browser the
+    dependent fields show, hide and disable as the server would.
+17. **Not yet exercised in a browser:**
+    - the invoker-command fallback and the menu's own placement (the
+      pane's Chromium supports both natively);
+    - htmx paths (`htmx:confirm`, `htmx:afterSwap`), because the catalogue
+      loads no htmx.
+
+    They wait for the browser test job.
+18. **What a condition disables carries a marker.** The server marks every
+    control and fieldset it renders disabled for a condition
+    (`data-ui-when-off`), and the script marks what it disables. The script
+    enables only marked controls, so a control the app disabled itself
+    stays disabled. Without the marker, a group the script showed stayed
+    disabled. Groups render as a `<fieldset>` carrying their condition,
+    and a child without a condition of its own follows its group.
+19. **A three-state boolean isn't a checkbox.** A checkbox can't say "no
+    answer", so `Bool` (forms' toggle) renders as a Yes/No select with an
+    empty first option.

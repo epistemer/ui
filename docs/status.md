@@ -96,9 +96,55 @@ all handled. The main ones:
 - gaps in the CSS checker and the names check;
 - the selector check comparing classes and attributes separately.
 
-**Next.** D4 part 2: the text input on `forms.Control` with the condition
-evaluator, Dialog with the shared confirmation, Menu, and the rest of the
-ui script.
+**D4 part 2** (PR #18, Claude):
+- **inputs:** a field rendered from `forms.Control`: label, help and error
+  wired by generated ids, `aria-invalid`, `dir="ltr"` for email, the
+  condition handed to the script.
+- **components:** Dialog with slots and `DialogClose`, the shared
+  confirmation, Menu with `<ui-menu>`.
+- **ui script:** the condition evaluator, the menu, the confirmation.
+- **internal/jstest** (ADR 0006): runs the evaluator against forms' 21
+  vectors through goja, in a module of its own.
+
+Checked in the browser:
+- conditions showing and hiding fields;
+- the menu's keyboard, focus and anchoring in LTR, RTL and inserted rows;
+- Dialog's open and close, with focus returning to the trigger;
+- the confirmation: cancel; and confirm, which submits once.
+
+Bugs found that way, all fixed (visual-design.md §11): `this.popover` on a
+custom element, a select without an empty option, and a confirmation
+waiting on a deferred `close` event.
+
+**Review 0004** (Gemini 4 Argon (High), about 80k tokens): 14 findings,
+plus a verdict that §11's conclusions needed correcting before D5. Two
+were rejected after checking:
+- htmx forms don't double-confirm;
+- relative units are allowed by ADR 0004.
+
+The rest were fixed and checked again in the browser:
+- the confirmation rebuilt as one capture-and-replay path;
+- `refresh` no longer enabling what the app disabled;
+- an htmx swap inside a form now refreshed;
+- groups as fieldsets that carry their conditions;
+- a three-state toggle as a Yes/No select;
+- `multiple` for files, and the server's ticked rule for checkboxes;
+- a textarea's leading newline kept;
+- disabled menu items, arrow keys on the trigger, and typeahead.
+
+Claude's own reading of forms' bind code found one more gap, which the
+reviewer missed: the client read `["fixed", " "]` as absent and the server
+as "fixed". Two vectors were added, and both evaluators pass them.
+
+D4 is done.
+
+**For epistemer (API):** forms' `Control.Placeholder` falls back to the
+label (finding 12), so a renderer can't tell an explicit placeholder from
+none. ui works around it by comparing texts. Exposing whether one was set
+would be a forms amendment.
+
+**Next.** D5: interface.md sections for what Q9 locks, built from the
+spike, with a cross-model review.
 
 ## 2026-11-21 — v0.1.0
 

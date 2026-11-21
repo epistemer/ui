@@ -1,0 +1,40 @@
+<ui-menu class="ui-menu">
+  <button aria-controls="menu--t-1" aria-haspopup="menu" class="ui-button" data-variant="outline" id="menu--t-1-trigger" popovertarget="menu--t-1" type="button">
+    Actions
+    <svg aria-hidden="true" class="ui-icon" viewBox="0 0 20 20">
+      <path d="M5 8l5 5 5-5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+    </svg>
+  </button>
+  <div aria-labelledby="menu--t-1-trigger" class="ui-menu-popover" id="menu--t-1" popover="" role="menu">
+    <a class="ui-menu-item" href="/stores/1/edit" role="menuitem" tabindex="-1">
+      Edit
+    </a>
+    <button class="ui-menu-item" role="menuitem" tabindex="-1" type="button">
+      Duplicate
+    </button>
+    <a aria-disabled="true" class="ui-menu-item" role="menuitem" tabindex="-1">
+      Archive
+    </a>
+    <button class="ui-menu-item" data-tone="danger" data-ui-confirm="Delete this store?" role="menuitem" tabindex="-1" type="button">
+      Delete
+    </button>
+  </div>
+</ui-menu>
+<dialog aria-describedby="ui-confirm-question" aria-labelledby="ui-confirm-title" class="ui-dialog" data-ui-confirm-dialog="" id="ui-confirm">
+  <header class="ui-dialog-header">
+    <h2 class="ui-dialog-title" id="ui-confirm-title">
+      Are you sure?
+    </h2>
+  </header>
+  <div class="ui-dialog-body">
+    <p id="ui-confirm-question"></p>
+  </div>
+  <footer class="ui-dialog-actions">
+    <button class="ui-button" command="close" commandfor="ui-confirm" data-variant="ghost" type="button" value="cancel">
+      Cancel
+    </button>
+    <button class="ui-button" command="close" commandfor="ui-confirm" data-tone="danger" type="button" value="confirm">
+      Confirm
+    </button>
+  </footer>
+</dialog>

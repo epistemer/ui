@@ -58,7 +58,7 @@ func TestStories(t *testing.T) {
 
 // notYetStoried lists selectors that exist before their stories: base
 // classes used by components still to come in the slice.
-var notYetStoried = map[string]bool{".ui-visually-hidden": true}
+var notYetStoried = map[string]bool{}
 
 func TestNamesCheckCatchesMistakes(t *testing.T) {
 	bad := []string{

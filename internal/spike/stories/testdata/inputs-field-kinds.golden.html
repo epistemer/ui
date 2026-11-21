@@ -1,0 +1,51 @@
+<form action="/catalog/none" class="catalog-form" method="post" novalidate="">
+  <input name="ref" type="hidden" value="">
+  <div class="ui-field">
+    <label class="ui-field-label" for="field--t-1">
+      Wrapped as a gift?
+      <span aria-hidden="true" class="ui-field-required">
+        *
+      </span>
+    </label>
+    <select class="ui-input" id="field--t-1" name="gift" required="">
+      <option value="">
+        Choose…
+      </option>
+      <option value="true">
+        Yes
+      </option>
+      <option value="false">
+        No
+      </option>
+    </select>
+  </div>
+  <fieldset class="ui-group" data-ui-when="{&#34;typ&#34;:&#34;c&#34;,&#34;k&#34;:&#34;gift&#34;,&#34;op&#34;:&#34;eq&#34;,&#34;v&#34;:&#34;true&#34;}" data-ui-when-off="" disabled="" hidden="">
+    <legend class="ui-group-legend">
+      Gift address
+    </legend>
+    <div class="ui-field">
+      <label class="ui-field-label" for="field--t-2">
+        Street
+        <span aria-hidden="true" class="ui-field-required">
+          *
+        </span>
+      </label>
+      <input class="ui-input" id="field--t-2" name="address.street" required="" type="text">
+    </div>
+    <div class="ui-field">
+      <label class="ui-field-label" for="field--t-3">
+        Note for the courier
+      </label>
+      <textarea class="ui-input" id="field--t-3" name="address.note" placeholder="Ring twice"></textarea>
+    </div>
+  </fieldset>
+  <div class="ui-field">
+    <label class="ui-field-label" for="field--t-4">
+      Photos of the toy
+    </label>
+    <input class="ui-input" id="field--t-4" multiple="" name="photos" type="file">
+  </div>
+  <button class="ui-button" type="submit">
+    Save
+  </button>
+</form>

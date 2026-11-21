@@ -49,6 +49,9 @@ var Surfaces = []Token{
 	{Name: "color-text", Kind: KindColor, Light: "#16181d", Dark: "#e8eaee"},
 	{Name: "color-text-muted", Kind: KindColor, Light: "#585e6b", Dark: "#a3a9b5"},
 	{Name: "color-border", Kind: KindColor, Light: "#d5d9e0", Dark: "#2f343e"},
+	// The edge of a control people type into or tick: WCAG 1.4.11 wants
+	// 3:1 against what's around it, which a decorative border doesn't reach.
+	{Name: "color-border-strong", Kind: KindColor, Light: "#7d8390", Dark: "#6f7582"},
 }
 
 // Scales are every other token.

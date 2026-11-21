@@ -1,0 +1,28 @@
+<button aria-haspopup="dialog" class="ui-button" command="show-modal" commandfor="dialog--t-1" type="button">
+  Edit the store
+</button>
+<dialog aria-labelledby="dialog--t-1-title" class="ui-dialog" id="dialog--t-1">
+  <header class="ui-dialog-header">
+    <h2 class="ui-dialog-title" id="dialog--t-1-title">
+      Edit the store
+    </h2>
+    <button aria-label="Close" class="ui-button" command="close" commandfor="dialog--t-1" data-size="s" data-variant="ghost" type="button" value="">
+      <svg aria-hidden="true" class="ui-icon" viewBox="0 0 20 20">
+        <path d="M5 5l10 10M15 5L5 15" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2"></path>
+      </svg>
+    </button>
+  </header>
+  <div class="ui-dialog-body">
+    <p>
+      The store&#39;s name and address appear on every receipt.
+    </p>
+  </div>
+  <footer class="ui-dialog-actions">
+    <button class="ui-button" command="close" commandfor="dialog--t-1" data-variant="ghost" type="button" value="cancel">
+      Cancel
+    </button>
+    <button class="ui-button" command="close" commandfor="dialog--t-1" type="button" value="save">
+      Save
+    </button>
+  </footer>
+</dialog>

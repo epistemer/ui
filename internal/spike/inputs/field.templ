@@ -1,0 +1,82 @@
+package inputs
+
+import (
+	"github.com/epistemer/errors"
+	"github.com/epistemer/ui"
+	"github.com/epistemer/ui/forms"
+)
+
+templ field(f FieldSpec, wrapper templ.Attributes) {
+	@ui.Scope(fieldID) {
+		<div { wrapper... }>
+			if f.c.Kind() == forms.KindCheckbox {
+				<input { f.controlAttrs(ctx)... }/>
+				@label(f)
+			} else {
+				@label(f)
+				if f.isSelect() {
+					@selectTag(f)
+				} else if f.c.Kind() == forms.KindMultiline {
+					<textarea { f.controlAttrs(ctx)... }>{ f.textareaValue() }</textarea>
+				} else {
+					<input { f.controlAttrs(ctx)... }/>
+				}
+			}
+			if f.c.Help() != nil {
+				<p class="ui-field-help" id={ fieldID.Part(ctx, "help") }>{ f.c.Help().T(ctx) }</p>
+			}
+			if err := f.c.Err(); err != nil {
+				<p class="ui-field-error" id={ fieldID.Part(ctx, "error") }>{ errors.T(ctx, err) }</p>
+			}
+		</div>
+	}
+}
+
+templ selectTag(f FieldSpec) {
+	{{ opts, empty := f.choices(ctx) }}
+	<select { f.controlAttrs(ctx)... }>
+		if empty {
+			<option value="">{ ChooseText.T(ctx) }</option>
+		}
+		for _, o := range opts {
+			<option value={ o.Value } selected?={ o.Selected }>{ o.Label.T(ctx) }</option>
+		}
+	</select>
+}
+
+templ label(f FieldSpec) {
+	<label class="ui-field-label" for={ fieldID.Get(ctx) }>
+		if l := f.c.Label(); l != nil {
+			{ l.T(ctx) }
+		}
+		if f.c.Required() {
+			<span class="ui-field-required" aria-hidden="true">*</span>
+		}
+	</label>
+}
+
+templ group(f FieldSpec, wrapper templ.Attributes, children []FieldSpec) {
+	<fieldset { wrapper... }>
+		<legend class="ui-group-legend">
+			if l := f.c.Label(); l != nil {
+				{ l.T(ctx) }
+			}
+		</legend>
+		for _, c := range children {
+			@c
+		}
+		if err := f.c.Err(); err != nil {
+			<p class="ui-field-error">{ errors.T(ctx, err) }</p>
+		}
+	</fieldset>
+}
+
+templ hidden(f FieldSpec, wrapper templ.Attributes) {
+	if len(wrapper) > 0 {
+		<div { wrapper... }>
+			<input type="hidden" name={ f.c.Path() } value={ f.value() } disabled?={ f.hiddenWrapper() } data-ui-when-off?={ f.hiddenWrapper() }/>
+		</div>
+	} else {
+		<input type="hidden" name={ f.c.Path() } value={ f.value() } disabled?={ f.hiddenWrapper() } data-ui-when-off?={ f.hiddenWrapper() }/>
+	}
+}

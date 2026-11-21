@@ -10,3 +10,18 @@
 	gap: var(--ui-space-3);
 	margin-block-end: var(--ui-space-3);
 }
+
+.catalog-table {
+	border-collapse: collapse;
+
+	& th,
+	& td {
+		padding: var(--ui-space-2) var(--ui-space-3);
+		border-block-end: 1px solid var(--ui-color-border);
+		text-align: start;
+	}
+}
+
+.catalog-form {
+	max-inline-size: 28em;
+}
