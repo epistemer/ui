@@ -35,6 +35,7 @@ type field struct {
 	dateOnly                 bool // Date: time rules compare dates
 	options                  []option.SelectOption
 	optionsSet               bool // Options or Enum: the text must be one of options
+	when                     *condNode
 
 	base   codec
 	stages []*stage // stages[0] holds the base type's rules
@@ -55,6 +56,7 @@ type codec struct {
 	multi  bool // Texts, Files: every item, not the last
 	files  bool // File, Files
 	always bool // Checkbox: never absent
+	box    bool // Checkbox: conditions read its value, true or false, not its text
 	parse  func(in input) (any, error)
 	format func(v any) []string
 }
@@ -259,7 +261,7 @@ func (h *Field[T]) Value() T {
 }
 
 // Get returns the field's value and whether it has one: present, active
-// and without error.
+// (after Validate) and without error.
 func (h *Field[T]) Get() (T, bool) {
 	fd := h.use("Get")
 	var zero T
@@ -338,6 +340,11 @@ func (fd *field) bind(src Source) {
 		}
 		fd.vals = append(fd.vals, v)
 	}
+}
+
+// clear drops an inactive field's value, text and error.
+func (fd *field) clear() {
+	fd.vals, fd.text, fd.present, fd.convAt, fd.convErr, fd.err = nil, nil, false, -1, nil, nil
 }
 
 // validate decides the field's error (interface §5.1, §9.2) and returns it.

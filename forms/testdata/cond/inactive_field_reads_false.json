@@ -1,0 +1,1 @@
+{"fields":{"a":"text","b":"text"},"when":{"b":{"typ":"c","k":"a","op":"eq","v":"x"}},"cond":{"typ":"c","k":"b","op":"filled"},"values":{"a":["y"],"b":["z"]},"want":false}

@@ -1,0 +1,1 @@
+{"fields":{"note":"text"},"cond":{"typ":"c","k":"note","op":"eq","v":""},"values":{"note":[""]},"want":false}

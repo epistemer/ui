@@ -14,6 +14,7 @@ import (
 // request. Embed *Form in a struct of typed handles; see the package
 // documentation.
 type Form struct {
+	parent *Form  // nil for the root
 	path   string // "" for the root
 	fields []*field
 	names  map[string]bool
@@ -30,6 +31,13 @@ func New() *Form {
 }
 
 var fieldName = regexp.MustCompile(`^[a-z][a-z0-9_]*$`)
+
+func (f *Form) root() *Form {
+	for f.parent != nil {
+		f = f.parent
+	}
+	return f
+}
 
 // add registers a field; it panics on a malformed or duplicate name, or
 // after Bind.
@@ -72,9 +80,22 @@ func (f *Form) Validate(ctx context.Context) bool {
 	if !f.bound {
 		panic("forms: Validate before Bind")
 	}
+	// Activity first, all of it read before anything is cleared.
+	memo := map[*field]bool{}
+	active := make([]bool, len(f.fields))
+	for i, fd := range f.fields {
+		active[i] = fd.active(memo)
+	}
+	// Clear every inactive field before any rule runs, so a rule never
+	// reads an inactive field's stale value, whatever the order.
+	for i, fd := range f.fields {
+		if !active[i] {
+			fd.clear()
+		}
+	}
 	failed := false
-	for _, fd := range f.fields {
-		if fd.validate(ctx) != nil {
+	for i, fd := range f.fields {
+		if active[i] && fd.validate(ctx) != nil {
 			failed = true
 		}
 	}
