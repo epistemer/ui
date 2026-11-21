@@ -7,6 +7,7 @@ require (
 	github.com/epistemer/errors v0.1.0
 	github.com/epistemer/i18n v0.3.1
 	github.com/epistemer/models v0.3.0
+	golang.org/x/net v0.63.0
 )
 
 require (

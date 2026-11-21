@@ -67,9 +67,9 @@ The designs are [brief.md](brief.md) (kernel) and
 
 | ✓ | ID | Item | Done when |
 |---|---|---|---|
-| ☐ | M3.1 | Render, RenderErr, Context | The M1 and M2 tests use them |
-| ☐ | M3.2 | The normaliser and Golden with -update; ADR 0003 accepts golang.org/x/net/html for uitest only | A golden test fails on a changed attribute, shows it as one changed line, and passes after -update |
-| ☐ | M3.3 | CheckIDs and External | Fixtures with a duplicate id, a `for` that points nowhere and a broken hx-target each fail with a message naming the attribute and the id; a correct fixture passes |
+| ☑ | M3.1 | Render, RenderErr, Context | The M1 and M2 tests use them |
+| ☑ | M3.2 | The normaliser and Golden with -update; ADR 0003 accepts golang.org/x/net/html for uitest only | A golden test fails on a changed attribute, shows it as one changed line, and passes after -update |
+| ☑ | M3.3 | CheckIDs and External | Fixtures with a duplicate id, a `for` that points nowhere and a broken hx-target each fail with a message naming the attribute and the id; a correct fixture passes |
 
 ### M4 — Slots
 
