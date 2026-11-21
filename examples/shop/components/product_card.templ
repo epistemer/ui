@@ -1,0 +1,23 @@
+package components
+
+import "github.com/epistemer/ui"
+
+var Footer = ui.NewSlot()
+
+// ProductCard renders a product card, omitting the <footer> entirely
+// when Footer is unfilled, using Filled.
+func ProductCard(p Product) templ.Component {
+	return ui.Slotted(productCard(p), Footer)
+}
+
+templ productCard(p Product) {
+	<article>
+		<h3>{ p.Name }</h3>
+		<p>{ p.Price }</p>
+		if Footer.Filled(ctx) {
+			<footer>
+				@Footer.Place()
+			</footer>
+		}
+	</article>
+}

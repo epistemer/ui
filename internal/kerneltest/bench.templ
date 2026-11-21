@@ -1,0 +1,106 @@
+package kerneltest
+
+import "github.com/epistemer/ui"
+
+var (
+	SlotA = ui.NewSlot()
+	SlotB = ui.NewSlot()
+	SlotC = ui.NewSlot()
+)
+
+// ThreeSlots has three slots.
+func ThreeSlots() templ.Component {
+	return ui.Slotted(threeSlots(), SlotA, SlotB, SlotC)
+}
+
+templ threeSlots() {
+	<div>
+		@SlotA.Place()
+		@SlotB.Place()
+		@SlotC.Place()
+	</div>
+}
+
+// ThreeSlotsFilled renders ThreeSlots with all three slots filled.
+templ ThreeSlotsFilled() {
+	@ThreeSlots() {
+		@SlotA {
+			<span>A</span>
+		}
+		@SlotB {
+			<span>B</span>
+		}
+		@SlotC {
+			<span>C</span>
+		}
+	}
+}
+
+var NestedSlot = ui.NewSlot()
+
+// NestedNode is one level in a nested chain of slotted components.
+func NestedNode() templ.Component {
+	return ui.Slotted(nestedNode(), NestedSlot)
+}
+
+templ nestedNode() {
+	<div>
+		@NestedSlot.Place()
+	</div>
+}
+
+// NestedFive renders slotted components nested five deep.
+templ NestedFive() {
+	@NestedNode() {
+		@NestedSlot {
+			@NestedNode() {
+				@NestedSlot {
+					@NestedNode() {
+						@NestedSlot {
+							@NestedNode() {
+								@NestedSlot {
+									@NestedNode() {
+										@NestedSlot {
+											<span>leaf</span>
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+var FillBody = ui.NewSlot()
+
+// FillContainer is used to benchmark fill size effect on allocations.
+func FillContainer() templ.Component {
+	return ui.Slotted(fillContainer(), FillBody)
+}
+
+templ fillContainer() {
+	<div>
+		@FillBody.Place()
+	</div>
+}
+
+templ SmallFill() {
+	@FillContainer() {
+		@FillBody {
+			<p>item</p>
+		}
+	}
+}
+
+templ LargeFill() {
+	@FillContainer() {
+		@FillBody {
+			for range 100 {
+				<p>item</p>
+			}
+		}
+	}
+}

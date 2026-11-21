@@ -1,0 +1,29 @@
+package components
+
+import "github.com/epistemer/ui"
+
+var (
+	CartToggle = ui.NewSlotOf[templ.Attributes]()
+	CartBody   = ui.NewSlot()
+	cartDialog = ui.NewID("cart-dialog")
+)
+
+// CartModal is a modal dialog with a valued toggle slot and a body slot
+// with a fallback, wired with ui.Scope and a ui.NewID.
+func CartModal(title string) templ.Component {
+	return ui.Slotted(cartModal(title), CartToggle, CartBody)
+}
+
+templ cartModal(title string) {
+	@ui.Scope(cartDialog) {
+		@CartToggle.Place(templ.Attributes{"aria-controls": cartDialog.Get(ctx), "aria-haspopup": "dialog"}) {
+			<button { CartToggle.Value(ctx)... }>Cart</button>
+		}
+		<dialog id={ cartDialog.Get(ctx) }>
+			<h2>{ title }</h2>
+			@CartBody.Place() {
+				<p>Your cart is empty.</p>
+			}
+		</dialog>
+	}
+}

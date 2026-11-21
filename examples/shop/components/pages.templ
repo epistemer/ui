@@ -1,0 +1,89 @@
+package components
+
+// CartModalPage renders filled and unfilled variants of CartModal.
+templ CartModalPage() {
+	<main>
+		<section>
+			<h2>Filled</h2>
+			@CartModal("Your Cart") {
+				@CartToggle {
+					<button { CartToggle.Value(ctx)... } class="badge">View Cart (2)</button>
+				}
+				@CartBody {
+					<ul>
+						<li>Green Tea</li>
+						<li>Coffee Beans</li>
+					</ul>
+				}
+			}
+		</section>
+		<section>
+			<h2>Unfilled</h2>
+			@CartModal("Empty Cart")
+		</section>
+	</main>
+}
+
+// DropdownPage renders filled and unfilled variants of Dropdown.
+templ DropdownPage() {
+	<main>
+		<section>
+			<h2>Filled</h2>
+			@Dropdown("Options") {
+				@MenuItems {
+					<li><button type="button">Edit</button></li>
+					<li><button type="button">Delete</button></li>
+				}
+			}
+		</section>
+		<section>
+			<h2>Unfilled</h2>
+			@Dropdown("Empty Menu")
+		</section>
+	</main>
+}
+
+// OrderTablePage renders a table with rows via OrderRow, showcasing
+// custom row actions (filled) and fallback actions (unfilled).
+templ OrderTablePage(orders []Order) {
+	<table>
+		<thead>
+			<tr>
+				<th>Order ID</th>
+				<th>Customer</th>
+				<th>Total</th>
+				<th>Actions</th>
+			</tr>
+		</thead>
+		<tbody>
+			if len(orders) > 0 {
+				@OrderRow(orders[0]) {
+					@RowActions {
+						<button hx-post={ "/orders/" + orders[0].ID + "/refund" } hx-target={ "#" + OrderRowID.Key(orders[0].ID) }>Refund</button>
+					}
+				}
+			}
+			if len(orders) > 1 {
+				@OrderRow(orders[1])
+			}
+		</tbody>
+	</table>
+}
+
+// ProductCardPage renders filled and unfilled variants of ProductCard.
+templ ProductCardPage(p1, p2 Product) {
+	<main>
+		<section>
+			<h2>Filled</h2>
+			@ProductCard(p1) {
+				@Footer {
+					<button type="button">Add to cart</button>
+				}
+			}
+		</section>
+		<section>
+			<h2>Unfilled</h2>
+			@ProductCard(p2)
+		</section>
+	</main>
+}

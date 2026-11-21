@@ -174,3 +174,26 @@ either design, are marked *(new)*: formstest's API (§7), the error keys and
 texts of the catalogue and of forms (§5.9, §6.3), and the condition
 operator names on the wire (§5.7). Also new since the designs: §9's
 behaviour in detail, and `Parsed`'s wider constraint (§5.3).
+
+### M4.6 benchmarks (2026-11-21, Intel(R) Core(TM) i5-5300U CPU @ 2.30GHz)
+
+```
+goos: linux
+goarch: amd64
+pkg: github.com/epistemer/ui
+cpu: Intel(R) Core(TM) i5-5300U CPU @ 2.30GHz
+BenchmarkThreeSlots-4   	  403431	      4749 ns/op	    1833 B/op	      40 allocs/op
+BenchmarkThreeSlots-4   	  307603	      3820 ns/op	    1833 B/op	      40 allocs/op
+BenchmarkThreeSlots-4   	  367142	      3088 ns/op	    1833 B/op	      40 allocs/op
+BenchmarkNestedFive-4   	  104952	     14609 ns/op	    5468 B/op	     118 allocs/op
+BenchmarkNestedFive-4   	   96424	     15421 ns/op	    5468 B/op	     118 allocs/op
+BenchmarkNestedFive-4   	   77715	     16352 ns/op	    5469 B/op	     118 allocs/op
+BenchmarkFillSize/small-4         	  457353	      2311 ns/op	    1208 B/op	      26 allocs/op
+BenchmarkFillSize/small-4         	  564014	      2783 ns/op	    1208 B/op	      26 allocs/op
+BenchmarkFillSize/small-4         	  527125	      2556 ns/op	    1208 B/op	      26 allocs/op
+BenchmarkFillSize/100x-4          	  349038	      3696 ns/op	    1208 B/op	      26 allocs/op
+BenchmarkFillSize/100x-4          	  329400	      3462 ns/op	    1209 B/op	      26 allocs/op
+BenchmarkFillSize/100x-4          	  341342	      4285 ns/op	    1209 B/op	      26 allocs/op
+PASS
+ok  	github.com/epistemer/ui	16.413s
+```
