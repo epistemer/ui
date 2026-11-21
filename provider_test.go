@@ -10,15 +10,14 @@ import (
 	"github.com/a-h/templ"
 	"github.com/epistemer/ui"
 	"github.com/epistemer/ui/internal/kerneltest"
+	"github.com/epistemer/ui/uitest"
 )
 
+// render renders c through uitest in ctx, which replaces the context
+// uitest prepares.
 func render(t testing.TB, ctx context.Context, c templ.Component) string {
 	t.Helper()
-	var buf bytes.Buffer
-	if err := c.Render(ctx, &buf); err != nil {
-		t.Fatalf("render: %v", err)
-	}
-	return buf.String()
+	return uitest.Render(t, c, uitest.Context(func(context.Context) context.Context { return ctx }))
 }
 
 func TestProvider(t *testing.T) {
