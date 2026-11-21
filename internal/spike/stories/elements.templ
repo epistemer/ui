@@ -1,0 +1,65 @@
+package stories
+
+import (
+	"github.com/epistemer/ui/internal/spike/elements"
+	"github.com/epistemer/ui/internal/spike/icons"
+)
+
+templ buttonTones(v elements.Variant) {
+	<div class="catalog-row">
+		@elements.Button().Variant(v) {
+			Save
+		}
+		@elements.Button().Variant(v).Tone(elements.Danger) {
+			Delete
+		}
+		@elements.Button().Variant(v).Tone(elements.Warning) {
+			Archive
+		}
+		@elements.Button().Variant(v).Tone(elements.Success) {
+			Approve
+		}
+		@elements.Button().Variant(v).Tone(elements.Info) {
+			Details
+		}
+	</div>
+}
+
+templ buttonSizes() {
+	<div class="catalog-row">
+		@elements.Button().Size(elements.Small) {
+			Small
+		}
+		@elements.Button() {
+			Medium
+		}
+		@elements.Button().Size(elements.Large) {
+			Large
+		}
+	</div>
+}
+
+templ buttonStates() {
+	<div class="catalog-row">
+		@elements.Button().Disabled(true) {
+			Disabled
+		}
+		@elements.Button().Href("/orders") {
+			A link
+		}
+		@elements.Button().Href("/orders").Disabled(true) {
+			A disabled link
+		}
+		@elements.Button().Variant(elements.Outline).Attrs(templ.Attributes{"aria-label": "Add an item", "class": "story-extra"}) {
+			@icons.Plus()
+		}
+		@elements.Button().Variant(elements.Ghost) {
+			Next
+			@icons.ChevronEnd()
+		}
+		@elements.Button() {
+			@icons.Plus()
+			Add an item
+		}
+	</div>
+}

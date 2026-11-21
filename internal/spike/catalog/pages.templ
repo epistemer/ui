@@ -1,0 +1,82 @@
+package catalog
+
+import (
+	"fmt"
+	"strings"
+)
+
+templ shell(head templ.Component, stories []Story, current Story) {
+	<!DOCTYPE html>
+	<html lang="en">
+		<head>
+			<meta charset="utf-8"/>
+			<meta name="viewport" content="width=device-width, initial-scale=1"/>
+			<title>{ current.Name } · ui catalogue</title>
+			@head
+			<link rel="stylesheet" href="/assets/catalog.css"/>
+			<script type="module" src="/assets/catalog.js"></script>
+		</head>
+		<body class="catalog">
+			<nav class="catalog-nav" aria-label="Stories">
+				<ul>
+					for _, s := range stories {
+						<li>
+							if s.Name == current.Name {
+								<a href={ templ.SafeURL(storyURL(s.Name)) } aria-current="page">{ s.Name }</a>
+							} else {
+								<a href={ templ.SafeURL(storyURL(s.Name)) }>{ s.Name }</a>
+							}
+						</li>
+					}
+				</ul>
+			</nav>
+			<main class="catalog-main">
+				<h1>{ current.Name }</h1>
+				<form class="catalog-controls" id="catalog-controls">
+					<fieldset>
+						<legend>Width</legend>
+						<label><input type="radio" name="width" value="phone"/> Phone</label>
+						<label><input type="radio" name="width" value="tablet"/> Tablet</label>
+						<label><input type="radio" name="width" value="desktop" checked/> Desktop</label>
+					</fieldset>
+					<fieldset>
+						<legend>Tokens</legend>
+						<label>Brand <input type="color" name="brand" value="#2f5bd3"/></label>
+						<label>Danger <input type="color" name="danger" value="#c62828"/></label>
+						<label>Warning <input type="color" name="warning" value="#f2b01e"/></label>
+						<label>Success <input type="color" name="success" value="#1e8a4c"/></label>
+						<label>Info <input type="color" name="info" value="#0f7c9e"/></label>
+						<label>Radius <input type="range" name="radius" min="0" max="16" value="8" data-unit="px"/></label>
+					</fieldset>
+				</form>
+				for i, v := range current.Variants {
+					<section class="catalog-variant" aria-labelledby={ fmt.Sprintf("variant-%d", i) }>
+						<h2 id={ fmt.Sprintf("variant-%d", i) }>{ v.Name }</h2>
+						<div class="catalog-grid">
+							for _, dir := range dirs {
+								for _, scheme := range schemes {
+									<iframe src={ frameURL(current.Name, v.Name, dir, scheme) } title={ v.Name + ", " + strings.ToUpper(dir) + ", " + scheme } loading="lazy"></iframe>
+								}
+							}
+						</div>
+					</section>
+				}
+			</main>
+		</body>
+	</html>
+}
+
+templ frame(head templ.Component, title, dir, scheme string, story templ.Component) {
+	<!DOCTYPE html>
+	<html lang="en" dir={ dir } data-color-scheme={ scheme }>
+		<head>
+			<meta charset="utf-8"/>
+			<title>{ title }</title>
+			@head
+			<link rel="stylesheet" href="/assets/frame.css"/>
+		</head>
+		<body class="catalog-frame">
+			@story
+		</body>
+	</html>
+}

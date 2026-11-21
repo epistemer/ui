@@ -70,7 +70,35 @@ Q2's default moved from variadic options to builders, as in forms.
 Q1, Q5, Q6, Q8 and Q9 stand on their defaults, open to change until the
 D6 lock.
 
-**Next.** D4, the slice spike in `internal/spike`.
+**D4 part 1** (PR #17, Claude):
+- **theme:** the token table; OKLab and WCAG maths; accent partners derived
+  for contrast; the stylesheet joined in layers under one hash; the
+  run-time theme stylesheet; ADR 0004's CSS checks.
+- **elements:** the Button builder and attribute merging.
+- **a11y:** the names and selector checks.
+- **catalog**, and Button stories.
+
+Findings are in visual-design.md §11. The two that changed the design:
+- Shades are derived in Go, away from the on-colour.
+- Mixing is in OKLab, not OKLCh.
+
+Checked in the browser pane:
+- LTR, RTL, light and dark;
+- RTL mirroring;
+- live re-theming under a strict CSP, with no violations.
+
+**Review 0003** (Gemini 4 Argon (Medium), about 71k tokens): 20 findings,
+all handled. The main ones:
+- the catalogue's unescaped URLs;
+- a possible panic in `Derive` on admin input, now replaced by a stepping
+  loop and proven by a sweep of 5,832 colours;
+- disabled links still reaching htmx;
+- gaps in the CSS checker and the names check;
+- the selector check comparing classes and attributes separately.
+
+**Next.** D4 part 2: the text input on `forms.Control` with the condition
+evaluator, Dialog with the shared confirmation, Menu, and the rest of the
+ui script.
 
 ## 2026-11-21 — v0.1.0
 

@@ -1,0 +1,124 @@
+/* Icons take the text colour and the font's size; directional ones mirror
+   in RTL. */
+.ui-icon {
+	inline-size: 1.25em;
+	block-size: 1.25em;
+	flex: none;
+
+	&[data-mirror]:dir(rtl) {
+		transform: scaleX(-1);
+	}
+}
+
+/* Button (design §5). The tone picks an accent through private aliases, so
+   every variant is written once. State comes from HTML and ARIA. */
+.ui-button {
+	--_fill: var(--ui-color-brand);
+	--_on: var(--ui-color-on-brand);
+	--_hover: var(--ui-color-brand-hover);
+	--_active: var(--ui-color-brand-active);
+	--_text: var(--ui-color-brand-text);
+	--_subtle: var(--ui-color-brand-subtle);
+
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: var(--ui-space-2);
+	min-block-size: 2.5em;
+	padding-block: var(--ui-space-2);
+	padding-inline: var(--ui-space-4);
+	border: 1px solid transparent;
+	border-radius: var(--ui-radius-m);
+	font: inherit;
+	font-size: var(--ui-text-s);
+	font-weight: 600;
+	line-height: 1.25;
+	text-decoration: none;
+	white-space: nowrap;
+	cursor: pointer;
+	background-color: var(--_fill);
+	color: var(--_on);
+	transition:
+		background-color var(--ui-duration-s) var(--ui-ease),
+		border-color var(--ui-duration-s) var(--ui-ease);
+
+	&:hover:not(:disabled, [aria-disabled="true"]) {
+		background-color: var(--_hover);
+	}
+
+	&:active:not(:disabled, [aria-disabled="true"]) {
+		background-color: var(--_active);
+	}
+
+	&:is(:disabled, [aria-disabled="true"]) {
+		cursor: not-allowed;
+		opacity: 0.55;
+	}
+
+	&[data-variant="outline"],
+	&[data-variant="ghost"] {
+		background-color: transparent;
+		color: var(--_text);
+
+		&:hover:not(:disabled, [aria-disabled="true"]) {
+			background-color: var(--_subtle);
+		}
+
+		&:active:not(:disabled, [aria-disabled="true"]) {
+			background-color: color-mix(in oklab, var(--_subtle), var(--_text) 12%);
+		}
+	}
+
+	&[data-variant="outline"] {
+		border-color: currentColor;
+	}
+
+	&[data-size="s"] {
+		min-block-size: 2em;
+		padding-block: var(--ui-space-1);
+		padding-inline: var(--ui-space-3);
+		font-size: var(--ui-text-xs);
+	}
+
+	&[data-size="l"] {
+		min-block-size: 3em;
+		padding-inline: var(--ui-space-5);
+		font-size: var(--ui-text-m);
+	}
+
+	&[data-tone="danger"] {
+		--_fill: var(--ui-color-danger);
+		--_on: var(--ui-color-on-danger);
+		--_hover: var(--ui-color-danger-hover);
+		--_active: var(--ui-color-danger-active);
+		--_text: var(--ui-color-danger-text);
+		--_subtle: var(--ui-color-danger-subtle);
+	}
+
+	&[data-tone="warning"] {
+		--_fill: var(--ui-color-warning);
+		--_on: var(--ui-color-on-warning);
+		--_hover: var(--ui-color-warning-hover);
+		--_active: var(--ui-color-warning-active);
+		--_text: var(--ui-color-warning-text);
+		--_subtle: var(--ui-color-warning-subtle);
+	}
+
+	&[data-tone="success"] {
+		--_fill: var(--ui-color-success);
+		--_on: var(--ui-color-on-success);
+		--_hover: var(--ui-color-success-hover);
+		--_active: var(--ui-color-success-active);
+		--_text: var(--ui-color-success-text);
+		--_subtle: var(--ui-color-success-subtle);
+	}
+
+	&[data-tone="info"] {
+		--_fill: var(--ui-color-info);
+		--_on: var(--ui-color-on-info);
+		--_hover: var(--ui-color-info-hover);
+		--_active: var(--ui-color-info-active);
+		--_text: var(--ui-color-info-text);
+		--_subtle: var(--ui-color-info-subtle);
+	}
+}
