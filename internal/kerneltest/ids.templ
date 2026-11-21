@@ -1,0 +1,51 @@
+package kerneltest
+
+import "github.com/epistemer/ui"
+
+var (
+	Email = ui.NewID("email")
+	Hint  = ui.NewID("hint")
+)
+
+// Field is a label, an input and its hint, wired by generated ids.
+templ Field() {
+	@ui.Scope(Email) {
+		<label for={ Email.Get(ctx) }>Email</label>
+		<input id={ Email.Get(ctx) } aria-describedby={ Email.Part(ctx, "hint") }/>
+		<small id={ Email.Part(ctx, "hint") }>We never share it.</small>
+	}
+}
+
+// NestedScopes shows the inner value, then the outer one again.
+templ NestedScopes() {
+	@ui.Scope(Email) {
+		<a>{ Email.Get(ctx) }</a>
+		@ui.Scope(Email) {
+			<b>{ Email.Get(ctx) }</b>
+		}
+		<c>{ Email.Get(ctx) }</c>
+	}
+}
+
+// Siblings opens two scopes side by side, and one scope of two ids.
+templ Siblings() {
+	@ui.Scope(Email) {
+		<a>{ Email.Get(ctx) }</a>
+	}
+	@ui.Scope(Email) {
+		<b>{ Email.Get(ctx) }</b>
+	}
+	@ui.Scope(Email, Hint) {
+		<c>{ Email.Get(ctx) } { Hint.Get(ctx) }</c>
+	}
+}
+
+templ GetOutsideScope() {
+	<p>{ Email.Get(ctx) }</p>
+}
+
+templ Twice() {
+	@ui.Scope(Email, Email) {
+		<p></p>
+	}
+}
