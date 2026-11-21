@@ -43,19 +43,28 @@ func Errors(f *forms.Form) []string {
 	return out
 }
 
-// AssertLabelled fails t for every field, named group and list, at any
-// depth, whose label is still the default built from its name. The root
-// and list items have no label of their own and are skipped.
+// AssertLabelled fails t once for every field, named group and list, at
+// any depth, whose label is still the default built from its name. A
+// list's members are checked once, on its template row, whether or not it
+// has items. The root and list items have no label of their own.
 func AssertLabelled(t testing.TB, f *forms.Form) {
 	t.Helper()
-	var walk func(c forms.Control, item bool)
-	walk = func(c forms.Control, item bool) {
-		if c.Path() != "" && !item && !hook.LabelSet(c) {
+	var walk func(c forms.Control)
+	walk = func(c forms.Control) {
+		if c.Path() != "" && !hook.LabelSet(c) {
 			t.Errorf("formstest: %s has no label of its own", c.Path())
 		}
+		if c.Kind() == forms.KindList {
+			if tpl, ok := c.Template(); ok {
+				for child := range tpl.Children() {
+					walk(child)
+				}
+			}
+			return
+		}
 		for child := range c.Children() {
-			walk(child, c.Kind() == forms.KindList)
+			walk(child)
 		}
 	}
-	walk(f.Control(), false)
+	walk(f.Control())
 }

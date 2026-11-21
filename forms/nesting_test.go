@@ -247,14 +247,14 @@ func TestNestingPanics(t *testing.T) {
 	f := newPromo()
 	itemField := f.Constraints.Add().Type
 	for name, fn := range map[string]func(){
-		"Bind on a group":        func() { f.Percentage.Bind(forms.FromValues(nil)) },
-		"Validate on a group":    func() { f.Percentage.Validate(bg) },
-		"When on the root":       func() { f.Form.When(f.Type.Filled()) },
-		"group reads its member": func() { f.Percentage.When(f.Percentage.Value.Filled()) },
-		"into a list item":       func() { f.Text("x").When(itemField.Filled()) },
-		"MinItems above max":     func() { newPromo().Constraints.MinItems(4) },
-		"MaxItems below min":     func() { newPromo().Constraints.MaxItems(0) },
-		"name clash":             func() { g := forms.New(); g.Text("a"); g.Group("a", newPct) },
+		"Bind on a group":                           func() { f.Percentage.Bind(forms.FromValues(nil)) },
+		"Validate on a group":                       func() { f.Percentage.Validate(bg) },
+		"root When reading its own field (a cycle)": func() { f.Form.When(f.Type.Filled()) },
+		"group reads its member":                    func() { f.Percentage.When(f.Percentage.Value.Filled()) },
+		"into a list item":                          func() { f.Text("x").When(itemField.Filled()) },
+		"MinItems above max":                        func() { newPromo().Constraints.MinItems(4) },
+		"MaxItems below min":                        func() { newPromo().Constraints.MaxItems(0) },
+		"name clash":                                func() { g := forms.New(); g.Text("a"); g.Group("a", newPct) },
 	} {
 		t.Run(name, func(t *testing.T) {
 			defer func() {
@@ -265,4 +265,140 @@ func TestNestingPanics(t *testing.T) {
 			fn()
 		})
 	}
+}
+
+func TestJunkIndicesDontUseMaxItems(t *testing.T) {
+	f := forms.New()
+	l := f.List("items", func(g *forms.Form) *forms.Field[string] { return g.Text("name") }).MaxItems(2)
+	formstest.Submit(t, bg, f, "items[0].bogus=1&items[1]=bare&items[2].name=a&items[3].name=b&items[01].name=c&items[1000000].name=d")
+	got := l.Items()
+	if l.Err() != nil || len(got) != 2 || got[0].Value() != "a" || got[1].Value() != "b" {
+		t.Errorf("err %v, %d items: junk indices must neither build items nor count toward MaxItems", l.Err(), len(got))
+	}
+}
+
+func TestNestedLists(t *testing.T) {
+	type inner struct{ V *forms.Field[int] }
+	f := forms.New()
+	outer := f.List("a", func(g *forms.Form) *forms.List[inner] {
+		return g.List("b", func(h *forms.Form) inner { return inner{h.Int("c").Is(rule.Min(1))} })
+	})
+	formstest.Submit(t, bg, f, "a[3].b[5].c=0&a[3].b[9].c=2")
+	items := outer.Items()
+	if len(items) != 1 || len(items[0].Items()) != 2 {
+		t.Fatalf("items %d", len(items))
+	}
+	if got := formstest.Errors(f); !slices.Equal(got, []string{"a[0].b[0].c: errors.forms.rule.min"}) {
+		t.Errorf("errors %q", got)
+	}
+}
+
+func TestBuildCannotTouchABoundForm(t *testing.T) {
+	f := forms.New()
+	outer := f.Text("outer")
+	f.List("rows", func(g *forms.Form) *forms.Field[string] {
+		outer.Required() // a build that reaches outside its item
+		return g.Text("v")
+	})
+	defer func() {
+		if recover() == nil {
+			t.Error("a list's build changed a bound form without a panic")
+		}
+	}()
+	formstest.Submit(t, bg, f, "rows[0].v=x")
+}
+
+func TestInactiveGroupDropsItsError(t *testing.T) {
+	f := newPromo()
+	f.Percentage.Fail(errTaken)
+	if !formstest.Submit(t, bg, f.Form, "type=fixed&constraints[0].type=x") {
+		t.Errorf("an inactive group's error survived: %q", formstest.Errors(f.Form))
+	}
+}
+
+func TestCheckThatFailsAFieldStopsTheRest(t *testing.T) {
+	f := forms.New()
+	a := f.Text("a")
+	ran := 0
+	f.Check(func(context.Context) error { a.Fail(errTaken); return nil })
+	f.Check(func(context.Context) error { ran++; return nil })
+	formstest.Submit(t, bg, f, "a=x")
+	if ran != 0 || f.Valid() {
+		t.Errorf("a later check ran %d times after one failed a field", ran)
+	}
+}
+
+func TestTemplateRowIsActiveWhileListHidden(t *testing.T) {
+	f := forms.New()
+	gate := f.Checkbox("gate")
+	l := f.List("rows", func(g *forms.Form) *forms.Field[string] { return g.Text("v") }).When(gate.Filled())
+	if l.Control().Active() {
+		t.Fatal("the list should be hidden")
+	}
+	tpl, _ := l.Control().Template()
+	for c := range tpl.Children() {
+		if !c.Active() {
+			t.Errorf("%s in the template row reports inactive", c.Path())
+		}
+	}
+}
+
+func TestAssertLabelledLooksIntoEmptyLists(t *testing.T) {
+	f := forms.New()
+	f.List("rows", func(g *forms.Form) *forms.Field[string] { return g.Text("v") }).Label(i18nKey("test.rows", "Rows"))
+	rec := &recorder{TB: t}
+	formstest.AssertLabelled(rec, f)
+	if !slices.Equal(rec.errs, []string{"formstest: rows[__i__].v has no label of its own"}) {
+		t.Errorf("errors %q", rec.errs)
+	}
+	g := forms.New()
+	l := g.List("rows", func(h *forms.Form) *forms.Field[string] { return h.Text("v") }).Label(i18nKey("test.rows", "Rows"))
+	l.Add()
+	l.Add()
+	rec2 := &recorder{TB: t}
+	formstest.AssertLabelled(rec2, g)
+	if len(rec2.errs) != 1 {
+		t.Errorf("a list with two items reports its member %d times; want once", len(rec2.errs))
+	}
+}
+
+func TestListItemsRefuseWhenAndLabel(t *testing.T) {
+	for name, fn := range map[string]func(){
+		"When on an item": func() {
+			f := forms.New()
+			gate := f.Text("gate")
+			f.List("rows", func(g *forms.Form) int { g.When(gate.Filled()); return 0 }).Add()
+		},
+		"Label on an item": func() {
+			forms.New().List("rows", func(g *forms.Form) int { g.Label(i18nKey("x.y", "Y")); return 0 }).Add()
+		},
+	} {
+		t.Run(name, func(t *testing.T) {
+			defer func() {
+				if recover() == nil {
+					t.Error("did not panic")
+				}
+			}()
+			fn()
+		})
+	}
+}
+
+func TestZeroControlAndNilItems(t *testing.T) {
+	var c forms.Control
+	if c.Kind() != 0 || c.Path() != "" || c.Active() || c.Err() != nil || c.Label() == nil {
+		t.Error("a zero Control must answer with zero values")
+	}
+	if _, has := c.When(); has {
+		t.Error("zero Control has a condition")
+	}
+	f := forms.New()
+	l := f.List("rows", func(g *forms.Form) error { g.Text("v"); return nil })
+	if v := l.Add(); v != nil || len(l.Items()) != 1 {
+		t.Error("a nil interface item")
+	}
+}
+
+func TestMinItemsAboveDefaultMax(t *testing.T) {
+	forms.New().List("rows", func(g *forms.Form) int { return 0 }).MinItems(300).MaxItems(500)
 }

@@ -37,8 +37,10 @@ func (c Control) Kind() Kind {
 		return c.fd.kind
 	case c.l != nil:
 		return KindList
+	case c.f != nil:
+		return KindGroup
 	}
-	return KindGroup
+	return 0
 }
 
 // Path is the node's name attribute: "name", "percentage.value",
@@ -49,8 +51,10 @@ func (c Control) Path() string {
 		return c.fd.path()
 	case c.l != nil:
 		return c.l.path()
+	case c.f != nil:
+		return c.f.path()
 	}
-	return c.f.path()
+	return ""
 }
 
 // Label is the node's label: what was set, else its name; a list item's is
@@ -61,7 +65,7 @@ func (c Control) Label() i18n.Ter {
 		return c.fd.label
 	case c.l != nil:
 		return c.l.label
-	case c.f.parent == nil:
+	case c.f == nil || c.f.parent == nil:
 		return i18n.Static("")
 	}
 	return c.f.groupLabel()
@@ -73,8 +77,10 @@ func (c Control) labelSet() bool {
 		return c.fd.labelSet
 	case c.l != nil:
 		return c.l.labelSet
+	case c.f != nil:
+		return c.f.labelSet || c.f.item != nil
 	}
-	return c.f.labelSet
+	return false
 }
 
 // Placeholder is a field's placeholder, else its label.
@@ -114,8 +120,10 @@ func (c Control) Active() bool {
 		return c.fd.active(memo)
 	case c.l != nil:
 		return c.l.active(memo)
+	case c.f != nil:
+		return c.f.active(memo)
 	}
-	return c.f.active(memo)
+	return false
 }
 
 // When returns the node's own condition, to serialise for the client.
@@ -126,7 +134,7 @@ func (c Control) When() (Cond, bool) {
 		n = c.fd.when
 	case c.l != nil:
 		n = c.l.when
-	default:
+	case c.f != nil:
 		n = c.f.when
 	}
 	return Cond{n}, n != nil
@@ -196,8 +204,10 @@ func (c Control) Err() error {
 		return c.fd.err
 	case c.l != nil:
 		return c.l.err
+	case c.f != nil:
+		return c.f.err
 	}
-	return c.f.err
+	return nil
 }
 
 // Children yields a group's members, or a list's items as groups.
@@ -235,10 +245,7 @@ func (c Control) Template() (Control, bool) {
 	if c.l == nil {
 		return Control{}, false
 	}
-	if c.l.template == nil {
-		it := c.l.newItem(-1)
-		c.l.template = &it
-	}
+	c.l.memberNames() // builds the template row once
 	return Control{f: c.l.template.form}, true
 }
 

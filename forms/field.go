@@ -100,7 +100,7 @@ func (h *Field[T]) use(method string) *field {
 func (h *Field[T]) builder(method string) *field {
 	fd := h.use(method)
 	if fd.form.isBound() {
-		panic(fmt.Sprintf("forms: %s on field %q after Bind", method, fd.name))
+		panic(fmt.Sprintf("forms: %s on field %q after Bind", method, fd.path()))
 	}
 	return fd
 }
@@ -224,7 +224,7 @@ func (h *Field[T]) Hint(k Kind) *Field[T] {
 func (h *Field[T]) Set(v T) *Field[T] {
 	fd := h.use("Set")
 	if fd.form.isBound() {
-		panic(fmt.Sprintf("forms: Set on field %q after Bind", fd.name))
+		panic(fmt.Sprintf("forms: Set on field %q after Bind", fd.path()))
 	}
 	vals := make([]any, h.stage+1)
 	vals[h.stage] = v
@@ -240,7 +240,7 @@ func (h *Field[T]) Set(v T) *Field[T] {
 // SetPtr is Set(*p) when p is not nil, for nullable columns.
 func (h *Field[T]) SetPtr(p *T) *Field[T] {
 	if fd := h.use("SetPtr"); fd.form.isBound() {
-		panic(fmt.Sprintf("forms: SetPtr on field %q after Bind", fd.name))
+		panic(fmt.Sprintf("forms: SetPtr on field %q after Bind", fd.path()))
 	}
 	if p != nil {
 		h.Set(*p)

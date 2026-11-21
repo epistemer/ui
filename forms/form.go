@@ -30,9 +30,10 @@ type Form struct {
 	labelSet bool
 	when     *condNode
 
+	building bool // a list item or template row being built: may declare after Bind
+
 	// Root only.
 	bound     bool
-	building  bool // list items and template rows may declare fields after Bind
 	validated bool
 
 	err error // the form-level error: unreadable, a check, Fail
@@ -52,11 +53,16 @@ func (f *Form) root() *Form {
 	return f
 }
 
-// isBound reports whether the whole form was bound, outside the moments
-// when a list builds items.
+// isBound reports whether the form was bound. A list item or template row
+// being built, and the forms inside it, may still be declared; nothing
+// outside it may.
 func (f *Form) isBound() bool {
-	r := f.root()
-	return r.bound && !r.building
+	for g := f; g != nil; g = g.parent {
+		if g.building {
+			return false
+		}
+	}
+	return f.root().bound
 }
 
 func (f *Form) path() string {
@@ -188,6 +194,9 @@ func (f *Form) clearInactive(memo map[any]bool) {
 				n.clear()
 			}
 		case *Form:
+			if !n.active(memo) {
+				n.err = nil
+			}
 			n.clearInactive(memo)
 		case *list:
 			if !n.active(memo) {
@@ -220,15 +229,24 @@ func (f *Form) validateNodes(ctx context.Context, memo map[any]bool) bool {
 			}
 		}
 	}
-	if !failed && f.err == nil {
-		for _, check := range f.checks {
-			if err := check(ctx); err != nil {
-				f.err = err
-				break
-			}
+	for _, check := range f.checks {
+		// A check that Fails a field or the form and returns nil still
+		// stops the rest.
+		if failed || f.hasError() {
+			break
+		}
+		if err := check(ctx); err != nil {
+			f.err = err
 		}
 	}
-	return failed || f.err != nil
+	return failed || f.hasError()
+}
+
+func (f *Form) hasError() bool {
+	for range f.Errors() {
+		return true
+	}
+	return false
 }
 
 // Submit reads r, binds and validates. An unreadable request records
@@ -277,10 +295,15 @@ func (f *Form) Check(fn func(ctx context.Context) error) {
 	f.checks = append(f.checks, fn)
 }
 
-// Label sets a group's label. The default is its name.
+// Label sets a group's label. The default is its name. On the root it is
+// legal and unused; a list item takes its list's label, so Label on one
+// panics.
 func (f *Form) Label(l i18n.Ter) *Form {
 	if l == nil {
 		panic("forms: Label(nil) on a form")
+	}
+	if f.item != nil {
+		panic(fmt.Sprintf("forms: Label on the list item %q; label the list", f.path()))
 	}
 	if f.isBound() {
 		panic("forms: Label after Bind")
@@ -290,11 +313,13 @@ func (f *Form) Label(l i18n.Ter) *Form {
 }
 
 // When makes a group active only while c holds; an inactive group's
-// fields are cleared at Validate. When on the root form, twice, or with a
-// zero Cond panics, as does a condition that closes a cycle.
+// fields are cleared at Validate. On the root it is legal and has no
+// effect: the root is always active. On a list item it panics (put the
+// condition on the item's fields or on the list); so does When twice, a
+// zero Cond, or a condition that closes a cycle.
 func (f *Form) When(c Cond) *Form {
-	if f.parent == nil {
-		panic("forms: When on the root form")
+	if f.item != nil {
+		panic(fmt.Sprintf("forms: When on the list item %q; put the condition on its fields or on the list", f.path()))
 	}
 	if f.isBound() {
 		panic("forms: When after Bind")
@@ -314,9 +339,16 @@ func (f *Form) active(memo map[any]bool) bool {
 	if v, ok := memo[f]; ok {
 		return v
 	}
-	v := f.parent.active(memo)
-	if v && f.item != nil {
-		v = f.item.active(memo)
+	var v bool
+	if f.item != nil && f.index < 0 {
+		// A template row: its fields report their own conditions, so a
+		// client can clone it while the list is still hidden.
+		v = true
+	} else {
+		v = f.parent.active(memo)
+		if v && f.item != nil {
+			v = f.item.active(memo)
+		}
 	}
 	if v && f.when != nil {
 		v = f.when.eval(memo)
