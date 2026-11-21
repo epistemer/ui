@@ -1,0 +1,31 @@
+// Package templcontract pins the two templ behaviours the kernel rests on
+// (brief §3): how children travel in the context, and what a block made
+// only of component calls writes. Its tests run first after every templ
+// upgrade.
+package templcontract
+
+// Child renders its block inside <i>. A generated component reads its
+// children and clears them on entry.
+templ Child() {
+	<i>{ children... }</i>
+}
+
+// OnlyCalls is a block made of component calls, if and for, around a
+// component of the caller's.
+templ OnlyCalls(x templ.Component, n int, items []string) {
+	@Pass() {
+		@x
+		if n > 0 {
+			@x
+		}
+		for range items {
+			@x
+		}
+		@x
+	}
+}
+
+// Pass renders its block as it is.
+templ Pass() {
+	{ children... }
+}
