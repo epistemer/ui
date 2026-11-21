@@ -86,12 +86,7 @@ func newField[T any](form *Form, name string, kind Kind, c codec) *Field[T] {
 	return &Field[T]{f: fd}
 }
 
-func (fd *field) path() string {
-	if fd.form.path == "" {
-		return fd.name
-	}
-	return fd.form.path + "." + fd.name
-}
+func (fd *field) path() string { return join(fd.form.path(), fd.name) }
 
 // use returns the field state after checking that h is the live handle.
 func (h *Field[T]) use(method string) *field {
@@ -104,7 +99,7 @@ func (h *Field[T]) use(method string) *field {
 // builder is use for builder methods, which are legal only before Bind.
 func (h *Field[T]) builder(method string) *field {
 	fd := h.use(method)
-	if fd.form.bound {
+	if fd.form.isBound() {
 		panic(fmt.Sprintf("forms: %s on field %q after Bind", method, fd.name))
 	}
 	return fd
@@ -228,7 +223,7 @@ func (h *Field[T]) Hint(k Kind) *Field[T] {
 // present. It panics after Bind.
 func (h *Field[T]) Set(v T) *Field[T] {
 	fd := h.use("Set")
-	if fd.form.bound {
+	if fd.form.isBound() {
 		panic(fmt.Sprintf("forms: Set on field %q after Bind", fd.name))
 	}
 	vals := make([]any, h.stage+1)
@@ -244,7 +239,7 @@ func (h *Field[T]) Set(v T) *Field[T] {
 
 // SetPtr is Set(*p) when p is not nil, for nullable columns.
 func (h *Field[T]) SetPtr(p *T) *Field[T] {
-	if fd := h.use("SetPtr"); fd.form.bound {
+	if fd := h.use("SetPtr"); fd.form.isBound() {
 		panic(fmt.Sprintf("forms: SetPtr on field %q after Bind", fd.name))
 	}
 	if p != nil {
@@ -293,11 +288,15 @@ func (h *Field[T]) Fail(err error) {
 	fd.err = err
 }
 
-func (fd *field) bind(src Source) {
+// bind binds fd from src and reports whether src had anything under its
+// name.
+func (fd *field) bind(src Source) bool {
+	name := fd.path()
+	rawTexts, rawFiles := src.Values(name), src.Files(name)
 	fd.vals, fd.text, fd.present, fd.convAt, fd.convErr, fd.err = nil, nil, false, -1, nil, nil
 	var in input
 	if fd.base.files {
-		for _, fh := range src.Files(fd.name) {
+		for _, fh := range rawFiles {
 			if fh != nil && fh.Filename != "" {
 				in.files = append(in.files, fh)
 			}
@@ -307,7 +306,7 @@ func (fd *field) bind(src Source) {
 		}
 		fd.present = len(in.files) > 0
 	} else {
-		for _, t := range src.Values(fd.name) {
+		for _, t := range rawTexts {
 			if !fd.raw {
 				t = strings.TrimSpace(t)
 			}
@@ -321,14 +320,15 @@ func (fd *field) bind(src Source) {
 		fd.text = in.texts
 		fd.present = len(in.texts) > 0 || fd.base.always
 	}
+	seen := len(rawTexts) > 0 || len(rawFiles) > 0
 	if !fd.present {
-		return
+		return seen
 	}
 	v, err := fd.base.parse(in)
 	if err != nil {
 		fd.convAt, fd.convErr = 0, err
 		fd.err = fd.conversionError()
-		return
+		return seen
 	}
 	fd.vals = []any{v}
 	for k := 1; k < len(fd.stages); k++ {
@@ -336,10 +336,11 @@ func (fd *field) bind(src Source) {
 		if err != nil {
 			fd.convAt, fd.convErr = k, err
 			fd.err = fd.conversionError()
-			return
+			return seen
 		}
 		fd.vals = append(fd.vals, v)
 	}
+	return seen
 }
 
 // clear drops an inactive field's value, text and error.

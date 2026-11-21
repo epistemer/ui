@@ -122,9 +122,9 @@ The designs are [brief.md](brief.md) (kernel) and
 
 | ✓ | ID | Item | Done when |
 |---|---|---|---|
-| ☐ | F5.1 | Group and List: path binding, sparse indices, renumbering, limits, the template row | Indices 0 and 3 bind as two items renumbered 0 and 1; item 257 is refused |
-| ☐ | F5.2 | Control, Kind, Choice, Attrs | inputs-style exhaustive switch over Kind compiles in a test; the promotion example (§11.2) passes |
-| ☐ | F5.3 | formstest, including the unlabelled-control check | Both examples' handler paths run through formstest |
+| ☑ | F5.1 | Group and List: path binding, sparse indices, renumbering, limits, the template row | Indices 0 and 3 bind as two items renumbered 0 and 1; item 257 is refused |
+| ☑ | F5.2 | Control, Kind, Choice, Attrs | inputs-style exhaustive switch over Kind compiles in a test; the promotion example (§11.2) passes |
+| ☑ | F5.3 | formstest, including the unlabelled-control check | Both examples' handler paths run through formstest |
 
 ### F6 — Forms docs
 

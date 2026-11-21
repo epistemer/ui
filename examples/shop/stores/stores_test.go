@@ -15,6 +15,7 @@ import (
 	"github.com/epistemer/ui/examples/shop/models"
 	"github.com/epistemer/ui/examples/shop/stores"
 	"github.com/epistemer/ui/forms"
+	"github.com/epistemer/ui/forms/formstest"
 	"github.com/epistemer/ui/forms/rule"
 )
 
@@ -148,5 +149,19 @@ func TestErrorsInTwoLocales(t *testing.T) {
 	}
 	if strings.Join(all, ",") != "errors.forms.required,errors.forms.required,errors.forms.required" {
 		t.Errorf("All: %v", all)
+	}
+}
+
+func TestStoreFormThroughFormstest(t *testing.T) {
+	f := stores.NewStoreForm()
+	formstest.AssertLabelled(t, f.Form)
+	if !formstest.Submit(t, context.Background(), f.Form, "name=Harbour&address=1+Quay&kind=shop") {
+		t.Fatalf("errors %q", formstest.Errors(f.Form))
+	}
+	g := stores.NewStoreForm()
+	formstest.Submit(t, context.Background(), g.Form, "name=Ha&kind=castle")
+	want := []string{"name: errors.forms.rule.min_len", "address: errors.forms.required", "kind: errors.forms.not_an_option"}
+	if got := formstest.Errors(g.Form); strings.Join(got, "|") != strings.Join(want, "|") {
+		t.Errorf("errors %q", got)
 	}
 }
