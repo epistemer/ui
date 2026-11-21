@@ -161,8 +161,10 @@ func Slotted(layout templ.Component, slots ...SlotRef) templ.Component {
 		sink := &sink{}
 		err := children.Render(context.WithValue(ctx, collectorKey{}, c), sink)
 		switch {
-		case sink.err != nil && (err == nil || errors.Is(err, ErrStrayContent)):
-			// Also when the block ignored the write's error.
+		case sink.err != nil:
+			// Stray content came first: what follows it, even an error
+			// the block went on to meet after ignoring the write's, is
+			// later (interface §9.1).
 			return sink.err
 		case err != nil:
 			return err

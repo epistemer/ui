@@ -14,6 +14,7 @@ import (
 // MinSize checks that the uploaded file's size is at least bytes.
 // The error argument is formatted using the largest whole unit of B, KB, MB, or GB.
 func MinSize(bytes int64) Rule[*multipart.FileHeader] {
+	mustNotBeNegative("MinSize", bytes)
 	formatted := formatFileSize(bytes)
 	return Rule[*multipart.FileHeader]{
 		check: func(_ context.Context, fh *multipart.FileHeader) error {
@@ -28,6 +29,7 @@ func MinSize(bytes int64) Rule[*multipart.FileHeader] {
 // MaxSize checks that the uploaded file's size is at most bytes.
 // The error argument is formatted using the largest whole unit of B, KB, MB, or GB.
 func MaxSize(bytes int64) Rule[*multipart.FileHeader] {
+	mustNotBeNegative("MaxSize", bytes)
 	formatted := formatFileSize(bytes)
 	return Rule[*multipart.FileHeader]{
 		check: func(_ context.Context, fh *multipart.FileHeader) error {
@@ -75,6 +77,9 @@ func ContentType(types ...string) Rule[*multipart.FileHeader] {
 
 			for _, t := range allowed {
 				t = strings.TrimSpace(strings.ToLower(t))
+				if t == "*/*" {
+					return nil
+				}
 				if strings.HasSuffix(t, "/*") {
 					prefix := strings.TrimSuffix(t, "*")
 					if strings.HasPrefix(mediaType, prefix) {

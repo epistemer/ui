@@ -216,3 +216,19 @@ func TestCheckIDs_EdgeCases(t *testing.T) {
 		uitest.CheckIDs(t, html)
 	})
 }
+
+func TestFullPageKeepsTheShell(t *testing.T) {
+	rec := &fakeTB{TB: t}
+	uitest.CheckIDs(rec, `<html><body id="page"><a href="#page">top</a><p id="a b">x</p></body></html>`)
+	joined := strings.Join(rec.errors, "\n")
+	if strings.Contains(joined, `"page"`) {
+		t.Errorf("a full page lost its <body id>: %s", joined)
+	}
+	if !strings.Contains(joined, "white space") {
+		t.Errorf("an id with white space must fail: %s", joined)
+	}
+	if got := uitest.Normalise(`<html lang="en"><body class="x"><p>t</p></body></html>`); !strings.Contains(got, `<body class="x">`) || !strings.Contains(got, `<html lang="en">`) {
+		t.Errorf("normalised page lost its shell:\n%s", got)
+	}
+	uitest.CheckIDs(t, `<p id="a"></p>`, nil) // a nil option does nothing
+}

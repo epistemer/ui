@@ -7,6 +7,7 @@ import (
 
 // MinItems checks that the slice contains at least n elements.
 func MinItems[T any](n int) Rule[[]T] {
+	mustNotBeNegative("MinItems", int64(n))
 	return Rule[[]T]{
 		check: func(_ context.Context, v []T) error {
 			if len(v) < n {
@@ -19,6 +20,7 @@ func MinItems[T any](n int) Rule[[]T] {
 
 // MaxItems checks that the slice contains at most n elements.
 func MaxItems[T any](n int) Rule[[]T] {
+	mustNotBeNegative("MaxItems", int64(n))
 	return Rule[[]T]{
 		check: func(_ context.Context, v []T) error {
 			if len(v) > n {

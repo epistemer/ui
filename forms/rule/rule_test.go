@@ -3,6 +3,8 @@ package rule_test
 import (
 	"context"
 	"fmt"
+	"math"
+	"regexp"
 	"slices"
 	"strings"
 	"testing"
@@ -139,5 +141,40 @@ func TestDefaultErrorTranslated(t *testing.T) {
 	}
 	if got := errors.T(ctx, rule.ErrMaxLen.With(10)); !strings.Contains(got, "no more than 10 letters") {
 		t.Errorf("got %q", got)
+	}
+}
+
+func TestReleaseRuleFixes(t *testing.T) {
+	nan := math.NaN()
+	for name, fn := range map[string]func(){
+		"Min NaN":     func() { rule.Min(nan) },
+		"Between NaN": func() { rule.Between(0, nan) },
+		"MinLen -1":   func() { rule.MinLen(-1) },
+		"MaxSize -1":  func() { rule.MaxSize(-1) },
+		"MinItems -1": func() { rule.MinItems[string](-1) },
+	} {
+		t.Run(name, func(t *testing.T) {
+			defer func() {
+				if recover() == nil {
+					t.Error("did not panic")
+				}
+			}()
+			fn()
+		})
+	}
+	for k := range rule.Matches(regexp.MustCompile(`(?i)abc`)).Attrs() {
+		t.Errorf("a Go-only expression must not become a pattern attribute (%s)", k)
+	}
+	n := 0
+	for range rule.Matches(regexp.MustCompile(`[a-z]{3}(?:-x)?`)).Attrs() {
+		n++
+	}
+	if n != 1 {
+		t.Error("a portable expression keeps its pattern attribute")
+	}
+	for _, bad := range []string{"http://:80", "http://a b.com/"} {
+		if err := rule.Check(context.Background(), bad, rule.URL()); err == nil {
+			t.Errorf("URL accepted %q", bad)
+		}
 	}
 }

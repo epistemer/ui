@@ -79,7 +79,7 @@ func (f *Form) Bool(name string) *Field[bool] {
 // last value is non-empty and not one strconv.ParseBool reads as false.
 // Required means it must be ticked.
 func (f *Form) Checkbox(name string) *Field[bool] {
-	return newField[bool](f, name, KindCheckbox, codec{
+	h := newField[bool](f, name, KindCheckbox, codec{
 		always: true,
 		box:    true,
 		parse: func(in input) (any, error) {
@@ -91,6 +91,10 @@ func (f *Form) Checkbox(name string) *Field[bool] {
 		},
 		format: func(v any) []string { return []string{strconv.FormatBool(v.(bool))} },
 	})
+	// Never absent: unticked until Set or Bind says otherwise, before Bind
+	// too, as a browser reads an unchecked box.
+	h.f.present, h.f.vals, h.f.text = true, []any{false}, []string{"false"}
+	return h
 }
 
 // Time declares a time field parsed with layout, in UTC.
@@ -163,16 +167,13 @@ func (f *Form) Enum[E EnumValue](name string, values []E) *Field[E] {
 	})
 	fd := h.f
 	// Parse against the choices as they stand at Bind, so Options can
-	// replace them; a value outside them never reaches a rule.
+	// replace them; a value outside them never reaches a rule. An enum's
+	// value is its text: E is a string type.
 	fd.base.parse = func(in input) (any, error) {
-		for _, o := range fd.options {
-			if o.Value() == in.texts[0] {
-				if e, ok := o.(E); ok {
-					return e, nil
-				}
-			}
+		if !fd.isOption(in.texts[0]) {
+			return nil, ErrNotAnOption
 		}
-		return nil, ErrNotAnOption
+		return E(in.texts[0]), nil
 	}
 	fd.options, fd.optionsSet = opts, true
 	return h

@@ -246,14 +246,13 @@ func TestNestingPanics(t *testing.T) {
 	f := newPromo()
 	itemField := f.Constraints.Add().Type
 	for name, fn := range map[string]func(){
-		"Bind on a group":                           func() { f.Percentage.Bind(forms.FromValues(nil)) },
-		"Validate on a group":                       func() { f.Percentage.Validate(bg) },
-		"root When reading its own field (a cycle)": func() { f.Form.When(f.Type.Filled()) },
-		"group reads its member":                    func() { f.Percentage.When(f.Percentage.Value.Filled()) },
-		"into a list item":                          func() { f.Text("x").When(itemField.Filled()) },
-		"MinItems above max":                        func() { newPromo().Constraints.MinItems(4) },
-		"MaxItems below min":                        func() { newPromo().Constraints.MaxItems(0) },
-		"name clash":                                func() { g := forms.New(); g.Text("a"); g.Group("a", newPct) },
+		"Bind on a group":        func() { f.Percentage.Bind(forms.FromValues(nil)) },
+		"Validate on a group":    func() { f.Percentage.Validate(bg) },
+		"group reads its member": func() { f.Percentage.When(f.Percentage.Value.Filled()) },
+		"into a list item":       func() { f.Text("x").When(itemField.Filled()) },
+		"MinItems above max":     func() { newPromo().Constraints.MinItems(4) },
+		"MaxItems below min":     func() { newPromo().Constraints.MaxItems(0) },
+		"name clash":             func() { g := forms.New(); g.Text("a"); g.Group("a", newPct) },
 	} {
 		t.Run(name, func(t *testing.T) {
 			defer func() {

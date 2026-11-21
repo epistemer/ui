@@ -32,7 +32,9 @@ func CheckIDs(t testing.TB, rawHTML string, opts ...RefOption) {
 	t.Helper()
 	var o refOptions
 	for _, opt := range opts {
-		opt(&o)
+		if opt != nil {
+			opt(&o)
+		}
 	}
 	nodes, err := parseFragment(rawHTML)
 	if err != nil {
@@ -43,6 +45,7 @@ func CheckIDs(t testing.TB, rawHTML string, opts ...RefOption) {
 }
 
 func checkDocument(t testing.TB, rootNodes []*nethtml.Node, external map[string]bool) {
+	t.Helper()
 	seenIDs := make(map[string]bool)
 
 	// Pass 1: collect IDs in this document scope (excluding <template> children).
@@ -53,6 +56,8 @@ func checkDocument(t testing.TB, rootNodes []*nethtml.Node, external map[string]
 				if a.Key == "id" {
 					if a.Val == "" {
 						t.Errorf("uitest: <%s> attribute %q: empty id %q", n.Data, a.Key, "")
+					} else if strings.ContainsAny(a.Val, " \t\n\f\r") {
+						t.Errorf("uitest: <%s> attribute %q: id %q contains white space", n.Data, a.Key, a.Val)
 					} else if seenIDs[a.Val] {
 						t.Errorf("uitest: <%s> attribute %q: duplicate id %q", n.Data, a.Key, a.Val)
 					} else {

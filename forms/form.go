@@ -6,6 +6,7 @@ import (
 	"iter"
 	"net/http"
 	"regexp"
+	"slices"
 	"strconv"
 
 	"github.com/epistemer/errors"
@@ -126,11 +127,29 @@ func (f *Form) Bind(src Source) {
 		panic("forms: Bind(nil)")
 	}
 	f.bound = true
-	f.bindNodes(src)
+	var names []string
+	if f.hasLists() {
+		names = slices.Sorted(src.Names()) // once, for every list to search
+	}
+	f.bindNodes(src, names)
+}
+
+func (f *Form) hasLists() bool {
+	for _, n := range f.nodes {
+		switch n := n.(type) {
+		case *list:
+			return true
+		case *Form:
+			if n.hasLists() {
+				return true
+			}
+		}
+	}
+	return false
 }
 
 // bindNodes binds f's nodes and reports whether any field saw input.
-func (f *Form) bindNodes(src Source) bool {
+func (f *Form) bindNodes(src Source, names []string) bool {
 	seen := false
 	for _, n := range f.nodes {
 		switch n := n.(type) {
@@ -139,11 +158,11 @@ func (f *Form) bindNodes(src Source) bool {
 				seen = true
 			}
 		case *Form:
-			if n.bindNodes(src) {
+			if n.bindNodes(src, names) {
 				seen = true
 			}
 		case *list:
-			if n.bind(src) {
+			if n.bind(src, names) {
 				seen = true
 			}
 		}
@@ -259,9 +278,8 @@ func (f *Form) Submit(ctx context.Context, r *http.Request) bool {
 	src, err := FromRequest(r)
 	if err != nil {
 		f.Bind(FromValues(nil)) // no initial value survives
-		f.validated = true
 		f.err = ErrUnreadable.Wrap(err)
-		return false
+		return false // not validated: Valid is false here and in every sub-form
 	}
 	f.Bind(src)
 	return f.Validate(ctx)
@@ -323,6 +341,9 @@ func (f *Form) When(c Cond) *Form {
 	}
 	if f.isBound() {
 		panic("forms: When after Bind")
+	}
+	if f.parent == nil {
+		return f // the root is always active
 	}
 	f.when = checkWhen(f, f.path(), f.when, c)
 	return f

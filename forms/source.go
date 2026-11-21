@@ -2,6 +2,7 @@ package forms
 
 import (
 	"fmt"
+	"io"
 	"iter"
 	"maps"
 	"mime"
@@ -18,12 +19,12 @@ type Source interface {
 }
 
 // FromRequest reads r once. A POST, PUT or PATCH body is read, urlencoded
-// or multipart (with net/http's 32 MB of memory before files spill to
-// disk), without the query; a GET or HEAD reads the query; any other
-// method is an error. A body of
-// another content type is an error. net/http removes multipart temporary
-// files after the handler returns; limiting the body's size is the app's
-// (http.MaxBytesReader).
+// (at most 10 MB, as net/http allows) or multipart (with net/http's 32 MB of
+// memory before files spill to disk), without the query, which isn't even
+// parsed, so a query net/http would refuse doesn't spoil a body; a GET or
+// HEAD reads the query; any other method is an error. The multipart form is
+// left on r, so net/http removes its temporary files after the handler
+// returns. Limiting the body's size is the app's (http.MaxBytesReader).
 func FromRequest(r *http.Request) (Source, error) {
 	switch r.Method {
 	case http.MethodPost, http.MethodPut, http.MethodPatch:
@@ -42,15 +43,30 @@ func FromRequest(r *http.Request) (Source, error) {
 	}
 	switch ct {
 	case "application/x-www-form-urlencoded":
-		if err := r.ParseForm(); err != nil {
+		const limit = 10 << 20
+		body, err := io.ReadAll(io.LimitReader(r.Body, limit+1))
+		if err != nil {
 			return nil, fmt.Errorf("forms: %w", err)
 		}
-		return FromValues(r.PostForm), nil
+		if len(body) > limit {
+			return nil, fmt.Errorf("forms: an urlencoded body over %d bytes", limit)
+		}
+		v, err := url.ParseQuery(string(body))
+		if err != nil {
+			return nil, fmt.Errorf("forms: %w", err)
+		}
+		return FromValues(v), nil
 	case "multipart/form-data":
-		if err := r.ParseMultipartForm(32 << 20); err != nil {
+		mr, err := r.MultipartReader()
+		if err != nil {
 			return nil, fmt.Errorf("forms: %w", err)
 		}
-		return &source{values: r.MultipartForm.Value, files: r.MultipartForm.File}, nil
+		form, err := mr.ReadForm(32 << 20)
+		if err != nil {
+			return nil, fmt.Errorf("forms: %w", err)
+		}
+		r.MultipartForm = form // net/http's server removes its files
+		return &source{values: form.Value, files: form.File}, nil
 	}
 	return nil, fmt.Errorf("forms: a form can't be read from %q", ct)
 }

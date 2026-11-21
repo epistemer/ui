@@ -204,6 +204,7 @@ values):
 func (h *Handler) EditToy(w http.ResponseWriter, r *http.Request, toy Toy) {
 	f := NewToyForm()
 	f.Name.Set(toy.Name)
+	f.Electric.Set(toy.Voltage != nil) // Voltage's condition reads it
 	f.Voltage.SetPtr(toy.Voltage)
 	h.render(w, r, http.StatusOK, f)
 }
