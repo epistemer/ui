@@ -3,6 +3,44 @@
 Newest entry first. Each working session adds one: what landed, decisions
 taken for epistemer, what's next, and what's waiting on epistemer.
 
+## 2026-11-21 — Kernel M2 and forms F2
+
+**Landed.** PR #5 (M2, element ids) and PR #6 (F2, the forms core).
+
+- **M2.** `NewID`, `Scope`, `Get`, `Part`, `Key`, injective escaping,
+  `IDSource`, `Sequence`, `WithIDs` and the process source (6 random
+  base-36 characters, rejection-sampled, and a base-36 counter). 640,000
+  ids from 64 goroutines without a duplicate under -race. An exported
+  `ErrBadToken` was drafted and removed before review: the locked
+  interface has none, so a bad token is a plain error naming the source.
+  M2.3's fuzz tests were written by Gemini 3.8 Flash (Medium, about 110k
+  tokens) and strengthened by Claude after review (strict decoding, two
+  independent parts, hyphenated names).
+- **M2 review**: Gemini 4 Neon (Medium), about 36k tokens. No critical
+  finding; a duplicate id drew tokens before it was refused, the random
+  prefix had a modulo bias, and tests lacked K3/K8 cases. All fixed.
+- **F2.** `Form`, `Field[T]`, `Source`, the non-generic constructors, and
+  `Enum` and `Options`, pulled forward from F3.2 because the store example
+  needs them. `examples/shop` has a hand-written stand-in for generated
+  models and the store form of forms-design §11.1, tested through its
+  create, invalid, service-error and edit paths and in two locales. The
+  handlers in the example redirect by hand: wiring them to handlers'
+  generated routes is for the F6 example.
+- **F2 review**: Gemini 4 Neon (High), about 93k tokens. Ten findings, all
+  valid. The serious one: `Options()` with an empty list switched
+  membership checking off, so any value passed. Also: conversion errors
+  appeared only at Validate, an `Enum` let rules read an unchecked value,
+  `Submit` didn't refuse a second call when the request was unreadable.
+  All fixed with tests.
+- A force-push after a rebase was blocked by the session's safety checks;
+  branches now take main by merge.
+
+**Models.** Argon stayed in quota cooldown all session; Neon (High) and
+Neon (Medium) stood in for Argon (High) and Argon (Medium).
+
+**Next.** Kernel M3 (test kit) and forms F3 (conversion: `Conv`, `As`,
+`Number`, `Parsed`).
+
 ## 2026-11-21 — Forms F1: rules
 
 **Landed.** PR #3 (F1.1) and PR #4 (F1.2). `ui/forms/rule` is complete for
