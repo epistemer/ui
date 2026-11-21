@@ -36,7 +36,13 @@ func scanCSS(src string) ([]decl, error) {
 	flush := func() {
 		s := strings.TrimSpace(buf.String())
 		buf.Reset()
-		if s == "" || strings.HasPrefix(s, "@") {
+		if s == "" {
+			return
+		}
+		if strings.HasPrefix(s, "@") {
+			// @import, @layer x; and friends: ui's files are wrapped in
+			// their layer by the joiner and import nothing.
+			out = append(out, decl{line: start, selectors: append([]string(nil), stack...), prop: "@", value: s})
 			return
 		}
 		name, value, ok := strings.Cut(s, ":")
@@ -46,8 +52,8 @@ func scanCSS(src string) ([]decl, error) {
 		}
 		value = strings.TrimSpace(value)
 		imp := false
-		if v, ok := strings.CutSuffix(value, "!important"); ok {
-			value, imp = strings.TrimSpace(v), true
+		if m := important.FindStringIndex(value); m != nil {
+			value, imp = strings.TrimSpace(value[:m[0]]), true
 		}
 		out = append(out, decl{line: start, selectors: append([]string(nil), stack...), prop: strings.ToLower(name), value: value, important: imp})
 	}
@@ -67,6 +73,7 @@ func scanCSS(src string) ([]decl, error) {
 			}
 			line += strings.Count(src[i:i+2+end+2], "\n")
 			i += end + 3
+			buf.WriteByte(' ') // a comment separates tokens: 1/**/px is not 1px
 		case c == '"' || c == '\'':
 			j := i + 1
 			for j < len(src) && src[j] != c {
@@ -100,11 +107,19 @@ func scanCSS(src string) ([]decl, error) {
 			buf.WriteByte(c)
 		}
 	}
+	if paren != 0 {
+		return nil, fmt.Errorf("unbalanced parentheses")
+	}
 	if len(stack) != 0 {
 		return nil, fmt.Errorf("unclosed block %q", stack[len(stack)-1])
 	}
+	if rest := strings.TrimSpace(buf.String()); rest != "" {
+		return nil, fmt.Errorf("text after the last rule: %q", rest)
+	}
 	return out, nil
 }
+
+var important = regexp.MustCompile(`(?i)!\s*important\s*$`)
 
 // topLevel splits v on white space outside parentheses.
 func topLevel(v string) []string {
@@ -130,7 +145,10 @@ func topLevel(v string) []string {
 }
 
 var (
-	physicalProps = regexp.MustCompile(`^(left|right|(margin|padding|scroll-margin|scroll-padding)-(left|right)|border-(left|right)(-.*)?|border-(top|bottom)-(left|right)-radius)$`)
+	// Logical properties only (ADR 0004): the inline sides for RTL, and the
+	// block sides and sizes too, so the CSS reads one way throughout.
+	// overflow-x and -y stay: their logical forms aren't Baseline.
+	physicalProps = regexp.MustCompile(`^(left|right|top|bottom|width|height|(min|max)-(width|height)|(margin|padding|scroll-margin|scroll-padding)-(left|right|top|bottom)|border-(left|right|top|bottom)(-.*)?|border-(top|bottom)-(left|right)-radius)$`)
 	physicalValue = map[string]*regexp.Regexp{
 		"float":      regexp.MustCompile(`^(left|right)$`),
 		"clear":      regexp.MustCompile(`^(left|right)$`),
@@ -144,8 +162,14 @@ var (
 	colorFunc     = regexp.MustCompile(`\b(rgba?|hsla?|hwb|lab|lch|oklab|oklch|color)\(`)
 	namedColor    = regexp.MustCompile(`(?i)\b(black|white|red|green|blue|gray|grey|yellow|orange|purple|pink|brown|navy|teal|silver|maroon|olive|lime|aqua|fuchsia)\b`)
 	lengthLiteral = regexp.MustCompile(`(-?\d*\.?\d+)(px|rem|pt|pc|cm|mm|in|q)\b`)
-	varCall       = regexp.MustCompile(`var\(--[a-z0-9-]+\)`)
+	varCall       = regexp.MustCompile(`var\(--[a-z0-9_-]+\)`)
+	shadowValue   = regexp.MustCompile(`^(none|var\(--ui-shadow-[a-z0-9-]+\)(\s*,\s*var\(--ui-shadow-[a-z0-9-]+\))*)$`)
 )
+
+// Lengths relative to the font or the viewport (em, ch, lh, dvh, cqi …)
+// are allowed: they scale with the text or the screen, which is the
+// point. Absolute lengths other than a 1px hairline read a token
+// (ADR 0004).
 
 // cssProblems reports what the checks reject in one file.
 func cssProblems(file, src string) []string {
@@ -158,6 +182,10 @@ func cssProblems(file, src string) []string {
 		probs = append(probs, fmt.Sprintf("%s:%d: %s: %s", file, d.line, d.prop, fmt.Sprintf(format, args...)))
 	}
 	for _, d := range decls {
+		if d.prop == "@" {
+			probs = append(probs, fmt.Sprintf("%s:%d: %s: at-rule statements don't belong in ui's files", file, d.line, d.value))
+			continue
+		}
 		if strings.HasPrefix(d.prop, "--") {
 			// A component may alias tokens privately (--_fill: var(--ui-…)),
 			// so a tone is one block of aliases rather than a copy of every
@@ -194,6 +222,9 @@ func cssProblems(file, src string) []string {
 		}
 		if gradientSide.MatchString(d.value) {
 			report(d, "a gradient towards a physical side")
+		}
+		if (d.prop == "box-shadow" || d.prop == "text-shadow") && !shadowValue.MatchString(d.value) {
+			report(d, "a shadow that isn't a --ui-shadow token or none")
 		}
 		v := varCall.ReplaceAllString(d.value, "")
 		if hexLiteral.MatchString(v) || colorFunc.MatchString(v) || namedColor.MatchString(v) {
@@ -242,6 +273,15 @@ func TestCSSChecksCatchMistakes(t *testing.T) {
 		"custom property":       ".a { --x: 1; }",
 		"private literal":       ".a { --_x: 4px; }",
 		"colour inside a shade": ".a { background: color-mix(in oklab, var(--ui-color-brand) 88%, black); }",
+		"comment hides nothing": ".a { color:/* x */white; }",
+		"spaced important":      ".a { color: inherit ! IMPORTANT; }",
+		"block side":            ".a { margin-top: var(--ui-space-1); }",
+		"width":                 ".a { width: 100%; }",
+		"literal shadow":        ".a { box-shadow: 0 1px 1px currentColor; }",
+		"import":                "@import url(\"x.css\");",
+		"layer statement":       "@layer elsewhere;",
+		"unbalanced parens":     ".a { color: var(--ui-color-text; }",
+		"trailing text":         ".a { color: inherit; } stray",
 	}
 	for name, css := range bad {
 		if len(cssProblems("x.css", css)) == 0 {
@@ -253,12 +293,15 @@ func TestCSSChecksCatchMistakes(t *testing.T) {
 		"symmetric shorthand":  ".a { padding: var(--ui-space-1) var(--ui-space-2); margin: 0 auto 0 auto; }",
 		"hairline":             ".a { border: 1px solid var(--ui-color-border); }",
 		"relative units":       ".a { inline-size: 1em; max-inline-size: 60ch; max-block-size: 90dvh; flex: 1 1 0%; }",
+		"comment between":      ".a { color: /* why */ inherit; }",
 		"translate in dir":     ".a { &:dir(rtl) { transform: scaleX(-1) translateX(0); } }",
 		"vertical translate":   ".a { transform: translateY(var(--ui-space-1)); }",
 		"mix of tokens":        ".a { background: color-mix(in oklab, var(--ui-color-brand) 88%, var(--ui-color-text)); }",
 		"media query literals": "@media (min-width: 40rem) { .a { gap: var(--ui-space-2); } }",
 		"hidden":               "[hidden] { display: none !important; }",
 		"private alias":        ".a { --_fill: var(--ui-color-brand); }",
+		"shadow token":         ".a { box-shadow: var(--ui-shadow-2); text-shadow: none; }",
+		"overflow axes":        ".a { overflow-x: auto; }",
 	}
 	for name, css := range good {
 		file := "x.css"

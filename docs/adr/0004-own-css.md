@@ -67,8 +67,15 @@ section.
   colour, length or shadow in a declaration value outside the token layer.
   - The check allows a short list: `0`, percentages, `fr`, `1px` hairlines,
     `transparent`, `currentColor`, `inherit`.
+  - It also allows lengths relative to the font or the viewport (`em`,
+    `ch`, `lh`, `dvh`, `cqi`…). They scale with the text or the screen,
+    which is the point: an icon is `1.25em`, a button `2.5em` tall.
+    Absolute lengths (`px` beyond the hairline, `rem`, `pt`) read a token.
+  - Shadows are a `--ui-shadow-*` token or `none`.
   - It skips `@media` and `@container` conditions, where `var()` isn't
     allowed.
+  - It rejects at-rule statements (`@import`, `@layer x;`): the joiner
+    wraps each file in its layer.
 
   An accent's partner colours (on-colour, hover, active, text, subtle) are
   derived in Go with the theme (visual-design.md §4), so one brand colour
@@ -87,8 +94,10 @@ section.
 - **RTL:**
   - Logical properties only (`margin-inline-start`, `inset-inline-end`,
     `text-align: start`).
-  - The check rejects physical properties. It also rejects the values that
-    hide physical sides: four-value `margin`, `padding` and `inset` with
+  - The check rejects physical properties, on the block axis too (`top`,
+    `width`, `margin-top`), so the CSS reads one way throughout;
+    `overflow-x` and `-y` stay, because their logical forms aren't
+    Baseline. It also rejects the values that hide physical sides: four-value `margin`, `padding` and `inset` with
     different left and right parts; multi-value `border-radius`;
     `translateX` outside a `:dir()` rule; and `to left` or `to right` in
     gradients.

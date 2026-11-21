@@ -2,6 +2,7 @@ package theme
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"net/http"
 	"strings"
@@ -18,7 +19,11 @@ type Theme struct {
 }
 
 // New returns a Theme mounted at prefix, reading run-time values from c.
+// The prefix is a path on the app's own origin: it starts with one slash.
 func New(prefix string, c Config) (*Theme, error) {
+	if !strings.HasPrefix(prefix, "/") || strings.HasPrefix(prefix, "//") || strings.ContainsAny(prefix, `\?#"'<> `) {
+		return nil, fmt.Errorf("theme: prefix %q: want a path on this origin, such as /ui", prefix)
+	}
 	b, err := NewBundle()
 	if err != nil {
 		return nil, err

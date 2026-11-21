@@ -1,6 +1,9 @@
 package catalog
 
-import "strings"
+import (
+	"fmt"
+	"strings"
+)
 
 templ shell(head templ.Component, stories []Story, current Story) {
 	<!DOCTYPE html>
@@ -19,9 +22,9 @@ templ shell(head templ.Component, stories []Story, current Story) {
 					for _, s := range stories {
 						<li>
 							if s.Name == current.Name {
-								<a href={ templ.SafeURL("/story?name=" + s.Name) } aria-current="page">{ s.Name }</a>
+								<a href={ templ.SafeURL(storyURL(s.Name)) } aria-current="page">{ s.Name }</a>
 							} else {
-								<a href={ templ.SafeURL("/story?name=" + s.Name) }>{ s.Name }</a>
+								<a href={ templ.SafeURL(storyURL(s.Name)) }>{ s.Name }</a>
 							}
 						</li>
 					}
@@ -46,9 +49,9 @@ templ shell(head templ.Component, stories []Story, current Story) {
 						<label>Radius <input type="range" name="radius" min="0" max="16" value="8" data-unit="px"/></label>
 					</fieldset>
 				</form>
-				for _, v := range current.Variants {
-					<section class="catalog-variant" aria-labelledby={ "v-" + v.Name }>
-						<h2 id={ "v-" + v.Name }>{ v.Name }</h2>
+				for i, v := range current.Variants {
+					<section class="catalog-variant" aria-labelledby={ fmt.Sprintf("variant-%d", i) }>
+						<h2 id={ fmt.Sprintf("variant-%d", i) }>{ v.Name }</h2>
 						<div class="catalog-grid">
 							for _, dir := range dirs {
 								for _, scheme := range schemes {

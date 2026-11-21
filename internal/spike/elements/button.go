@@ -78,13 +78,14 @@ func (b ButtonSpec) Submit() ButtonSpec { b.submit = true; return b }
 func (b ButtonSpec) Disabled(d bool) ButtonSpec { b.disabled = d; return b }
 
 // Attrs adds attributes, merged as Merge does: the button keeps type,
-// role, href, disabled and aria-disabled.
+// role, href, disabled, aria-disabled and its variant attributes, which
+// only the builder's methods set.
 func (b ButtonSpec) Attrs(a templ.Attributes) ButtonSpec {
 	b.attrs = Merge(b.attrs, nil, a)
 	return b
 }
 
-var buttonOwned = []string{"type", "role", "href", "disabled", "aria-disabled"}
+var buttonOwned = []string{"type", "role", "href", "disabled", "aria-disabled", "data-variant", "data-size", "data-tone"}
 
 func (b ButtonSpec) attributes() templ.Attributes {
 	own := templ.Attributes{"class": "ui-button"}

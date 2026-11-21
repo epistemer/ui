@@ -8,6 +8,7 @@ import (
 	"embed"
 	"encoding/json"
 	"net/http"
+	"net/url"
 	"slices"
 	"strings"
 
@@ -69,7 +70,7 @@ func (c *Catalog) index(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "no stories", http.StatusNotFound)
 		return
 	}
-	http.Redirect(w, r, "/story?name="+c.stories[0].Name, http.StatusFound)
+	http.Redirect(w, r, storyURL(c.stories[0].Name), http.StatusFound)
 }
 
 func (c *Catalog) story(w http.ResponseWriter, r *http.Request) {
@@ -144,6 +145,10 @@ func render(w http.ResponseWriter, r *http.Request, c templ.Component) {
 	}
 }
 
+func storyURL(name string) string {
+	return "/story?" + url.Values{"name": {name}}.Encode()
+}
+
 func frameURL(story, variant, dir, scheme string) string {
-	return "/frame?story=" + story + "&variant=" + variant + "&dir=" + dir + "&scheme=" + scheme
+	return "/frame?" + url.Values{"story": {story}, "variant": {variant}, "dir": {dir}, "scheme": {scheme}}.Encode()
 }

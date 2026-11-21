@@ -22,6 +22,7 @@ func newCatalog(t *testing.T) *catalog.Catalog {
 	hello := templ.Raw(`<p>hello</p>`)
 	return catalog.New(th, catalog.Story{Name: "x/hello", Variants: []catalog.Variant{
 		{Name: "plain", Render: func(context.Context) templ.Component { return hello }},
+		{Name: "with & space", Render: func(context.Context) templ.Component { return hello }},
 	}})
 }
 
@@ -32,11 +33,12 @@ func TestPages(t *testing.T) {
 		c.ServeHTTP(w, httptest.NewRequest("GET", path, nil))
 		return w
 	}
-	if w := get("/"); w.Code != 302 || w.Header().Get("Location") != "/story?name=x/hello" {
+	if w := get("/"); w.Code != 302 || w.Header().Get("Location") != "/story?name=x%2Fhello" {
 		t.Errorf("index: %d %q", w.Code, w.Header().Get("Location"))
 	}
 	w := get("/story?name=x/hello")
-	if w.Code != 200 || !strings.Contains(w.Body.String(), `aria-current="page"`) || strings.Count(w.Body.String(), "<iframe") != 4 {
+	if w.Code != 200 || !strings.Contains(w.Body.String(), `aria-current="page"`) || strings.Count(w.Body.String(), "<iframe") != 8 ||
+		!strings.Contains(w.Body.String(), `variant=with+%26+space`) || !strings.Contains(w.Body.String(), `id="variant-1"`) {
 		t.Errorf("story page: %d\n%s", w.Code, w.Body.String())
 	}
 	if csp := w.Header().Get("Content-Security-Policy"); !strings.Contains(csp, "script-src 'self'") || !strings.Contains(csp, "style-src 'self'") {
@@ -46,6 +48,9 @@ func TestPages(t *testing.T) {
 	body := w.Body.String()
 	if w.Code != 200 || !strings.Contains(body, `dir="rtl"`) || !strings.Contains(body, `data-color-scheme="dark"`) || !strings.Contains(body, "<p>hello</p>") {
 		t.Errorf("frame: %d\n%s", w.Code, body)
+	}
+	if w := get("/frame?story=x%2Fhello&variant=with+%26+space&dir=ltr&scheme=light"); w.Code != 200 {
+		t.Errorf("escaped variant: %d", w.Code)
 	}
 	for _, bad := range []string{"/frame?story=x/hello&variant=plain&dir=up&scheme=dark", "/frame?story=x/none&variant=plain&dir=ltr&scheme=dark", "/story?name=none"} {
 		if w := get(bad); w.Code != 404 {

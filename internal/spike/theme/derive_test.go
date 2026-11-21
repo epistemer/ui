@@ -80,3 +80,25 @@ func TestDerivedTextStaysNearTheFill(t *testing.T) {
 	}
 	t.Logf("lime: text %s (%.2f:1), subtle %s", p.Text.Hex(), p.TextMin, p.Subtle.Hex())
 }
+
+// TestDeriveGrid sweeps sRGB on a coarse grid: whatever an admin picks,
+// every derived colour holds its contrast and Derive returns.
+func TestDeriveGrid(t *testing.T) {
+	const step = 15 // 18 values per channel, 5832 colours
+	for r := 0; r <= 255; r += step {
+		for g := 0; g <= 255; g += step {
+			for b := 0; b <= 255; b += step {
+				fill := RGB{float64(r) / 255, float64(g) / 255, float64(b) / 255}
+				for _, s := range []Scheme{Light, Dark} {
+					p := Derive(fill, s)
+					if p.TextMin < 4.5 || p.OnMin < 4.5 {
+						t.Fatalf("%s %s: text %.2f:1, on %.2f:1", fill.Hex(), s, p.TextMin, p.OnMin)
+					}
+					if c := Contrast(p.Text, p.Subtle); c < 4.5 {
+						t.Fatalf("%s %s: text on subtle %.2f:1", fill.Hex(), s, c)
+					}
+				}
+			}
+		}
+	}
+}

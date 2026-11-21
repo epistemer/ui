@@ -60,9 +60,12 @@
 		background-color: transparent;
 		color: var(--_text);
 
-		&:hover:not(:disabled, [aria-disabled="true"]),
-		&:active:not(:disabled, [aria-disabled="true"]) {
+		&:hover:not(:disabled, [aria-disabled="true"]) {
 			background-color: var(--_subtle);
+		}
+
+		&:active:not(:disabled, [aria-disabled="true"]) {
+			background-color: color-mix(in oklab, var(--_subtle), var(--_text) 12%);
 		}
 	}
 

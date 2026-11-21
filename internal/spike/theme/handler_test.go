@@ -2,9 +2,11 @@ package theme
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"strings"
+	"sync"
 	"testing"
 )
 
@@ -144,14 +146,64 @@ func TestValidators(t *testing.T) {
 			t.Errorf("ValidLength(%q) = true", s)
 		}
 	}
-	for _, s := range []string{`system-ui, sans-serif`, `"Noto Sans Arabic", "Segoe UI", sans-serif`} {
+	for _, s := range []string{`system-ui, sans-serif`, `"Noto Sans Arabic", "Segoe UI", sans-serif`, `Inter, 'Segoe UI', sans-serif`} {
 		if !ValidFont(s) {
 			t.Errorf("ValidFont(%q) = false", s)
 		}
 	}
-	for _, s := range []string{`Comic Sans`, `"a\"b"`, `x; }`, `url(x)`, `"x"; color: red`} {
+	for _, s := range []string{`Comic Sans`, `"a\"b"`, `x; }`, `url(x)`, `"x"; color: red`, `Inter,`, `'x"`} {
 		if ValidFont(s) {
 			t.Errorf("ValidFont(%q) = true", s)
 		}
 	}
 }
+
+func TestPrefix(t *testing.T) {
+	for _, p := range []string{"", "ui", "//evil.example", "/ui?x", `/ui"`} {
+		if _, err := New(p, Defaults{}); err == nil {
+			t.Errorf("New(%q) accepted", p)
+		}
+	}
+}
+
+func TestRuntimeConcurrent(t *testing.T) {
+	c := &lockedCfg{cfg: *newCfg()}
+	r := NewRuntime(c)
+	done := make(chan bool)
+	for i := range 8 {
+		go func() {
+			for j := range 50 {
+				if i == 0 && j%10 == 0 {
+					c.set(fmt.Sprintf("#%06x", j*0x10203))
+				}
+				css, hash := r.Current()
+				if len(css) == 0 || len(hash) != 12 {
+					t.Error("empty theme")
+				}
+			}
+			done <- true
+		}()
+	}
+	for range 8 {
+		<-done
+	}
+}
+
+type lockedCfg struct {
+	mu  sync.Mutex
+	cfg cfg
+}
+
+func (c *lockedCfg) set(brand string) { c.mu.Lock(); c.cfg.brand = brand; c.mu.Unlock() }
+func (c *lockedCfg) BrandColor() string {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	return c.cfg.brand
+}
+func (c *lockedCfg) DangerColor() string  { return c.cfg.DangerColor() }
+func (c *lockedCfg) WarningColor() string { return c.cfg.WarningColor() }
+func (c *lockedCfg) SuccessColor() string { return c.cfg.SuccessColor() }
+func (c *lockedCfg) InfoColor() string    { return c.cfg.InfoColor() }
+func (c *lockedCfg) FontSans() string     { return c.cfg.FontSans() }
+func (c *lockedCfg) FontMono() string     { return c.cfg.FontMono() }
+func (c *lockedCfg) Radius() string       { return c.cfg.Radius() }

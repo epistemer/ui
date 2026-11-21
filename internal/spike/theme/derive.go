@@ -1,9 +1,6 @@
 package theme
 
-import (
-	"fmt"
-	"math"
-)
+import "math"
 
 // Scheme is light or dark.
 type Scheme int
@@ -59,6 +56,7 @@ func Derive(fill RGB, s Scheme) Partners {
 	raised := surface("color-surface-raised", s)
 	grounds := []RGB{surface("color-surface", s), raised}
 
+	fill = MustHex(fill.Hex()) // measure what the page will get
 	p := Partners{Fill: fill}
 	worst := func(c RGB, against []RGB) float64 {
 		w := math.Inf(1)
@@ -81,7 +79,7 @@ func Derive(fill RGB, s Scheme) Partners {
 	p.OnMin = worst(p.On, []RGB{fill, p.Hover, p.Active})
 
 	// Subtle: a tint of the raised surface.
-	p.Subtle = MixOKLab(fill, SubtleShare, raised)
+	p.Subtle = MustHex(MixOKLab(fill, SubtleShare, raised).Hex())
 	grounds = append(grounds, p.Subtle)
 
 	// Text: the fill itself if it already reads on every ground; otherwise
@@ -107,12 +105,20 @@ func Derive(fill RGB, s Scheme) Partners {
 			near = mid
 		}
 	}
-	p.Text = at(far)
-	// Emitting hex rounds each channel; check the colour the page will get.
-	p.Text = MustHex(p.Text.Hex())
-	p.TextMin = worst(p.Text, grounds)
-	if p.TextMin < 4.5 {
-		panic(fmt.Sprintf("theme: derived text %s reaches only %.2f", p.Text.Hex(), p.TextMin))
+	// Emitting hex rounds each channel, which can cost a little contrast:
+	// measure the rounded colour, and step on towards black or white until
+	// it holds. It always does at the end, so Derive never fails on what
+	// an admin picks.
+	l := far
+	for {
+		p.Text = MustHex(at(l).Hex())
+		if p.TextMin = worst(p.Text, grounds); p.TextMin >= 4.5 || l == target {
+			return p
+		}
+		if s == Dark {
+			l = math.Min(1, l+0.005)
+		} else {
+			l = math.Max(0, l-0.005)
+		}
 	}
-	return p
 }

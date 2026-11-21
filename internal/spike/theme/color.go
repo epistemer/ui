@@ -150,11 +150,14 @@ func Contrast(a, b RGB) float64 {
 // both opaque.
 func MixOKLab(a RGB, p float64, b RGB) RGB {
 	x, y := a.Lab(), b.Lab()
-	return Lab{
+	m := Lab{
 		L: x.L*p + y.L*(1-p),
 		A: x.A*p + y.A*(1-p),
 		B: x.B*p + y.B*(1-p),
 	}.RGB()
+	// sRGB isn't convex in OKLab: a mix of two sRGB colours can land a
+	// hair outside it.
+	return RGB{clamp01(m.R), clamp01(m.G), clamp01(m.B)}
 }
 
 // MixOKLCh is CSS color-mix(in oklch, a p, b), with the shorter hue arc. A
@@ -184,5 +187,5 @@ func MixOKLCh(a RGB, p float64, b RGB) RGB {
 		L: x.L*p + y.L*(1-p),
 		C: x.C*p + y.C*(1-p),
 		H: math.Mod(h, 360),
-	}.Lab().RGB()
+	}.RGB() // gamut-mapped, as CSS does
 }

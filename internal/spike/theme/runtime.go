@@ -112,12 +112,12 @@ func validLength(s, def string) string {
 }
 
 var (
-	quotedFamily  = regexp.MustCompile(`^"[A-Za-z0-9 ._-]{1,64}"$`)
-	genericFamily = regexp.MustCompile(`^[a-z][a-z-]{1,31}$`) // system-ui, sans-serif, ui-monospace
+	quotedFamily = regexp.MustCompile(`^("[A-Za-z0-9 ._-]{1,64}"|'[A-Za-z0-9 ._-]{1,64}')$`)
+	plainFamily  = regexp.MustCompile(`^[A-Za-z][A-Za-z0-9-]{0,63}$`) // Inter, system-ui, sans-serif
 )
 
 // ValidFont reports whether s is a font-family list the theme accepts:
-// quoted family names and generic families, separated by commas.
+// quoted family names and single-word names, separated by commas.
 func ValidFont(s string) bool {
 	parts := strings.Split(s, ",")
 	if len(parts) > 12 {
@@ -125,7 +125,7 @@ func ValidFont(s string) bool {
 	}
 	for _, p := range parts {
 		p = strings.TrimSpace(p)
-		if !quotedFamily.MatchString(p) && !genericFamily.MatchString(p) {
+		if !quotedFamily.MatchString(p) && !plainFamily.MatchString(p) {
 			return false
 		}
 	}
