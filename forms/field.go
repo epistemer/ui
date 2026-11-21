@@ -36,6 +36,8 @@ type field struct {
 	options                  []option.SelectOption
 	optionsSet               bool // Options or Enum: the text must be one of options
 	when                     *condNode
+	hinted                   bool // Hint was called: Options keeps the kind
+	set                      bool // Set was called: As would lose the value
 
 	base   codec
 	stages []*stage // stages[0] holds the base type's rules
@@ -201,9 +203,11 @@ func (h *Field[T]) Options(opts ...option.SelectOption) *Field[T] {
 	}
 	fd.options = append(make([]option.SelectOption, 0, len(opts)), opts...)
 	fd.optionsSet = true
-	if fd.kind == KindText && fd.base.multi {
+	switch {
+	case fd.hinted || fd.base.files:
+	case fd.base.multi:
 		fd.kind = KindMultiSelect
-	} else if fd.kind == KindText || fd.kind == KindNumber {
+	default:
 		fd.kind = KindSelect
 	}
 	return h
@@ -215,7 +219,7 @@ func (h *Field[T]) Hint(k Kind) *Field[T] {
 	if k.String() == "" || k == KindGroup || k == KindList {
 		panic(fmt.Sprintf("forms: Hint(%d) on field %q: not a field kind", k, fd.name))
 	}
-	fd.kind = k
+	fd.kind, fd.hinted = k, true
 	return h
 }
 
@@ -233,7 +237,7 @@ func (h *Field[T]) Set(v T) *Field[T] {
 	}
 	fd.vals = vals
 	fd.text = fd.base.format(vals[0])
-	fd.present = true
+	fd.present, fd.set = true, true
 	return h
 }
 

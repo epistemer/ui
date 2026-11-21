@@ -23,7 +23,7 @@ and §9. They are locked with the rest.
 | uitest imports | the kernel, templ, `golang.org/x/net/html` (ADR 0003, M3.2) |
 | forms imports | the standard library, `github.com/epistemer/errors`, `github.com/epistemer/i18n`, `github.com/epistemer/models/option`, `ui/forms/rule` |
 | rule imports | the standard library, `github.com/epistemer/errors`, `github.com/epistemer/i18n` |
-| formstest imports | forms, the standard library, `testing` |
+| formstest imports | forms, its internal hook, `github.com/epistemer/errors`, the standard library |
 | Never imported | by forms: templ, any web framework, any decimal library. By the kernel: i18n, errors, forms |
 
 No exported signature in forms or rule contains `any`, `interface{}`, `[]any`
@@ -597,8 +597,10 @@ func External(ids ...string) RefOption
 - `Golden` compares the normalised HTML (one element per line, attributes
   sorted, text trimmed) with `testdata/<name>.golden.html`; with
   `go test -update` it rewrites the file. uitest registers `-update` unless
-  the test binary already defines a flag of that name, in which case it
-  reads that one.
+  a package initialised before it already defined a flag of that name, in
+  which case it reads that one. A test package that imports uitest reads
+  uitest's flag (`flag.Lookup("update")`) rather than declaring its own
+  (A3).
 - `CheckIDs` fails for a duplicate id and for any reference that does not
   resolve, naming the attribute and the id. It follows `for`, `form`,
   `list`, `headers`, `popovertarget`, `commandfor`, `aria-controls`,
@@ -746,3 +748,4 @@ entry in status.md.
 |---|---|---|---|
 | A1 | 2026-11-21 | §5.9, §6.3 | Error texts follow errors' convention: lower case, no final period (`must be at most %d characters`); the UI capitalizes them. A clarification by Claude (F1.1), to be overturned by epistemer if unwanted |
 | A2 | 2026-11-21 | §5.1, §5.8, §5.10, §7, §9.2 | Clarifications by Claude (F5 review): a list item has no `When` or `Label` of its own (both panic; conditions go on its fields or on the list, and it takes its list's label); `When` and `Label` on the root are legal and have no effect. A list index counts only when one of its names reaches a member an item declares, so junk never builds items or uses up `MaxItems`. `MinItems` above the default limit raises it. A template row's fields report their own conditions, not their list's, so a client can clone it while the list is hidden. A check that fails a field or the form and returns nil stops the remaining checks. `AssertLabelled` checks a list's members once, on its template row |
+| A3 | 2026-11-21 | §1, §5.3, §5.10, §6.2, §8, §9.2, §9.3 | From the release review (Claude): a list index counts only when one of its names reaches a declared field, at any depth; `FromRequest` reads a body without parsing the query, so a query net/http would refuse doesn't spoil it; a Checkbox is unticked, present and `false` before Bind too; an unreadable `Submit` leaves every form and sub-form invalid; an Enum accepts any option whose `Value()` is offered; `Options` makes any field `KindSelect` (`KindMultiSelect` for several values) unless `Hint` set the kind; `When` on the root is accepted and ignored; `Min`, `Max`, `Between` panic on a NaN bound, length, size and item limits on a negative one; `ContentType("*/*")` matches any file; `Matches` gives `pattern` only when the expression avoids Go-only syntax; `URL` needs a host name; uitest keeps a whole page's `<html>` and `<body>`, fails an id with white space, and its `-update` is shared with the test package (§8); formstest's imports |

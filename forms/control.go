@@ -240,13 +240,13 @@ func (c Control) Children() iter.Seq[Control] {
 }
 
 // Template returns a list's blank row, built at IndexPlaceholder, for a
-// client to clone.
+// client to clone. It is built on first use, so like the rest of a form
+// it is not safe for concurrent use.
 func (c Control) Template() (Control, bool) {
 	if c.l == nil {
 		return Control{}, false
 	}
-	c.l.memberNames() // builds the template row once
-	return Control{f: c.l.template.form}, true
+	return Control{f: c.l.templateRow().form}, true
 }
 
 func init() {

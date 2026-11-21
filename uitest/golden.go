@@ -160,10 +160,26 @@ func fragmentContext(firstTag string) *nethtml.Node {
 	}
 }
 
+// parseFragment parses a fragment in the context its first element
+// needs; a whole page (starting at <html>, <head> or <body>) is parsed as
+// a document, so the page shell and its attributes are kept.
 func parseFragment(rawHTML string) ([]*nethtml.Node, error) {
-	tag := firstElementTag(rawHTML)
-	ctx := fragmentContext(tag)
-	return nethtml.ParseFragment(strings.NewReader(rawHTML), ctx)
+	switch tag := firstElementTag(rawHTML); tag {
+	case "html", "head", "body":
+		doc, err := nethtml.Parse(strings.NewReader(rawHTML))
+		if err != nil {
+			return nil, err
+		}
+		var nodes []*nethtml.Node
+		for c := doc.FirstChild; c != nil; c = c.NextSibling {
+			if c.Type == nethtml.ElementNode {
+				nodes = append(nodes, c)
+			}
+		}
+		return nodes, nil
+	default:
+		return nethtml.ParseFragment(strings.NewReader(rawHTML), fragmentContext(tag))
+	}
 }
 
 func attrName(a nethtml.Attribute) string {

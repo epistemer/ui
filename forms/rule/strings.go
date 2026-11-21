@@ -2,6 +2,7 @@ package rule
 
 import (
 	"context"
+	"fmt"
 	"net/mail"
 	"net/url"
 	"regexp"
@@ -12,6 +13,7 @@ import (
 
 // MinLen checks that a string has at least n runes. It implies the minlength attribute.
 func MinLen(n int) Rule[string] {
+	mustNotBeNegative("MinLen", int64(n))
 	return Rule[string]{
 		check: func(_ context.Context, v string) error {
 			if utf8.RuneCountInString(v) < n {
@@ -24,6 +26,7 @@ func MinLen(n int) Rule[string] {
 
 // MaxLen checks that a string has at most n runes. It implies the maxlength attribute.
 func MaxLen(n int) Rule[string] {
+	mustNotBeNegative("MaxLen", int64(n))
 	return Rule[string]{
 		check: func(_ context.Context, v string) error {
 			if utf8.RuneCountInString(v) > n {
@@ -41,14 +44,18 @@ func Matches(re *regexp.Regexp) Rule[string] {
 		panic("rule: Matches(nil)")
 	}
 	anchored := regexp.MustCompile("^(?:" + re.String() + ")$")
-	return Rule[string]{
+	r := Rule[string]{
 		check: func(_ context.Context, v string) error {
 			if !anchored.MatchString(v) {
 				return ErrMatches
 			}
 			return nil
 		},
-	}.with("pattern", re.String())
+	}
+	if jsCompatible(re.String()) {
+		r = r.with("pattern", re.String())
+	}
+	return r
 }
 
 // Email checks that the string is a valid email address with no display name.
@@ -71,7 +78,7 @@ func URL() Rule[string] {
 	return Rule[string]{
 		check: func(_ context.Context, v string) error {
 			u, err := url.Parse(v)
-			if err != nil || (u.Scheme != "http" && u.Scheme != "https") || u.Host == "" {
+			if err != nil || (u.Scheme != "http" && u.Scheme != "https") || u.Hostname() == "" || strings.ContainsAny(u.Host, " \t") {
 				return ErrURL
 			}
 			return nil
@@ -140,5 +147,25 @@ func PostCode(country string) Rule[string] {
 			}
 			return nil
 		},
+	}
+}
+
+// goOnly lists regexp syntax that RE2 accepts and a browser's pattern
+// attribute does not: flags, named groups in Go's form, \A and \z, POSIX
+// classes. With any of it, Matches checks on the server only.
+var goOnly = []string{"(?i", "(?m", "(?s", "(?U", "(?P<", `\A`, `\z`, "[[:"}
+
+func jsCompatible(expr string) bool {
+	for _, s := range goOnly {
+		if strings.Contains(expr, s) {
+			return false
+		}
+	}
+	return true
+}
+
+func mustNotBeNegative(where string, n int64) {
+	if n < 0 {
+		panic(fmt.Sprintf("rule: %s(%d): a limit can't be negative", where, n))
 	}
 }

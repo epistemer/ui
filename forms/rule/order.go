@@ -12,6 +12,7 @@ import (
 // Min checks that val >= v. It reports ErrMin with fmt.Sprint(v).
 // It implies min when T's underlying kind is an integer or float.
 func Min[T cmp.Ordered](v T) Rule[T] {
+	mustBeNumber("Min", v)
 	r := Rule[T]{
 		check: func(_ context.Context, val T) error {
 			if val < v {
@@ -29,6 +30,7 @@ func Min[T cmp.Ordered](v T) Rule[T] {
 // Max checks that val <= v. It reports ErrMax with fmt.Sprint(v).
 // It implies max when T's underlying kind is an integer or float.
 func Max[T cmp.Ordered](v T) Rule[T] {
+	mustBeNumber("Max", v)
 	r := Rule[T]{
 		check: func(_ context.Context, val T) error {
 			if val > v {
@@ -47,6 +49,8 @@ func Max[T cmp.Ordered](v T) Rule[T] {
 // It reports ErrBetween with fmt.Sprint(lo) and fmt.Sprint(hi).
 // It implies min and max when T's underlying kind is an integer or float.
 func Between[T cmp.Ordered](lo, hi T) Rule[T] {
+	mustBeNumber("Between", lo)
+	mustBeNumber("Between", hi)
 	if lo > hi {
 		panic(fmt.Sprintf("rule: Between: lo (%v) > hi (%v)", lo, hi))
 	}
@@ -116,5 +120,12 @@ func formatBound[T any](v T) (string, bool) {
 		return strconv.FormatFloat(val.Float(), 'g', -1, 64), true
 	default:
 		return "", false
+	}
+}
+
+// mustBeNumber panics on a NaN bound, which every comparison would pass.
+func mustBeNumber[T cmp.Ordered](where string, v T) {
+	if v != v { // only NaN differs from itself
+		panic("rule: " + where + "(NaN): a bound must be a number")
 	}
 }

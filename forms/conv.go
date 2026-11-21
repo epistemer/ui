@@ -25,7 +25,7 @@ func (h *Field[T]) As[U any](c Conv[T, U]) *Field[U] {
 	if c.Parse == nil || c.Format == nil {
 		panic(fmt.Sprintf("forms: As on field %q: a Conv needs both Parse and Format", fd.name))
 	}
-	if fd.vals != nil {
+	if fd.set {
 		panic(fmt.Sprintf("forms: As on field %q after Set; call Set on the handle As returns", fd.name))
 	}
 	fd.stages = append(fd.stages, &stage{

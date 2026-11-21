@@ -31,6 +31,7 @@ func NewProvider[T any](def T) *Provider[T] {
 //		@Price(p)
 //	}
 func (p *Provider[T]) Provide(v T) templ.Component {
+	p.mustBeDeclared()
 	return templ.ComponentFunc(func(ctx context.Context, w io.Writer) error {
 		children, ctx := block(ctx)
 		if err := inBlock(ctx, w, "ui.Provider.Provide"); err != nil {
@@ -43,6 +44,7 @@ func (p *Provider[T]) Provide(v T) templ.Component {
 // With returns a context in which v is the provider's value, for Go code
 // such as middleware and handlers.
 func (p *Provider[T]) With(ctx context.Context, v T) context.Context {
+	p.mustBeDeclared()
 	return context.WithValue(ctx, p, provided[T]{v})
 }
 
@@ -52,8 +54,15 @@ type provided[T any] struct{ v T }
 
 // Value returns the nearest provided value, else the provider's default.
 func (p *Provider[T]) Value(ctx context.Context) T {
+	p.mustBeDeclared()
 	if b, ok := ctx.Value(p).(provided[T]); ok {
 		return b.v
 	}
 	return p.def
+}
+
+func (p *Provider[T]) mustBeDeclared() {
+	if p == nil {
+		panic("ui: a nil Provider; declare it with ui.NewProvider")
+	}
 }

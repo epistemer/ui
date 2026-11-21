@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"slices"
+	"sort"
 	"strings"
 
 	"github.com/epistemer/i18n"
@@ -57,7 +58,6 @@ type list struct {
 	min, max int
 	maxSet   bool
 	build    func(*Form) any
-	members  map[string]bool // the names an item declares, for telling real indices
 
 	items    []item
 	template *item // built on demand at IndexPlaceholder
@@ -148,64 +148,75 @@ func (l *list) newItem(index int) item {
 	return item{form: g, value: v}
 }
 
-// memberNames returns the names one item declares, from a template row.
-func (l *list) memberNames() map[string]bool {
-	if l.members == nil {
-		if l.template == nil {
-			it := l.newItem(-1)
-			l.template = &it
-		}
-		l.members = l.template.form.names
+// template returns the list's template row, built once.
+func (l *list) templateRow() *item {
+	if l.template == nil {
+		it := l.newItem(-1)
+		l.template = &it
 	}
-	return l.members
+	return l.template
 }
 
-// parseIndex reads "<index>].<member>" from the rest of a name after
-// "<list>[" and returns the index and the member's name.
-func parseIndex(rest string) (int, string, bool) {
-	end := strings.IndexByte(rest, ']')
-	if end < 1 || end > 6 || rest[0] == '0' && end > 1 {
+// parseIndex reads "<index>].<rest>" from what follows "<list>[" in a
+// name and returns the index and the rest.
+func parseIndex(s string) (int, string, bool) {
+	end := strings.IndexByte(s, ']')
+	if end < 1 || end > 6 || s[0] == '0' && end > 1 {
 		return 0, "", false
 	}
 	n := 0
-	for _, c := range rest[:end] {
+	for _, c := range s[:end] {
 		if c < '0' || c > '9' {
 			return 0, "", false
 		}
 		n = n*10 + int(c-'0')
 	}
-	after := rest[end+1:]
-	if !strings.HasPrefix(after, ".") {
-		return 0, "", false
+	rest, ok := strings.CutPrefix(s[end+1:], ".")
+	return n, rest, ok && rest != ""
+}
+
+// declares reports whether path, relative to f, names a field f declares:
+// "name", "group.name", "list[3].name".
+func (f *Form) declares(path string) bool {
+	for _, n := range f.nodes {
+		switch n := n.(type) {
+		case *field:
+			if path == n.name {
+				return true
+			}
+		case *Form:
+			if rest, ok := strings.CutPrefix(path, n.name+"."); ok && n.declares(rest) {
+				return true
+			}
+		case *list:
+			if rest, ok := strings.CutPrefix(path, n.name+"["); ok {
+				if _, inner, ok := parseIndex(rest); ok && n.templateRow().form.declares(inner) {
+					return true
+				}
+			}
+		}
 	}
-	member := after[1:]
-	if i := strings.IndexAny(member, ".["); i >= 0 {
-		member = member[:i]
-	}
-	return n, member, member != ""
+	return false
 }
 
 // bind builds and binds one item per submitted index (interface §5.8,
 // §9.2) and reports whether any of them saw input.
-func (l *list) bind(src Source) bool {
+func (l *list) bind(src Source, names []string) bool {
 	l.items, l.err = nil, nil
 	prefix := l.path() + "["
-	members := l.memberNames()
+	tpl := l.templateRow().form
 	seenIdx := map[int]bool{}
 	var indices []int
-	for name := range src.Names() {
-		rest, ok := strings.CutPrefix(name, prefix)
-		if !ok {
-			continue
-		}
-		// An index counts only when one of its names reaches a member an
+	// names is sorted: the names under this list are one run.
+	for i := sort.SearchStrings(names, prefix); i < len(names) && strings.HasPrefix(names[i], prefix); i++ {
+		// An index counts only when one of its names reaches a field an
 		// item declares, so junk never builds items or uses up MaxItems.
-		i, member, ok := parseIndex(rest)
-		if !ok || !members[member] || seenIdx[i] {
+		idx, rest, ok := parseIndex(names[i][len(prefix):])
+		if !ok || seenIdx[idx] || !tpl.declares(rest) {
 			continue
 		}
-		seenIdx[i] = true
-		indices = append(indices, i)
+		seenIdx[idx] = true
+		indices = append(indices, idx)
 	}
 	slices.Sort(indices)
 	if len(indices) > l.max {
@@ -215,7 +226,7 @@ func (l *list) bind(src Source) bool {
 	seen := false
 	for _, i := range indices {
 		it := l.newItem(i)
-		if it.form.bindNodes(src) {
+		if it.form.bindNodes(src, names) {
 			l.items = append(l.items, it)
 			seen = true
 		}

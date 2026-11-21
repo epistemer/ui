@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"io"
+	"strings"
 	"sync"
 	"testing"
 
@@ -115,4 +116,14 @@ func TestProvideRenderErrorReturned(t *testing.T) {
 	if err != io.ErrShortWrite {
 		t.Errorf("got %v, want the block's error (K6)", err)
 	}
+}
+
+func TestNilProviderPanics(t *testing.T) {
+	var p *ui.Provider[string]
+	defer func() {
+		if msg, _ := recover().(string); !strings.HasPrefix(msg, "ui:") {
+			t.Errorf("panic %q", msg)
+		}
+	}()
+	p.Value(context.Background())
 }

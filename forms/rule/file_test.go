@@ -169,3 +169,10 @@ func TestContentType(t *testing.T) {
 		rule.ContentType()
 	})
 }
+
+func TestContentTypeAnything(t *testing.T) {
+	fh := newFileHeader(t, "a.png", []byte("\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR"))
+	if err := rule.Check(context.Background(), fh, rule.ContentType("*/*")); err != nil {
+		t.Errorf("*/* must match any file: %v", err)
+	}
+}

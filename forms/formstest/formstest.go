@@ -49,8 +49,12 @@ func Errors(f *forms.Form) []string {
 // has items. The root and list items have no label of their own.
 func AssertLabelled(t testing.TB, f *forms.Form) {
 	t.Helper()
+	if f == nil {
+		t.Fatal("formstest: AssertLabelled(nil)")
+	}
 	var walk func(c forms.Control)
 	walk = func(c forms.Control) {
+		t.Helper()
 		if c.Path() != "" && !hook.LabelSet(c) {
 			t.Errorf("formstest: %s has no label of its own", c.Path())
 		}
