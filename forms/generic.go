@@ -2,7 +2,6 @@ package forms
 
 import (
 	"encoding"
-	"fmt"
 	"reflect"
 	"strconv"
 )
@@ -19,45 +18,30 @@ type Float interface{ ~float32 | ~float64 }
 // value out of T's range, NaN and infinities don't convert. Rules name the
 // type too: rule.Min[int32](1).
 func (f *Form) Number[T Integer | Float](name string) *Field[T] {
-	return newField[T](f, name, KindNumber, codec{
-		parse: func(in input) (any, error) {
-			var v T
-			rv := reflect.ValueOf(&v).Elem()
-			s := in.texts[0]
-			switch rv.Kind() {
-			case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-				n, err := strconv.ParseInt(s, 10, rv.Type().Bits())
-				if err != nil {
-					return nil, err
-				}
-				rv.SetInt(n)
-			case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-				n, err := strconv.ParseUint(s, 10, rv.Type().Bits())
-				if err != nil {
-					return nil, err
-				}
-				rv.SetUint(n)
-			default:
-				x, err := parseFloat(s, rv.Type().Bits())
-				if err != nil {
-					return nil, err
-				}
-				rv.SetFloat(x)
-			}
-			return v, nil
-		},
-		format: func(v any) []string {
-			rv := reflect.ValueOf(v)
-			switch rv.Kind() {
-			case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-				return []string{strconv.FormatInt(rv.Int(), 10)}
-			case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-				return []string{strconv.FormatUint(rv.Uint(), 10)}
-			default:
-				return []string{strconv.FormatFloat(rv.Float(), 'g', -1, rv.Type().Bits())}
-			}
-		},
-	})
+	t := reflect.TypeFor[T]()
+	bits := t.Bits()
+	var c codec
+	switch t.Kind() {
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		c.parse = func(in input) (any, error) {
+			n, err := strconv.ParseInt(in.texts[0], 10, bits)
+			return T(n), err
+		}
+		c.format = func(v any) []string { return []string{strconv.FormatInt(int64(v.(T)), 10)} }
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		c.parse = func(in input) (any, error) {
+			n, err := strconv.ParseUint(in.texts[0], 10, bits)
+			return T(n), err
+		}
+		c.format = func(v any) []string { return []string{strconv.FormatUint(uint64(v.(T)), 10)} }
+	default:
+		c.parse = func(in input) (any, error) {
+			x, err := parseFloat(in.texts[0], bits)
+			return T(x), err
+		}
+		c.format = func(v any) []string { return []string{strconv.FormatFloat(float64(v.(T)), 'g', -1, bits)} }
+	}
+	return newField[T](f, name, KindNumber, c)
 }
 
 // Parsed declares a field of any type with text marshalling, such as a
@@ -84,7 +68,7 @@ func (f *Form) Parsed[T any, PT interface {
 			t := v.(T)
 			b, err := PT(&t).MarshalText()
 			if err != nil {
-				return []string{fmt.Sprint(v)}
+				return nil // shown empty rather than as Go's own printing
 			}
 			return []string{string(b)}
 		},

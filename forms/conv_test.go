@@ -1,7 +1,9 @@
 package forms_test
 
 import (
+	"context"
 	"errors"
+	"fmt"
 	"strings"
 	"testing"
 	"time"
@@ -167,5 +169,152 @@ func TestParsed(t *testing.T) {
 	f.Validate(bg)
 	if ok.Value().s != "egp" || !uierrors.Is(bad.Err(), forms.ErrInvalid) {
 		t.Errorf("ok %v, bad %v", ok.Value(), bad.Err())
+	}
+}
+
+type namer interface{ Name() string }
+
+type person string
+
+func (p person) Name() string { return string(p) }
+
+func TestAsWithInterfaceTypes(t *testing.T) {
+	toNamer := forms.Conv[string, namer]{
+		Parse: func(s string) (namer, error) {
+			if s == "nobody" {
+				return nil, nil
+			}
+			return person(s), nil
+		},
+		Format: func(n namer) string {
+			if n == nil {
+				return ""
+			}
+			return n.Name()
+		},
+	}
+	upper := forms.Conv[namer, string]{
+		Parse:  func(n namer) (string, error) { return strings.ToUpper(fmt.Sprint(n)), nil },
+		Format: func(s string) namer { return person(s) },
+	}
+	f := forms.New()
+	n := f.Text("n").As(toNamer).Is(rule.New(func(_ context.Context, v namer) error { return nil }))
+	g := forms.New()
+	u := g.Text("u").As(toNamer).As(upper)
+	bind(f, "n=nobody")
+	bind(g, "u=nobody")
+	f.Validate(bg)
+	g.Validate(bg)
+	if n.Err() != nil || n.Value() != nil || u.Value() != "<NIL>" {
+		t.Errorf("n %v %v, u %q", n.Value(), n.Err(), u.Value())
+	}
+	h := forms.New().Text("h").As(toNamer)
+	h.Set(nil)
+	if h.Value() != nil {
+		t.Errorf("Set(nil) on an interface field: %v", h.Value())
+	}
+}
+
+func TestFormatThroughStages(t *testing.T) {
+	var formatted []string
+	minutes := forms.Conv[int, time.Duration]{
+		Parse:  func(n int) (time.Duration, error) { return time.Duration(n) * time.Minute, nil },
+		Format: func(d time.Duration) int { formatted = append(formatted, "minutes"); return int(d / time.Minute) },
+	}
+	wrap := forms.Conv[time.Duration, [1]time.Duration]{
+		Parse:  func(d time.Duration) ([1]time.Duration, error) { return [1]time.Duration{d}, nil },
+		Format: func(a [1]time.Duration) time.Duration { formatted = append(formatted, "wrap"); return a[0] },
+	}
+	f := forms.New()
+	c := f.Int("c").As(minutes).As(wrap)
+	c.Set([1]time.Duration{90 * time.Minute})
+	if strings.Join(formatted, ",") != "wrap,minutes" {
+		t.Errorf("Set formatted through %v; want the last stage first", formatted)
+	}
+}
+
+func TestAsMisuse(t *testing.T) {
+	bound := forms.New()
+	b := bound.Int("b")
+	bound.Bind(forms.FromValues(nil))
+	for name, fn := range map[string]func(){
+		"As after Set":  func() { h := forms.New().Int("x"); h.Set(1); h.As(seconds) },
+		"As after Bind": func() { b.As(seconds) },
+		"nil Format": func() {
+			forms.New().Int("x").As(forms.Conv[int, int]{Parse: func(n int) (int, error) { return n, nil }})
+		},
+	} {
+		t.Run(name, func(t *testing.T) {
+			defer func() {
+				if recover() == nil {
+					t.Error("did not panic")
+				}
+			}()
+			fn()
+		})
+	}
+}
+
+func TestNumberEdges(t *testing.T) {
+	f := forms.New()
+	cases := map[string]*forms.Field[float32]{}
+	for _, n := range []string{"nan", "inf", "big"} {
+		cases[n] = f.Number[float32](n)
+	}
+	neg := f.Number[uint16]("neg")
+	over := f.Number[int8]("over")
+	under := f.Number[int8]("under")
+	bind(f, "nan=NaN&inf=%2BInf&big=1e39&neg=-1&over=128&under=-129")
+	f.Validate(bg)
+	for name, h := range cases {
+		if !uierrors.Is(h.Err(), forms.ErrInvalid) {
+			t.Errorf("%s: %v", name, h.Err())
+		}
+	}
+	for name, err := range map[string]error{"neg": neg.Err(), "over": over.Err(), "under": under.Err()} {
+		if !uierrors.Is(err, forms.ErrInvalid) {
+			t.Errorf("%s: %v", name, err)
+		}
+	}
+	s := forms.New().Number[depth]("d")
+	s.Set(-3)
+	if s.Value() != -3 {
+		t.Errorf("Set on a named number type: %v", s.Value())
+	}
+}
+
+var errBadCode = uierrors.Key("errors.test.bad_code", "is not a code", uierrors.Invalid)
+
+type strictCode struct{ s string }
+
+func (c strictCode) MarshalText() ([]byte, error) { return []byte(c.s), nil }
+func (c *strictCode) UnmarshalText(b []byte) error {
+	if len(b) != 3 {
+		return errBadCode
+	}
+	c.s = string(b)
+	return nil
+}
+
+func TestParsedMore(t *testing.T) {
+	f := forms.New()
+	spaced := f.Parsed[code]("spaced")
+	blank := f.Parsed[code]("blank")
+	strict := f.Parsed[strictCode]("strict")
+	bind(f, "spaced=+egp+&blank=+++&strict=toolong")
+	f.Validate(bg)
+	if spaced.Value().s != "egp" {
+		t.Errorf("spaced: %q, %v: Parsed values are trimmed", spaced.Value().s, spaced.Err())
+	}
+	if _, ok := blank.Get(); ok || blank.Err() != nil {
+		t.Errorf("blank: white space alone is absent")
+	}
+	if !uierrors.Is(strict.Err(), errBadCode) || uierrors.Is(strict.Err(), forms.ErrInvalid) {
+		t.Errorf("strict: %v: a declared UnmarshalText error is shown as it is", strict.Err())
+	}
+	g := forms.New().Parsed[code]("g")
+	g.Set(code{"usd"})
+	if g.Value().s != "usd" {
+		t.Errorf("Set on Parsed: %v", g.Value())
 	}
 }
