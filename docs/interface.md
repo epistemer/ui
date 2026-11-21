@@ -426,12 +426,12 @@ Forms' declared errors, all of kind `errors.Invalid` *(texts new)*:
 
 | Variable | Key | Text |
 |---|---|---|
-| `ErrUnreadable` | `errors.forms.unreadable` | `The form could not be read` |
-| `ErrInvalid` | `errors.forms.invalid` | `Is not valid` |
-| `ErrNotAnOption` | `errors.forms.not_an_option` | `Is not one of the choices` |
-| `ErrRequired` | `errors.forms.required` | `Is required` |
-| `ErrMinItems` (`Key1[int]`) | `errors.forms.min_items` | `Add at least %d` |
-| `ErrMaxItems` (`Key1[int]`) | `errors.forms.max_items` | `Add at most %d` |
+| `ErrUnreadable` | `errors.forms.unreadable` | `the form could not be read` |
+| `ErrInvalid` | `errors.forms.invalid` | `is not valid` |
+| `ErrNotAnOption` | `errors.forms.not_an_option` | `is not one of the choices` |
+| `ErrRequired` | `errors.forms.required` | `is required` |
+| `ErrMinItems` (`Key1[int]`) | `errors.forms.min_items` | `add at least %d` |
+| `ErrMaxItems` (`Key1[int]`) | `errors.forms.max_items` | `add at most %d` |
 
 ### 5.10 Control and Kind
 
@@ -534,26 +534,26 @@ the request's locale.
 
 | Variable | Key | Text |
 |---|---|---|
-| `ErrMinLen` (`Key1[int]`) | `errors.forms.rule.min_len` | `Must be at least %d characters` |
-| `ErrMaxLen` (`Key1[int]`) | `errors.forms.rule.max_len` | `Must be at most %d characters` |
-| `ErrMatches` | `errors.forms.rule.matches` | `Is not in the expected format` |
-| `ErrEmail` | `errors.forms.rule.email` | `Must be an email address` |
-| `ErrURL` | `errors.forms.rule.url` | `Must be a URL` |
-| `ErrPhone` | `errors.forms.rule.phone` | `Must be a phone number` |
-| `ErrCountryCode` | `errors.forms.rule.country_code` | `Must be a country code` |
-| `ErrCurrencyCode` | `errors.forms.rule.currency_code` | `Must be a currency code` |
-| `ErrPostCode` | `errors.forms.rule.post_code` | `Must be a postal code` |
-| `ErrMin` (`Key1[string]`) | `errors.forms.rule.min` | `Must be at least %s` |
-| `ErrMax` (`Key1[string]`) | `errors.forms.rule.max` | `Must be at most %s` |
-| `ErrBetween` (`Key2[string, string]`) | `errors.forms.rule.between` | `Must be between %s and %s` |
-| `ErrOneOf` | `errors.forms.rule.one_of` | `Is not one of the allowed values` |
-| `ErrNotBefore` (`Key1[i18n.Ter]`) | `errors.forms.rule.not_before` | `Must not be before %s` |
-| `ErrNotAfter` (`Key1[i18n.Ter]`) | `errors.forms.rule.not_after` | `Must not be after %s` |
-| `ErrMinSize` (`Key1[string]`) | `errors.forms.rule.min_size` | `Must be at least %s` |
-| `ErrMaxSize` (`Key1[string]`) | `errors.forms.rule.max_size` | `Must be at most %s` |
-| `ErrContentType` (`Key1[string]`) | `errors.forms.rule.content_type` | `Must be one of these file types: %s` |
-| `ErrMinItems` (`Key1[int]`) | `errors.forms.rule.min_items` | `Choose at least %d` |
-| `ErrMaxItems` (`Key1[int]`) | `errors.forms.rule.max_items` | `Choose at most %d` |
+| `ErrMinLen` (`Key1[int]`) | `errors.forms.rule.min_len` | `must be at least %d characters` |
+| `ErrMaxLen` (`Key1[int]`) | `errors.forms.rule.max_len` | `must be at most %d characters` |
+| `ErrMatches` | `errors.forms.rule.matches` | `is not in the expected format` |
+| `ErrEmail` | `errors.forms.rule.email` | `must be an email address` |
+| `ErrURL` | `errors.forms.rule.url` | `must be a URL` |
+| `ErrPhone` | `errors.forms.rule.phone` | `must be a phone number` |
+| `ErrCountryCode` | `errors.forms.rule.country_code` | `must be a country code` |
+| `ErrCurrencyCode` | `errors.forms.rule.currency_code` | `must be a currency code` |
+| `ErrPostCode` | `errors.forms.rule.post_code` | `must be a postal code` |
+| `ErrMin` (`Key1[string]`) | `errors.forms.rule.min` | `must be at least %s` |
+| `ErrMax` (`Key1[string]`) | `errors.forms.rule.max` | `must be at most %s` |
+| `ErrBetween` (`Key2[string, string]`) | `errors.forms.rule.between` | `must be between %s and %s` |
+| `ErrOneOf` | `errors.forms.rule.one_of` | `is not one of the allowed values` |
+| `ErrNotBefore` (`Key1[i18n.Ter]`) | `errors.forms.rule.not_before` | `must not be before %s` |
+| `ErrNotAfter` (`Key1[i18n.Ter]`) | `errors.forms.rule.not_after` | `must not be after %s` |
+| `ErrMinSize` (`Key1[string]`) | `errors.forms.rule.min_size` | `must be at least %s` |
+| `ErrMaxSize` (`Key1[string]`) | `errors.forms.rule.max_size` | `must be at most %s` |
+| `ErrContentType` (`Key1[string]`) | `errors.forms.rule.content_type` | `must be one of these file types: %s` |
+| `ErrMinItems` (`Key1[int]`) | `errors.forms.rule.min_items` | `choose at least %d` |
+| `ErrMaxItems` (`Key1[int]`) | `errors.forms.rule.max_items` | `choose at most %d` |
 
 `AtLeast` and `AtMost` report `ErrMin` and `ErrMax`. File sizes are written
 in the largest of B, KB, MB, GB that keeps the number whole (`5 MB`).
@@ -739,5 +739,9 @@ above precise without changing its intent.
 
 ## 10. Amendments
 
-None yet. After the lock, each amendment gets an ID (A1, …), a date, the
-sections it changes and why, and an entry in status.md.
+Each amendment has an ID, a date, the sections it changes and why, and an
+entry in status.md.
+
+| ID | Date | Sections | Change |
+|---|---|---|---|
+| A1 | 2026-11-21 | §5.9, §6.3 | Error texts follow errors' convention: lower case, no final period (`must be at most %d characters`); the UI capitalizes them. A clarification by Claude (F1.1), to be overturned by epistemer if unwanted |
