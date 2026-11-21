@@ -63,7 +63,7 @@ Key patterns:
 
 1. **A block holds only fills:** The caller block runs once during a collect pass
    that sinks output. Any loose content outside a slot fill returns `ui.ErrStrayContent`.
-2. **No wrappers in blocks:** `ui.Provide`, `ui.Scope`, and `Place` written directly
+2. **No wrappers in blocks:** a provider's `Provide`, `ui.Scope` and `Place` written directly
    inside a slotted component's caller block return `ui.ErrInBlock` because their
    context values would never reach the fills (which render later during the layout
    pass). Open them around the component call instead.
