@@ -2,10 +2,10 @@
 
 | | |
 |---|---|
-| Status | Draft for epistemer. API decisions Q1–Q9 are open; each has a default |
+| Status | Draft. epistemer decided Q2, Q3, Q4 and Q7 on 2026-11-22; Q1, Q5, Q6, Q8 and Q9 stand on their defaults, open to change until the D6 lock |
 | Date | 2026-11-22 |
 | Roadmap item | D3 |
-| Inputs | [ui-inventory.md](ui-inventory.md), ADR [0004](adr/0004-own-css.md) (accepted), ADR [0005](adr/0005-client-behaviour.md) (proposed), the brainstorm of 2026-11-21, the design review [0002](reviews/0002-visual-design.md) |
+| Inputs | [ui-inventory.md](ui-inventory.md), ADR [0004](adr/0004-own-css.md) (accepted), ADR [0005](adr/0005-client-behaviour.md) (accepted), the brainstorm of 2026-11-21, the design review [0002](reviews/0002-visual-design.md) |
 
 This draft covers what the visual packages share: layers, tokens,
 conventions, behaviour, accessibility and the catalogue. Each package gets
@@ -281,21 +281,22 @@ This beats Storybook for ui because its tests run in `go test` with no Node
 (see the 2026-11-22 status entry). `templ/storybook` remains possible later,
 in a module of its own, over the same registry.
 
-## 9. Open API decisions
+## 9. API decisions
 
-Each has a default; one left unanswered takes it.
+epistemer decided Q2, Q3, Q4 and Q7 on 2026-11-22, each on its default.
+The others stand on their defaults until the D6 lock.
 
-| # | Question | Default | Alternatives |
-|---|---|---|---|
-| Q1 | Package names and split (§3) | as in §3 | merge icons into elements; a `ui/components` per component |
-| Q2 | How a component takes options | **builders, as in forms**: `@elements.Button().Variant(elements.Outline).Disabled(!ok) { … }`. A builder is an immutable value that renders. Each method is listed under its own type in `go doc`; the same name on two components never collides; a condition is just an argument; the zero call is the common look | typed variadic options (`@elements.Button(elements.Outline)`): shorter, but options shared by several components hide which ones apply, and a condition needs a helper; a props struct (`elements.ButtonProps{…}`): explicit, but verbose for the common case |
-| Q3 | Variants in markup | `class="ui-button" data-variant="outline" data-size="s"` | modifier classes (`ui-button ui-button--outline`) |
-| Q4 | Which tokens can be overridden at run time, and where from | the five accent colours, the font families and the radius scale, as cfgx Mutable settings through `themeschema`; per tenant later | every token; a theme file per deployment, with no run-time changes |
-| Q5 | ui's own text | ui declares i18n keys `ui.<package>.<name>` with English defaults, as errors does; a caller can pass its own text instead | callers pass every text, and ui declares nothing |
-| Q6 | Actions (§5) | one action description, placements, and `Confirm` answered by one shared dialog | separate components per placement (zp's shape) |
-| Q7 | Behaviour stack (ADR 0005) | native HTML, htmx and one ui script; Alpine and jQuery dropped | keep Alpine |
-| Q8 | Catalogue (§8) | our own `ui/catalog`, stories in `internal/stories`, `cmd/catalog` | `templ/storybook` with Node |
-| Q9 | What the first lock (D6) covers | theme, icons, elements, the inputs the slice proves, dialog, confirmation, menu, navigation tabs, toasts, detail list, layout and catalog. Table, server table, pagination, filters, remote select and uploads wait for their own design | everything in §3 at once |
+| # | Question | Default | Alternatives | State |
+|---|---|---|---|---|
+| Q1 | Package names and split (§3) | as in §3 | merge icons into elements; a `ui/components` per component | default |
+| Q2 | How a component takes options | **builders, as in forms**: `@elements.Button().Variant(elements.Outline).Disabled(!ok) { … }`. A builder is an immutable value that renders. Each method is listed under its own type in `go doc`; the same name on two components never collides; a condition is just an argument; the zero call is the common look | typed variadic options (`@elements.Button(elements.Outline)`): shorter, but options shared by several components hide which ones apply, and a condition needs a helper; a props struct (`elements.ButtonProps{…}`): explicit, but verbose for the common case | decided 2026-11-22 |
+| Q3 | Variants in markup | `class="ui-button" data-variant="outline" data-size="s"` | modifier classes (`ui-button ui-button--outline`) | decided 2026-11-22 |
+| Q4 | Which tokens can be overridden at run time, and where from | the five accent colours, the font families and the radius scale, as cfgx Mutable settings through `themeschema`; per tenant later | every token; a theme file per deployment, with no run-time changes | decided 2026-11-22 |
+| Q5 | ui's own text | ui declares i18n keys `ui.<package>.<name>` with English defaults, as errors does; a caller can pass its own text instead | callers pass every text, and ui declares nothing | default |
+| Q6 | Actions (§5) | one action description, placements, and `Confirm` answered by one shared dialog | separate components per placement (zp's shape) | default |
+| Q7 | Behaviour stack (ADR 0005) | native HTML, htmx and one ui script; Alpine and jQuery dropped | keep Alpine | decided 2026-11-22 |
+| Q8 | Catalogue (§8) | our own `ui/catalog`, stories in `internal/stories`, `cmd/catalog` | `templ/storybook` with Node | default |
+| Q9 | What the first lock (D6) covers | theme, icons, elements, the inputs the slice proves, dialog, confirmation, menu, navigation tabs, toasts, detail list, layout and catalog. Table, server table, pagination, filters, remote select and uploads wait for their own design | everything in §3 at once | default |
 
 ## 10. The slice (D4)
 

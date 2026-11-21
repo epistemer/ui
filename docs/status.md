@@ -60,11 +60,17 @@ Q2's default moved from variadic options to builders, as in forms.
   147).
 - `templ/storybook` was read in the module cache (v0.3.1118).
 
-**Waiting on epistemer:**
-- ADR 0005 (Q7);
-- Q1–Q9 in visual-design.md §9, each with a default.
+**Decided by epistemer (2026-11-22),** each on its default:
+- Q2: components take options through builders, as in forms;
+- Q3: variants in markup are data attributes;
+- Q4: the accent colours, font families and radius scale can change at run
+  time;
+- Q7: ADR 0005 is accepted.
 
-**Next.** D4, the slice spike in `internal/spike`, built on the defaults.
+Q1, Q5, Q6, Q8 and Q9 stand on their defaults, open to change until the
+D6 lock.
+
+**Next.** D4, the slice spike in `internal/spike`.
 
 ## 2026-11-21 — v0.1.0
 

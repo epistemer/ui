@@ -2,10 +2,10 @@
 
 | | |
 |---|---|
-| Status | Proposed (awaiting epistemer) |
+| Status | Accepted |
 | Date | 2026-11-22 |
 | Roadmap item | D2 |
-| Deciders | Claude, as owner, proposes; epistemer decides |
+| Deciders | Claude proposed; epistemer accepted it on 2026-11-22 (Q7) |
 
 ## Context
 
@@ -50,7 +50,7 @@ Security Policy.
    block ADR 0004's cascade (an app's styles could no longer reach inside),
    and server rendering of shadow DOM is still awkward.
 
-## Decision (proposed)
+## Decision
 
 Option 2. The design review of 2026-11-22
 (docs/reviews/0002-visual-design.md) corrected the first draft of this

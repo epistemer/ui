@@ -167,6 +167,6 @@ section.
 
 **Changes elsewhere:**
 - visual-design.md's tokens and catalogue sections follow from this ADR.
-- The roadmap gains the design track D1–D6.
+- The roadmap gains the design track D1–D7.
 - Emails and PDFs are out of scope: they need inline styles and are a
   separate concern.
