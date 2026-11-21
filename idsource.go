@@ -4,7 +4,6 @@ import (
 	"context"
 	"crypto/rand"
 	"fmt"
-	"regexp"
 	"strconv"
 	"sync/atomic"
 )
@@ -60,16 +59,32 @@ var processIDs IDSource = &sequence{prefix: randomPrefix() + "-", base: 36}
 
 func randomPrefix() string {
 	const digits = "0123456789abcdefghijklmnopqrstuvwxyz"
-	b := make([]byte, 6)
-	rand.Read(b) // never fails (crypto/rand, Go 1.24 and later)
-	for i, c := range b {
-		b[i] = digits[c%36]
+	out := make([]byte, 0, 6)
+	var buf [16]byte
+	for len(out) < 6 {
+		rand.Read(buf[:]) // never fails (crypto/rand, Go 1.24 and later)
+		for _, c := range buf {
+			if c < 252 && len(out) < 6 { // 252 = 7×36: no modulo bias
+				out = append(out, digits[c%36])
+			}
+		}
 	}
-	return string(b)
+	return string(out)
 }
-
-var tokenSyntax = regexp.MustCompile(`^[a-z0-9]+(-[a-z0-9]+)*$`)
 
 // validToken reports whether t can follow "<name>--" in an id: words of
 // lower-case letters and digits joined by single hyphens.
-func validToken(t string) bool { return tokenSyntax.MatchString(t) }
+func validToken(t string) bool {
+	if t == "" || t[0] == '-' || t[len(t)-1] == '-' {
+		return false
+	}
+	for i := 0; i < len(t); i++ {
+		switch c := t[i]; {
+		case 'a' <= c && c <= 'z', '0' <= c && c <= '9':
+		case c == '-' && t[i-1] != '-':
+		default:
+			return false
+		}
+	}
+	return true
+}

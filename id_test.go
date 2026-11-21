@@ -53,12 +53,22 @@ func TestScopeErrors(t *testing.T) {
 	if err := kerneltest.Twice().Render(context.Background(), io.Discard); err == nil || !strings.Contains(err.Error(), `"email" twice`) {
 		t.Errorf("an id listed twice: got %v", err)
 	}
-	for _, tok := range []string{"", "A", "a--b", "a b", "-a", "a-"} {
+	for _, tok := range []string{"", "A", "a--b", "a b", "-a", "a-", "a_b"} {
 		ctx := ui.WithIDs(context.Background(), fixed(tok))
 		err := kerneltest.Field().Render(ctx, io.Discard)
-		if err == nil || !strings.Contains(err.Error(), fmt.Sprintf("%q", tok)) {
-			t.Errorf("token %q: got %v, want an error naming it", tok, err)
+		if err == nil || !strings.Contains(err.Error(), fmt.Sprintf("%q", tok)) || !strings.Contains(err.Error(), "ui_test.fixed") {
+			t.Errorf("token %q: got %v, want an error naming the token and the source", tok, err)
 		}
+	}
+	for _, tok := range []string{"1-2", "a", "k3x9a2-1f"} {
+		if err := kerneltest.Field().Render(ui.WithIDs(context.Background(), fixed(tok)), io.Discard); err != nil {
+			t.Errorf("token %q: %v", tok, err)
+		}
+	}
+	drawn := ui.Sequence("t")
+	ui.Scope(kerneltest.Email, kerneltest.Hint, kerneltest.Email).Render(ui.WithIDs(context.Background(), drawn), io.Discard)
+	if next := drawn.Next(); next != "t-1" {
+		t.Errorf("a Scope listing an id twice drew tokens: next is %q", next)
 	}
 }
 
@@ -77,6 +87,7 @@ func TestDeclarationPanics(t *testing.T) {
 		"WithIDs nil":      func() { ui.WithIDs(context.Background(), nil) },
 		"zero ID Key":      func() { ui.ID{}.Key("x") },
 		"zero ID Get":      func() { ui.ID{}.Get(context.Background()) },
+		"zero ID Part":     func() { ui.ID{}.Part(context.Background(), "x") },
 		"zero ID in Scope": func() { ui.Scope(ui.ID{}) },
 	} {
 		t.Run(name, func(t *testing.T) {
@@ -159,5 +170,70 @@ func TestSequenceIsByteStable(t *testing.T) {
 	b := render(t, seq("t"), kerneltest.Siblings())
 	if a != b {
 		t.Errorf("two renders with Sequence differ:\n%s\n%s", a, b)
+	}
+}
+
+func TestNewIDPanicNamesTheValue(t *testing.T) {
+	defer func() {
+		if msg, _ := recover().(string); !strings.Contains(msg, `"Bad"`) {
+			t.Errorf("panic %q does not name the value", msg)
+		}
+	}()
+	ui.NewID("Bad")
+}
+
+// TestHandlesWithOneName pins K8: two handles named alike never meet.
+func TestHandlesWithOneName(t *testing.T) {
+	a, b := ui.NewID("email"), ui.NewID("email")
+	var got []string
+	grab := templ.ComponentFunc(func(ctx context.Context, _ io.Writer) error {
+		got = append(got, a.Get(ctx), b.Get(ctx))
+		return nil
+	})
+	if err := ui.Scope(a, b).Render(templ.WithChildren(seq("t"), grab), io.Discard); err != nil {
+		t.Fatalf("Scope(a, b) of two handles named alike: %v", err)
+	}
+	if got[0] == got[1] {
+		t.Errorf("both handles got %q", got[0])
+	}
+	defer func() {
+		if recover() == nil {
+			t.Error("b.Get inside Scope(a) did not panic")
+		}
+	}()
+	only := templ.ComponentFunc(func(ctx context.Context, _ io.Writer) error { b.Get(ctx); return nil })
+	ui.Scope(a).Render(templ.WithChildren(seq("t"), only), io.Discard)
+}
+
+// TestScopeClearsChildren pins K3 for Scope.
+func TestScopeClearsChildren(t *testing.T) {
+	if got := render(t, seq("t"), kerneltest.ChildInScope()); got != "<i></i>" {
+		t.Errorf("got %q, want %q", got, "<i></i>")
+	}
+}
+
+func TestSequenceConcurrent(t *testing.T) {
+	s := ui.Sequence("t")
+	var mu sync.Mutex
+	seen := map[string]bool{}
+	var wg sync.WaitGroup
+	for range 16 {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			for range 1000 {
+				tok := s.Next()
+				mu.Lock()
+				if seen[tok] {
+					t.Errorf("duplicate token %q", tok)
+				}
+				seen[tok] = true
+				mu.Unlock()
+			}
+		}()
+	}
+	wg.Wait()
+	if len(seen) != 16000 || !seen["t-16000"] {
+		t.Errorf("%d tokens; want t-1 … t-16000", len(seen))
 	}
 }

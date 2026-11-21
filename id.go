@@ -62,16 +62,17 @@ func Scope(ids ...ID) templ.Component {
 	hs := make([]*idHandle, len(ids))
 	for i, id := range ids {
 		hs[i] = id.handle("Scope")
+		for _, prev := range hs[:i] {
+			if prev == hs[i] {
+				err := fmt.Errorf("ui: Scope lists the id %q twice", prev.name)
+				return templ.ComponentFunc(func(context.Context, io.Writer) error { return err })
+			}
+		}
 	}
 	return templ.ComponentFunc(func(ctx context.Context, w io.Writer) error {
 		children, ctx := block(ctx)
 		src := sourceOf(ctx)
-		for i, h := range hs {
-			for _, prev := range hs[:i] {
-				if prev == h {
-					return fmt.Errorf("ui: Scope lists the id %q twice", h.name)
-				}
-			}
+		for _, h := range hs {
 			tok := src.Next()
 			if !validToken(tok) {
 				return fmt.Errorf("ui: the id source %T returned the token %q for the id %q; a token is lower-case letters and digits in words joined by single hyphens", src, tok, h.name)

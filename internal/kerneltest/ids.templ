@@ -1,6 +1,9 @@
 package kerneltest
 
-import "github.com/epistemer/ui"
+import (
+	"github.com/epistemer/ui"
+	"github.com/epistemer/ui/internal/templcontract"
+)
 
 var (
 	Email = ui.NewID("email")
@@ -47,5 +50,13 @@ templ GetOutsideScope() {
 templ Twice() {
 	@ui.Scope(Email, Email) {
 		<p></p>
+	}
+}
+
+// ChildInScope calls a component that renders its children, without a
+// block, inside Scope.
+templ ChildInScope() {
+	@ui.Scope(Email) {
+		@templcontract.Child()
 	}
 }
