@@ -1,0 +1,11 @@
+*,
+*::before,
+*::after {
+	box-sizing: border-box;
+}
+
+/* The one !important in ui (ADR 0004): any component's display would
+   otherwise show what HTML, or an inactive forms control, hides. */
+[hidden] {
+	display: none !important;
+}

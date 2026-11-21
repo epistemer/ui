@@ -70,8 +70,11 @@ section.
   - It skips `@media` and `@container` conditions, where `var()` isn't
     allowed.
 
-  Derived shades use `color-mix(in oklch, …)` on the token, so one brand
-  colour changed at run time re-themes all its shades.
+  An accent's partner colours (on-colour, hover, active, text, subtle) are
+  derived in Go with the theme (visual-design.md §4), so one brand colour
+  changed at run time re-themes all of them. Where CSS mixes colours, it
+  mixes in OKLab: in OKLCh, mixing towards a near-grey drags the hue
+  (spike finding, design §11).
 - **Dark mode:**
   - `:root` declares `color-scheme: light dark`, and colour tokens use
     `light-dark()`, so each colour is written once.

@@ -100,14 +100,17 @@ sit below them in the cascade.
 **The token set.** Colours are named by role, not by palette:
 - `--ui-color-surface`, `-surface-raised`, `-text`, `-text-muted`,
   `-border`, `-focus`.
-- Each **accent role** has four tokens: brand, danger, warning, success and
+- Each **accent role** has six tokens: brand, danger, warning, success and
   info. For brand they are:
   - `--ui-color-brand`, the fill;
   - `-on-brand`, text on the fill;
+  - `-brand-hover` and `-brand-active`, the fill's shades;
   - `-brand-text`, the role used as text on a surface;
   - `-brand-subtle`, a tinted background for alerts and badges.
 
-  The other four roles follow the same pattern.
+  The other four roles follow the same pattern. The fill, on-colour and
+  shades are the same in both schemes; text and subtle are derived per
+  scheme.
 
 The other tokens are scales:
 - space `--ui-space-1`…`8`;
@@ -118,8 +121,8 @@ The other tokens are scales:
 - shadow `--ui-shadow-1`…`3`;
 - motion `--ui-duration-s`, `m` and `--ui-ease`.
 
-Colour values use `light-dark()`. Hover and active shades are derived in the
-browser with `color-mix(in oklch, …)`.
+Colour values use `light-dark()`. No accent colour is mixed in the
+browser: all of them are derived in Go, below.
 
 **Schema-first.** One Go table in `ui/theme` declares every token: its name,
 kind (colour, length, font, shadow, duration), its light and dark defaults,
@@ -153,9 +156,12 @@ and whether it can be overridden. From that table:
 
 **Contrast is built, not just checked.** When a colour is set, Go (stdlib
 maths, no dependency) derives its partners:
-- **on-colour:** black or white, whichever contrasts more with the fill and
-  with its derived hover and active shades. Go computes the same
-  `color-mix()` the browser will.
+- **on-colour:** black or white, whichever contrasts more with the fill.
+  One of them always reaches 4.58:1.
+- **hover and active:** the fill mixed in OKLab away from the on-colour
+  (towards black under white text, towards white under black text), at 88%
+  and 76%. Moving away from the on-colour only raises its contrast, so it
+  holds in every state.
 - **text colour:** the role shifted in oklch lightness, with chroma reduced
   to stay inside sRGB, until it reaches 4.5:1 against the stricter of
   surface and raised surface, in light and in dark.
@@ -336,4 +342,47 @@ With them come:
 - the invoker-command fallback.
 
 They land in `internal/spike/…`, and nothing is exported until epistemer
-locks the interface (D6). The spike's findings amend this draft.
+locks the interface (D6). The spike's findings amend this draft (§11).
+
+## 11. Spike findings
+
+From D4 so far: the theme pipeline, Button and the catalogue.
+
+1. **Shades move away from the on-colour.** The first spike mixed hover and
+   active towards black in light mode and white in dark mode, in the
+   browser. That dropped the on-colour's contrast to 3.56:1 on the default
+   blue in dark mode, and the default green with white text started at
+   only 4.38:1. Deriving the shades in Go, away from whichever of black and
+   white the fill carries, holds 4.5:1 by construction. Accents therefore
+   have six tokens, not four (§4).
+2. **Mix in OKLab, not OKLCh.** A subtle tint of a lime brand mixed into the
+   dark raised surface (`#1a1d23`, a near-grey with a little blue) moved
+   from hue 127° to 245° in OKLCh, turning blue, and only to 143° in
+   OKLab. OKLCh interpolates hue, and a near-grey has a real one.
+3. **The token panel asks the server.** Partner colours are derived in Go,
+   so the catalogue's panel sends the values to `/tokens.json` and applies
+   the answer to each frame through CSSOM. It works under the catalogue's
+   strict CSP (`script-src 'self'; style-src 'self'`), with no violations.
+4. **Components alias tokens privately.** A tone is one block of
+   `--_fill: var(--ui-color-danger)` aliases rather than a copy of every
+   variant. The CSS check allows a private custom property only when its
+   value is token references.
+5. **The checks need tests of their own.** The first scanner skipped every
+   `--_` property, because its name pattern didn't allow `_`. A test feeding
+   it known-bad CSS caught that.
+6. **Reduced motion lives in the token layer.** A rule in `ui.reset` loses
+   to every component's transition, because a later layer wins. Every
+   transition reads a duration token, so reduced motion zeroes the tokens
+   instead.
+7. **Builder types need a name of their own.** `elements.Button()` returns
+   `elements.ButtonSpec`, because a Go function and a type can't share a
+   name. D5 settles the pattern (a `Spec` suffix, or another).
+8. **Markup and CSS agree.** For every Button story in LTR, RTL, light and
+   dark, checked in the browser:
+   - the disabled link (no `href`, `aria-disabled`, `role="link"`) is
+     styled and inert;
+   - the chevron mirrors only in RTL;
+   - derived text colours read on both surfaces.
+
+   In `go test`, the selector check confirmed that every `ui-*` class and
+   variant attribute in the goldens has a rule in ui's CSS.

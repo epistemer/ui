@@ -1,0 +1,82 @@
+/* The catalogue's own layout. It isn't ui's CSS, so ADR 0004's checks
+   don't cover it, but it reads ui's tokens like any app would. */
+.catalog {
+	display: grid;
+	grid-template-columns: 14rem 1fr;
+	min-block-size: 100dvh;
+	margin: 0;
+}
+
+.catalog-nav {
+	padding: var(--ui-space-4);
+	border-inline-end: 1px solid var(--ui-color-border);
+	background: var(--ui-color-surface-raised);
+
+	& ul {
+		list-style: none;
+		margin: 0;
+		padding: 0;
+	}
+
+	& a {
+		display: block;
+		padding: var(--ui-space-1) var(--ui-space-2);
+		border-radius: var(--ui-radius-s);
+		color: var(--ui-color-text);
+		text-decoration: none;
+
+		&[aria-current="page"] {
+			background: var(--ui-color-brand-subtle);
+			color: var(--ui-color-brand-text);
+			font-weight: 600;
+		}
+	}
+}
+
+.catalog-main {
+	padding: var(--ui-space-5);
+	min-inline-size: 0;
+}
+
+.catalog-controls {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--ui-space-4);
+	margin-block-end: var(--ui-space-5);
+
+	& fieldset {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: var(--ui-space-3);
+		border: 1px solid var(--ui-color-border);
+		border-radius: var(--ui-radius-m);
+	}
+}
+
+.catalog-grid {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: var(--ui-space-3);
+
+	& iframe {
+		inline-size: 100%;
+		block-size: 10rem;
+		border: 1px solid var(--ui-color-border);
+		border-radius: var(--ui-radius-m);
+		resize: block;
+	}
+}
+
+.catalog:has(input[name="width"][value="phone"]:checked) .catalog-grid iframe {
+	inline-size: 375px;
+}
+
+.catalog:has(input[name="width"][value="tablet"]:checked) .catalog-grid {
+	grid-template-columns: 1fr;
+
+	& iframe {
+		inline-size: 768px;
+		max-inline-size: 100%;
+	}
+}
