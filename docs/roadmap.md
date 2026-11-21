@@ -101,15 +101,15 @@ The designs are [brief.md](brief.md) (kernel) and
 
 | ✓ | ID | Item | Done when |
 |---|---|---|---|
-| ☐ | F2.1 | Form, Field[T], Source (FromRequest, FromValues), the non-generic constructors, presence, Required, Is, Set, SetPtr, Value, Get, Ptr, Fail | Every row of the presence table passes; the declaration-error panics name the field |
-| ☐ | F2.2 | Bind, Validate, Submit, Check, FieldError, Err, Errors, forms' declared errors (`errors.forms.*`) | The store example (forms-design §11.1) passes through formstest; redisplay of `abc` in a number field |
+| ☑ | F2.1 | Form, Field[T], Source (FromRequest, FromValues), the non-generic constructors, presence, Required, Is, Set, SetPtr, Value, Get, Ptr, Fail | Every row of the presence table passes; the declaration-error panics name the field |
+| ☑ | F2.2 | Bind, Validate, Submit, Check, FieldError, Err, Errors, forms' declared errors (`errors.forms.*`) | The store example (forms-design §11.1) passes through formstest; redisplay of `abc` in a number field |
 
 ### F3 — Conversion
 
 | ✓ | ID | Item | Done when |
 |---|---|---|---|
 | ☐ | F3.1 | Conv and As, with the dead-handle check | Rules before and after As check T and U; the old handle panics |
-| ☐ | F3.2 | Number, Enum (option.SelectOption), Parsed, Options | A models-style enum binds; `All<Type>Options()` passes to Options unchanged; decimal precision round-trips in examples/shop |
+| ☐ | F3.2 | Number, Parsed (Enum and Options landed with F2, which the store example needed) | A models-style enum binds; `All<Type>Options()` passes to Options unchanged; decimal precision round-trips in examples/shop |
 
 ### F4 — Conditions
 

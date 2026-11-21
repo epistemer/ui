@@ -1,0 +1,175 @@
+package forms
+
+import (
+	"errors"
+	"fmt"
+	"math"
+	"mime/multipart"
+	"strconv"
+	"time"
+
+	"github.com/epistemer/models/option"
+)
+
+// Text declares a text field. White space around the value is trimmed
+// unless Raw is called; an empty value is absent.
+func (f *Form) Text(name string) *Field[string] {
+	return newField[string](f, name, KindText, codec{
+		text:   true,
+		parse:  func(in input) (any, error) { return in.texts[0], nil },
+		format: func(v any) []string { return []string{v.(string)} },
+	})
+}
+
+// Texts declares a field of a repeated name, such as a group of checkboxes
+// or a multiple select. Empty items are dropped; with none, it is absent.
+func (f *Form) Texts(name string) *Field[[]string] {
+	return newField[[]string](f, name, KindText, codec{
+		multi:  true,
+		parse:  func(in input) (any, error) { return append([]string(nil), in.texts...), nil },
+		format: func(v any) []string { return append([]string(nil), v.([]string)...) },
+	})
+}
+
+// Int declares an integer field. It is Field[int] so that rule.Min(0)
+// infers int; for other widths use Number.
+func (f *Form) Int(name string) *Field[int] {
+	return newField[int](f, name, KindNumber, codec{
+		parse:  func(in input) (any, error) { return strconv.Atoi(in.texts[0]) },
+		format: func(v any) []string { return []string{strconv.Itoa(v.(int))} },
+	})
+}
+
+// Float declares a float64 field. NaN and infinities don't convert.
+func (f *Form) Float(name string) *Field[float64] {
+	return newField[float64](f, name, KindNumber, codec{
+		parse:  func(in input) (any, error) { return parseFloat(in.texts[0], 64) },
+		format: func(v any) []string { return []string{strconv.FormatFloat(v.(float64), 'g', -1, 64)} },
+	})
+}
+
+var errNotFinite = errors.New("not a finite number")
+
+func parseFloat(s string, bits int) (float64, error) {
+	v, err := strconv.ParseFloat(s, bits)
+	if err != nil {
+		return 0, err
+	}
+	if math.IsNaN(v) || math.IsInf(v, 0) {
+		return 0, errNotFinite
+	}
+	return v, nil
+}
+
+// Bool declares a three-state boolean: absent, true or false. It accepts
+// what strconv.ParseBool accepts, and "on".
+func (f *Form) Bool(name string) *Field[bool] {
+	return newField[bool](f, name, KindToggle, codec{
+		parse: func(in input) (any, error) {
+			if in.texts[0] == "on" {
+				return true, nil
+			}
+			return strconv.ParseBool(in.texts[0])
+		},
+		format: func(v any) []string { return []string{strconv.FormatBool(v.(bool))} },
+	})
+}
+
+// Checkbox declares a two-state boolean that is never absent: true when its
+// last value is non-empty and not one strconv.ParseBool reads as false.
+// Required means it must be ticked.
+func (f *Form) Checkbox(name string) *Field[bool] {
+	return newField[bool](f, name, KindCheckbox, codec{
+		always: true,
+		parse: func(in input) (any, error) {
+			if len(in.texts) == 0 {
+				return false, nil
+			}
+			b, err := strconv.ParseBool(in.texts[0])
+			return err != nil || b, nil
+		},
+		format: func(v any) []string { return []string{strconv.FormatBool(v.(bool))} },
+	})
+}
+
+// Time declares a time field parsed with layout, in UTC.
+func (f *Form) Time(name, layout string) *Field[time.Time] {
+	if layout == "" {
+		panic(fmt.Sprintf("forms: Time(%q, \"\"): a layout is needed", name))
+	}
+	return newField[time.Time](f, name, KindDateTime, timeCodec(layout))
+}
+
+// Date declares a date field, layout 2006-01-02, in UTC. Its time rules
+// (rule.NotBefore, rule.NotAfter) compare calendar dates.
+func (f *Form) Date(name string) *Field[time.Time] {
+	h := newField[time.Time](f, name, KindDate, timeCodec(time.DateOnly))
+	h.f.dateOnly = true
+	return h
+}
+
+func timeCodec(layout string) codec {
+	return codec{
+		parse:  func(in input) (any, error) { return time.ParseInLocation(layout, in.texts[0], time.UTC) },
+		format: func(v any) []string { return []string{v.(time.Time).UTC().Format(layout)} },
+	}
+}
+
+// File declares a single file upload; a part with no file name is no file.
+func (f *Form) File(name string) *Field[*multipart.FileHeader] {
+	return newField[*multipart.FileHeader](f, name, KindFile, codec{
+		files:  true,
+		parse:  func(in input) (any, error) { return in.files[0], nil },
+		format: func(any) []string { return nil },
+	})
+}
+
+// Files declares a multiple file upload; parts with no file name are
+// dropped.
+func (f *Form) Files(name string) *Field[[]*multipart.FileHeader] {
+	return newField[[]*multipart.FileHeader](f, name, KindFiles, codec{
+		files:  true,
+		multi:  true,
+		parse:  func(in input) (any, error) { return append([]*multipart.FileHeader(nil), in.files...), nil },
+		format: func(any) []string { return nil },
+	})
+}
+
+// EnumValue is what Enum takes: a string type whose values are choices, as
+// every enum models generates is.
+type EnumValue interface {
+	~string
+	option.SelectOption
+}
+
+// Enum declares a field whose value is one of values, compared by Value().
+// It panics on no values or two with one Value().
+func (f *Form) Enum[E EnumValue](name string, values []E) *Field[E] {
+	if len(values) == 0 {
+		panic(fmt.Sprintf("forms: Enum %q has no values", name))
+	}
+	opts := make([]option.SelectOption, len(values))
+	seen := map[string]bool{}
+	for i, v := range values {
+		if seen[v.Value()] {
+			panic(fmt.Sprintf("forms: Enum %q lists the value %q twice", name, v.Value()))
+		}
+		seen[v.Value()] = true
+		opts[i] = v
+	}
+	byValue := make(map[string]E, len(values))
+	for _, v := range values {
+		byValue[v.Value()] = v
+	}
+	h := newField[E](f, name, KindSelect, codec{
+		parse: func(in input) (any, error) {
+			if v, ok := byValue[in.texts[0]]; ok {
+				return v, nil
+			}
+			return E(in.texts[0]), nil // the options check reports it
+		},
+		format: func(v any) []string { return []string{v.(E).Value()} },
+	})
+	h.f.options = opts
+	return h
+}
