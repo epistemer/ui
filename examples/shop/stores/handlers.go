@@ -52,4 +52,3 @@ func (h *H) StoreEdit(w http.ResponseWriter, r *http.Request, id int64) error {
 	f.Fill(st)
 	return h.Render(w, r, http.StatusOK, f)
 }
-
