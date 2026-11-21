@@ -53,20 +53,34 @@ func TestProvideClearsChildren(t *testing.T) {
 }
 
 func TestProviderZeroSizedTypes(t *testing.T) {
-	a, b := ui.NewProvider(struct{}{}), ui.NewProvider(struct{}{})
+	type flag struct{}
+	a, b := ui.NewProvider(flag{}), ui.NewProvider(flag{})
 	if a == b {
 		t.Fatal("two providers share one handle")
 	}
-	type marker struct{}
-	p := ui.NewProvider[*marker](nil)
-	q := ui.NewProvider[*marker](nil)
-	m := &marker{}
-	if q.Value(p.With(context.Background(), m)) != nil {
-		t.Error("a value given to one provider reached another of the same type")
+	ctx := a.With(context.Background(), flag{})
+	if ctx.Value(b) != nil {
+		t.Error("a value given to one zero-sized provider is visible under another")
+	}
+}
+
+func TestProviderNilInterface(t *testing.T) {
+	var def io.Writer = io.Discard
+	p := ui.NewProvider(def)
+	ctx := p.With(context.Background(), io.Writer(&bytes.Buffer{}))
+	if got := p.Value(p.With(ctx, nil)); got != nil {
+		t.Errorf("provided nil, got %v: an inner nil must win over the outer value and the default", got)
+	}
+}
+
+func TestProvideWithoutBlock(t *testing.T) {
+	if got := render(t, context.Background(), kerneltest.Currency.Provide("EGP")); got != "" {
+		t.Errorf("got %q, want nothing", got)
 	}
 }
 
 func TestProviderConcurrentRenders(t *testing.T) {
+	shared := kerneltest.Nested()
 	var wg sync.WaitGroup
 	for _, cur := range []string{"AAA", "BBB", "CCC", "DDD"} {
 		wg.Add(1)
@@ -74,6 +88,12 @@ func TestProviderConcurrentRenders(t *testing.T) {
 			defer wg.Done()
 			c := kerneltest.Currency.Provide(cur)
 			for range 200 {
+				// shared is rendered by every goroutine at once.
+				var sb bytes.Buffer
+				if err := shared.Render(context.Background(), &sb); err != nil || sb.String() != "<b>USD</b><b>EGP</b><b>EUR</b><b>EGP</b><b>USD</b>" {
+					t.Errorf("shared component: got %q, %v", sb.String(), err)
+					return
+				}
 				var buf bytes.Buffer
 				ctx := templ.WithChildren(context.Background(), kerneltest.Price())
 				if err := c.Render(ctx, &buf); err != nil {

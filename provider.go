@@ -40,13 +40,17 @@ func (p *Provider[T]) Provide(v T) templ.Component {
 // With returns a context in which v is the provider's value, for Go code
 // such as middleware and handlers.
 func (p *Provider[T]) With(ctx context.Context, v T) context.Context {
-	return context.WithValue(ctx, p, v)
+	return context.WithValue(ctx, p, provided[T]{v})
 }
+
+// provided boxes a value, so a nil interface value that was provided is
+// told apart from no value at all.
+type provided[T any] struct{ v T }
 
 // Value returns the nearest provided value, else the provider's default.
 func (p *Provider[T]) Value(ctx context.Context) T {
-	if v, ok := ctx.Value(p).(T); ok {
-		return v
+	if b, ok := ctx.Value(p).(provided[T]); ok {
+		return b.v
 	}
 	return p.def
 }
