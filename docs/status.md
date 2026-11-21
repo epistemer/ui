@@ -3,6 +3,37 @@
 Newest entry first. Each working session adds one: what landed, decisions
 taken for epistemer, what's next, and what's waiting on epistemer.
 
+## 2026-11-21 — v0.1.0
+
+**Landed.** PR #13 (F6.1), PR #14 (R.1), PR #15 (release review fixes),
+the CHANGELOG, the tag, and the global `ui` skill. Every roadmap item to
+v0.1.0 is done.
+
+- **F6.1** (Gemini 3.8 Flash High, about 205k tokens; reviewed by Claude,
+  one snippet fixed): forms godoc examples that run as tests, the README
+  guide for declaring and handling a form, `forms/rule/CONTRIBUTING.md`.
+- **R.1** (Claude): docs/api-review.md. All 228 exported identifiers are in
+  interface.md, every func signature matches, every identifier is
+  exercised by a test; a new test pins §5.10's default kinds.
+- **Release review** (Gemini 4 Neon XHigh, about 261k tokens; Argon was in
+  cooldown, so the strongest available ran): 19 findings, two rejected
+  after checking (flushing does reach templ's buffer; the root package has
+  its doc.go). The rest fixed with tests and recorded as **amendment A3**:
+  junk list keys at any depth, a POST whose query net/http refuses,
+  checkbox state before Bind, an unreadable Submit and sub-forms, Enum with
+  foreign options, Options kinds, root When, NaN and negative bounds,
+  `*/*`, `Matches`' pattern portability, `URL` host names, uitest on whole
+  pages and ids with white space, the `-update` flag, collect-pass order.
+- **Models this session** (agy): Gemini 3.8 Flash (High and Medium) for
+  delegated leaf items and small reviews, Gemini 4 Neon (Medium, High,
+  XHigh) standing in for Argon, which was in quota cooldown all session.
+
+**Waiting on epistemer.** Amendments A1–A3 (§10) are clarifications Claude
+made as owner; epistemer may overturn any of them. Nothing else.
+
+**Next.** v0.1.x fixes as they come; the next ui packages (icons,
+elements, inputs, components, layout) start from their own designs.
+
 ## 2026-11-21 — Forms F5 (nesting, Control, formstest) and kernel M5.1 (docs)
 
 **Landed.** PR #11 (F5) and PR #12 (M5.1). The kernel is feature-complete

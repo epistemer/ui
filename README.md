@@ -232,7 +232,7 @@ func TestToyForm(t *testing.T) {
 }
 ```
 
-Status: pre-release. The design is in [docs/brief.md](docs/brief.md) and
+Status: v0.1.0. The design is in [docs/brief.md](docs/brief.md) and
 [docs/forms-design.md](docs/forms-design.md); the contract is
 [docs/interface.md](docs/interface.md); progress is in
 [docs/roadmap.md](docs/roadmap.md).
