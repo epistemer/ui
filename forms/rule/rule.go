@@ -3,7 +3,6 @@ package rule
 import (
 	"context"
 	"iter"
-	"time"
 
 	"github.com/epistemer/errors"
 )
@@ -13,7 +12,7 @@ type Rule[T any] struct {
 	check func(ctx context.Context, v T) error
 	err   error
 	attrs []attr
-	time  *timeBound // NotBefore and NotAfter
+	time  *timeBound // NotBefore and NotAfter, for hook.DateOnly
 }
 
 type attr struct{ name, value string }
@@ -59,13 +58,10 @@ func Check[T any](ctx context.Context, v T, rules ...Rule[T]) error {
 }
 
 func (r Rule[T]) run(ctx context.Context, v T) error {
-	var err error
-	switch {
-	case r.time != nil:
-		err = r.time.check(any(v).(time.Time))
-	case r.check != nil:
-		err = r.check(ctx, v)
+	if r.check == nil {
+		return nil
 	}
+	err := r.check(ctx, v)
 	if err == nil {
 		return nil
 	}

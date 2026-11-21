@@ -91,23 +91,42 @@ func TestAttrsOfACustomRule(t *testing.T) {
 }
 
 func TestDefaultErrors(t *testing.T) {
+	date := i18n.Static("2026-11-21")
 	for _, tc := range []struct {
 		err  error
 		key  string
 		text string
 	}{
-		{rule.ErrMaxLen.With(255), "errors.forms.rule.max_len", "must be at most 255 characters"},
-		{rule.ErrEmail, "errors.forms.rule.email", "must be an email address"},
-		{rule.ErrBetween.With("1", "9"), "errors.forms.rule.between", "must be between 1 and 9"},
+		{rule.ErrMinLen.With(3), "min_len", "must be at least 3 characters"},
+		{rule.ErrMaxLen.With(255), "max_len", "must be at most 255 characters"},
+		{rule.ErrMatches, "matches", "is not in the expected format"},
+		{rule.ErrEmail, "email", "must be an email address"},
+		{rule.ErrURL, "url", "must be a URL"},
+		{rule.ErrPhone, "phone", "must be a phone number"},
+		{rule.ErrCountryCode, "country_code", "must be a country code"},
+		{rule.ErrCurrencyCode, "currency_code", "must be a currency code"},
+		{rule.ErrPostCode, "post_code", "must be a postal code"},
+		{rule.ErrMin.With("0"), "min", "must be at least 0"},
+		{rule.ErrMax.With("9"), "max", "must be at most 9"},
+		{rule.ErrBetween.With("1", "9"), "between", "must be between 1 and 9"},
+		{rule.ErrOneOf, "one_of", "is not one of the allowed values"},
+		{rule.ErrNotBefore.With(date), "not_before", "must not be before 2026-11-21"},
+		{rule.ErrNotAfter.With(date), "not_after", "must not be after 2026-11-21"},
+		{rule.ErrMinSize.With("1 KB"), "min_size", "must be at least 1 KB"},
+		{rule.ErrMaxSize.With("5 MB"), "max_size", "must be at most 5 MB"},
+		{rule.ErrContentType.With("image/png, image/jpeg"), "content_type", "must be one of these file types: image/png, image/jpeg"},
+		{rule.ErrMinItems.With(1), "min_items", "choose at least 1"},
+		{rule.ErrMaxItems.With(4), "max_items", "choose at most 4"},
 	} {
+		key := "errors.forms.rule." + tc.key
 		if got := errors.KindOf(tc.err); got != errors.Invalid {
-			t.Errorf("%s: kind %v, want invalid", tc.key, got)
+			t.Errorf("%s: kind %v, want invalid", key, got)
 		}
-		if got := errors.Public(tc.err).K(); got != tc.key {
-			t.Errorf("key %q, want %q", got, tc.key)
+		if got := errors.Public(tc.err).K(); got != key {
+			t.Errorf("key %q, want %q", got, key)
 		}
-		if got := tc.err.Error(); got != tc.text {
-			t.Errorf("%s: Error() %q, want %q", tc.key, got, tc.text)
+		if got := errors.T(context.Background(), tc.err); got != tc.text {
+			t.Errorf("%s: text %q, want %q", key, got, tc.text)
 		}
 	}
 }

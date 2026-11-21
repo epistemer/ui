@@ -2,6 +2,7 @@ package rule_test
 
 import (
 	"context"
+	"strings"
 	"testing"
 	"time"
 
@@ -43,10 +44,44 @@ func TestTimeBounds(t *testing.T) {
 }
 
 func TestTimeAttrs(t *testing.T) {
-	noon := time.Date(2026, 11, 21, 12, 30, 0, 0, time.UTC)
-	for k, v := range rule.NotBefore(noon).Attrs() {
-		if k != "min" || v != "2026-11-21T12:30" {
-			t.Errorf("got %s=%q", k, v)
+	plus3 := time.FixedZone("+03", 3*3600)
+	for _, tc := range []struct {
+		name      string
+		r         rule.Rule[time.Time]
+		key, want string
+	}{
+		{"NotBefore", rule.NotBefore(time.Date(2026, 11, 21, 12, 30, 0, 0, time.UTC)), "min", "2026-11-21T12:30"},
+		{"NotAfter", rule.NotAfter(time.Date(2026, 11, 21, 12, 30, 0, 0, time.UTC)), "max", "2026-11-21T12:30"},
+		{"seconds kept", rule.NotBefore(time.Date(2026, 11, 21, 12, 30, 15, 0, time.UTC)), "min", "2026-11-21T12:30:15"},
+		{"in UTC", rule.NotBefore(time.Date(2026, 11, 22, 1, 0, 0, 0, plus3)), "min", "2026-11-21T22:00"},
+		{"date only", hook.DateOnly(rule.NotAfter(time.Date(2026, 11, 21, 12, 30, 0, 0, time.UTC))).(rule.Rule[time.Time]), "max", "2026-11-21"},
+	} {
+		n := 0
+		for k, v := range tc.r.Attrs() {
+			n++
+			if k != tc.key || v != tc.want {
+				t.Errorf("%s: got %s=%q, want %s=%q", tc.name, k, v, tc.key, tc.want)
+			}
 		}
+		if n != 1 {
+			t.Errorf("%s: %d attributes, want 1", tc.name, n)
+		}
+	}
+}
+
+func TestTimeErrorShowsTheUTCDate(t *testing.T) {
+	plus3 := time.FixedZone("+03", 3*3600)
+	bound := time.Date(2026, 11, 22, 1, 0, 0, 0, plus3) // 2026-11-21 22:00 UTC
+	r := hook.DateOnly(rule.NotBefore(bound)).(rule.Rule[time.Time])
+	err := rule.Check(context.Background(), time.Date(2026, 11, 20, 0, 0, 0, 0, time.UTC), r)
+	if !errors.Is(err, rule.ErrNotBefore) || !strings.Contains(errors.T(context.Background(), err), "2026-11-21") {
+		t.Errorf("got %v (%q), want the bound's UTC date 2026-11-21", err, errors.T(context.Background(), err))
+	}
+}
+
+func TestDateOnlyKeepsErr(t *testing.T) {
+	r := hook.DateOnly(rule.NotBefore(time.Date(2026, 1, 2, 0, 0, 0, 0, time.UTC)).Err(errCustom)).(rule.Rule[time.Time])
+	if err := rule.Check(context.Background(), time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC), r); !errors.Is(err, errCustom) {
+		t.Errorf("got %v, want errCustom", err)
 	}
 }
