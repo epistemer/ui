@@ -145,6 +145,92 @@ intentionally clear default content, and ensures the kernel never buffers render
 output to check whether a fill was empty. To keep the fallback, do not fill the
 slot (use `if`).
 
+## Declaring a form and handling it
+
+Embed `*forms.Form` in a struct of typed field handles. A constructor declares
+fields, rules, conditions, groups, and lists:
+
+```go
+type ToyForm struct {
+	*forms.Form
+	Name     *forms.Field[string]
+	Electric *forms.Field[bool]
+	Voltage  *forms.Field[int]
+	Safety   *SafetyForm
+	Tags     *forms.List[*TagForm]
+}
+
+func NewToyForm() *ToyForm {
+	f := &ToyForm{Form: forms.New()}
+	f.Name = f.Text("name").Required().Is(rule.MinLen(3))
+	f.Electric = f.Checkbox("electric")
+	f.Voltage = f.Int("voltage").When(f.Electric.Filled()).Required()
+	f.Safety = f.Group("safety", func(g *forms.Form) *SafetyForm {
+		return &SafetyForm{Form: g, Age: g.Int("min_age").Required()}
+	})
+	f.Tags = f.List("tags", func(g *forms.Form) *TagForm {
+		return &TagForm{Form: g, Name: g.Text("name").Required()}
+	})
+	return f
+}
+```
+
+### Handling submissions and edits
+
+In an HTTP handler, `Submit` parses the body, binds values, and validates. On
+failure or service errors (`Fail`), re-render with `422 Unprocessable Entity`:
+
+```go
+func (h *Handler) CreateToy(w http.ResponseWriter, r *http.Request) {
+	f := NewToyForm()
+	if !f.Submit(r.Context(), r) {
+		h.render(w, r, http.StatusUnprocessableEntity, f)
+		return
+	}
+	toy, err := h.toys.Create(r.Context(), f.Name.Value(), f.Voltage.Ptr())
+	if err != nil {
+		f.Fail(err)
+		h.render(w, r, http.StatusUnprocessableEntity, f)
+		return
+	}
+	http.Redirect(w, r, "/toys/"+toy.ID, http.StatusSeeOther)
+}
+```
+
+For an edit page, populate initial values using `Set` (or `SetPtr` for nullable
+values):
+
+```go
+func (h *Handler) EditToy(w http.ResponseWriter, r *http.Request, toy Toy) {
+	f := NewToyForm()
+	f.Name.Set(toy.Name)
+	f.Voltage.SetPtr(toy.Voltage)
+	h.render(w, r, http.StatusOK, f)
+}
+```
+
+### Errors and testing
+
+Errors are translated with `errors.T(ctx, err)`:
+
+```go
+if err := f.Name.Err(); err != nil {
+	msg := errors.T(r.Context(), err) // "must be at least 3 characters"
+}
+```
+
+Package `formstest` tests forms without HTTP:
+
+```go
+func TestToyForm(t *testing.T) {
+	f := NewToyForm()
+	ok := formstest.Submit(t, context.Background(), f.Form, "name=Bear&electric=on&voltage=5&safety.min_age=3")
+	if !ok {
+		t.Fatalf("unexpected errors: %v", formstest.Errors(f.Form))
+	}
+}
+```
+
 Status: pre-release. The design is in [docs/brief.md](docs/brief.md) and
 [docs/forms-design.md](docs/forms-design.md); the contract is
 [docs/interface.md](docs/interface.md); progress is in
