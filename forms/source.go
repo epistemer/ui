@@ -19,15 +19,22 @@ type Source interface {
 
 // FromRequest reads r once. A POST, PUT or PATCH body is read, urlencoded
 // or multipart (with net/http's 32 MB of memory before files spill to
-// disk), without the query; any other method reads the query. A body of
+// disk), without the query; a GET or HEAD reads the query; any other
+// method is an error. A body of
 // another content type is an error. net/http removes multipart temporary
 // files after the handler returns; limiting the body's size is the app's
 // (http.MaxBytesReader).
 func FromRequest(r *http.Request) (Source, error) {
 	switch r.Method {
 	case http.MethodPost, http.MethodPut, http.MethodPatch:
+	case http.MethodGet, http.MethodHead:
+		q, err := url.ParseQuery(r.URL.RawQuery)
+		if err != nil {
+			return nil, fmt.Errorf("forms: query: %w", err)
+		}
+		return FromValues(q), nil
 	default:
-		return FromValues(r.URL.Query()), nil
+		return nil, fmt.Errorf("forms: a form can't be read from a %s request", r.Method)
 	}
 	ct, _, err := mime.ParseMediaType(r.Header.Get("Content-Type"))
 	if err != nil {

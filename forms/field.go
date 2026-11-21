@@ -34,13 +34,13 @@ type field struct {
 	raw                      bool // Text only: keep white space
 	dateOnly                 bool // Date: time rules compare dates
 	options                  []option.SelectOption
+	optionsSet               bool // Options or Enum: the text must be one of options
 
 	base   codec
 	stages []*stage // stages[0] holds the base type's rules
 	live   int      // the stage of the only handle still usable
 
 	// State.
-	bound   bool
 	present bool
 	text    []string
 	vals    []any // per stage, up to the stage that failed to convert
@@ -159,7 +159,7 @@ func (h *Field[T]) Required() *Field[T] {
 // RequiredWith makes the field required, reporting err when it is absent.
 func (h *Field[T]) RequiredWith(err error) *Field[T] {
 	fd := h.builder("RequiredWith")
-	mustBePublic("RequiredWith", err)
+	mustBePublic("RequiredWith on field "+fd.name, err)
 	fd.required, fd.requiredErr = true, err
 	return h
 }
@@ -168,7 +168,7 @@ func (h *Field[T]) RequiredWith(err error) *Field[T] {
 // converted. The default is ErrInvalid.
 func (h *Field[T]) InvalidWith(err error) *Field[T] {
 	fd := h.builder("InvalidWith")
-	mustBePublic("InvalidWith", err)
+	mustBePublic("InvalidWith on field "+fd.name, err)
 	fd.invalidErr = err
 	return h
 }
@@ -202,7 +202,8 @@ func (h *Field[T]) Options(opts ...option.SelectOption) *Field[T] {
 			panic(fmt.Sprintf("forms: Options on field %q: option %d is nil", fd.name, i))
 		}
 	}
-	fd.options = append([]option.SelectOption(nil), opts...)
+	fd.options = append(make([]option.SelectOption, 0, len(opts)), opts...)
+	fd.optionsSet = true
 	if fd.kind == KindText && fd.base.multi {
 		fd.kind = KindMultiSelect
 	} else if fd.kind == KindText || fd.kind == KindNumber {
@@ -241,10 +242,11 @@ func (h *Field[T]) Set(v T) *Field[T] {
 
 // SetPtr is Set(*p) when p is not nil, for nullable columns.
 func (h *Field[T]) SetPtr(p *T) *Field[T] {
+	if fd := h.use("SetPtr"); fd.form.bound {
+		panic(fmt.Sprintf("forms: SetPtr on field %q after Bind", fd.name))
+	}
 	if p != nil {
 		h.Set(*p)
-	} else {
-		h.use("SetPtr")
 	}
 	return h
 }
@@ -291,7 +293,6 @@ func (h *Field[T]) Fail(err error) {
 }
 
 func (fd *field) bind(src Source) {
-	fd.bound = true
 	fd.vals, fd.text, fd.present, fd.convAt, fd.convErr, fd.err = nil, nil, false, -1, nil, nil
 	var in input
 	if fd.base.files {
@@ -325,6 +326,7 @@ func (fd *field) bind(src Source) {
 	v, err := fd.base.parse(in)
 	if err != nil {
 		fd.convAt, fd.convErr = 0, err
+		fd.err = fd.conversionError()
 		return
 	}
 	fd.vals = []any{v}
@@ -332,6 +334,7 @@ func (fd *field) bind(src Source) {
 		v, err = fd.stages[k].parse(v)
 		if err != nil {
 			fd.convAt, fd.convErr = k, err
+			fd.err = fd.conversionError()
 			return
 		}
 		fd.vals = append(fd.vals, v)
@@ -355,7 +358,7 @@ func (fd *field) validate(ctx context.Context) error {
 }
 
 func (fd *field) check(ctx context.Context) error {
-	if fd.options != nil {
+	if fd.optionsSet {
 		for _, t := range fd.text {
 			if !fd.isOption(t) {
 				return ErrNotAnOption

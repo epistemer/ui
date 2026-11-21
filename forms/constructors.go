@@ -157,19 +157,22 @@ func (f *Form) Enum[E EnumValue](name string, values []E) *Field[E] {
 		seen[v.Value()] = true
 		opts[i] = v
 	}
-	byValue := make(map[string]E, len(values))
-	for _, v := range values {
-		byValue[v.Value()] = v
-	}
 	h := newField[E](f, name, KindSelect, codec{
-		parse: func(in input) (any, error) {
-			if v, ok := byValue[in.texts[0]]; ok {
-				return v, nil
-			}
-			return E(in.texts[0]), nil // the options check reports it
-		},
 		format: func(v any) []string { return []string{v.(E).Value()} },
 	})
-	h.f.options = opts
+	fd := h.f
+	// Parse against the choices as they stand at Bind, so Options can
+	// replace them; a value outside them never reaches a rule.
+	fd.base.parse = func(in input) (any, error) {
+		for _, o := range fd.options {
+			if o.Value() == in.texts[0] {
+				if e, ok := o.(E); ok {
+					return e, nil
+				}
+			}
+		}
+		return nil, ErrNotAnOption
+	}
+	fd.options, fd.optionsSet = opts, true
 	return h
 }

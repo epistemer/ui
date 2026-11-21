@@ -44,7 +44,7 @@ func public(err error) bool {
 
 func mustBePublic(where string, err error) {
 	if err == nil {
-		panic("forms: " + where + "(nil)")
+		panic("forms: " + where + ": nil error")
 	}
 	if !public(err) {
 		panic("forms: " + where + ": people would see Unknown for " + err.Error() +

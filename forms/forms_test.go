@@ -244,8 +244,9 @@ func TestFieldFail(t *testing.T) {
 
 func TestDateRulesCompareDates(t *testing.T) {
 	f := forms.New()
-	d := f.Date("d").Is(rule.NotBefore(time.Now()))
-	bind(f, "d="+time.Now().UTC().Format(time.DateOnly))
+	noon := time.Date(2026, 11, 21, 12, 0, 0, 0, time.UTC)
+	d := f.Date("d").Is(rule.NotBefore(noon))
+	bind(f, "d=2026-11-21")
 	if !f.Validate(bg) {
 		t.Errorf("today failed NotBefore(now): %v", d.Err())
 	}

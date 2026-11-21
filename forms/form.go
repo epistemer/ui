@@ -56,6 +56,9 @@ func (f *Form) Bind(src Source) {
 	if f.bound {
 		panic("forms: Bind called twice")
 	}
+	if src == nil {
+		panic("forms: Bind(nil)")
+	}
 	f.bound = true
 	for _, fd := range f.fields {
 		fd.bind(src)
@@ -90,9 +93,12 @@ func (f *Form) Validate(ctx context.Context) bool {
 // Submit reads r, binds and validates. An unreadable request records
 // ErrUnreadable on the form and returns false.
 func (f *Form) Submit(ctx context.Context, r *http.Request) bool {
+	if f.bound {
+		panic("forms: Submit after Bind")
+	}
 	src, err := FromRequest(r)
 	if err != nil {
-		f.bound = true
+		f.Bind(FromValues(nil)) // no initial value survives
 		f.validated = true
 		f.err = ErrUnreadable.Wrap(err)
 		return false
@@ -107,13 +113,13 @@ func (f *Form) Valid() bool {
 	return f.validated && f.Err() == nil
 }
 
-// Fail attaches a form-level error, such as one from the service layer.
-// Valid is then false.
+// Fail sets the form-level error, such as one from the service layer,
+// replacing any earlier one. Valid is then false.
 func (f *Form) Fail(err error) {
 	if err == nil {
 		panic("forms: Fail(nil)")
 	}
-	f.err = errors.Join(f.err, err)
+	f.err = err
 }
 
 // Check adds a check that belongs to no single field. Checks run in order
