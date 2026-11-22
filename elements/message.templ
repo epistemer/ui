@@ -1,0 +1,44 @@
+package elements
+
+import "github.com/epistemer/i18n"
+
+templ spanTag(attrs templ.Attributes) {
+	<span { attrs... }>
+		{ children... }
+	</span>
+}
+
+templ alert(attrs templ.Attributes, icon templ.Component, word i18n.Ter, title i18n.Ter) {
+	<div { attrs... }>
+		@icon
+		<div class="ui-alert-content">
+			<span class="ui-visually-hidden">{ word.T(ctx) + " " }</span>
+			if title != nil {
+				<p class="ui-alert-title">{ title.T(ctx) }</p>
+			}
+			<div class="ui-alert-body">
+				{ children... }
+			</div>
+		</div>
+	</div>
+}
+
+templ card(attrs templ.Attributes) {
+	<section { attrs... }>
+		if CardHeader.Filled(ctx) {
+			<div class="ui-card-header">
+				@CardHeader.Place()
+			</div>
+		}
+		if CardBody.Filled(ctx) {
+			<div class="ui-card-body">
+				@CardBody.Place()
+			</div>
+		}
+		if CardFooter.Filled(ctx) {
+			<div class="ui-card-footer">
+				@CardFooter.Place()
+			</div>
+		}
+	</section>
+}

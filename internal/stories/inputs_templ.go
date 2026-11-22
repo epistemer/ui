@@ -10,8 +10,8 @@ import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
 import (
+	"github.com/epistemer/ui/elements"
 	"github.com/epistemer/ui/forms"
-	"github.com/epistemer/ui/internal/spike/elements"
 	"github.com/epistemer/ui/internal/spike/inputs"
 )
 

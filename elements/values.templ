@@ -1,0 +1,47 @@
+package elements
+
+import "github.com/epistemer/ui/icons"
+
+templ textValue(class, text string) {
+	<span class={ class }>{ text }</span>
+}
+
+templ boolValue(v bool) {
+	if v {
+		<span class="ui-bool" data-value="true">
+			@icons.Check()
+			<span class="ui-visually-hidden">{ boolYes.T(ctx) }</span>
+		</span>
+	} else {
+		<span class="ui-bool" data-value="false">
+			@icons.X()
+			<span class="ui-visually-hidden">{ boolNo.T(ctx) }</span>
+		</span>
+	}
+}
+
+templ timeValue(datetime, text string) {
+	<time class="ui-date" datetime={ datetime }>{ text }</time>
+}
+
+templ linkValue(href templ.SafeURL, text string) {
+	<a class="ui-link" href={ href }>{ text }</a>
+}
+
+templ imageValue(src templ.SafeURL, alt string) {
+	<img class="ui-image" src={ string(src) } alt={ alt }/>
+}
+
+templ amountValue(text string) {
+	<bdi class="ui-amount">{ text }</bdi>
+}
+
+templ emptyValue() {
+	<span class="ui-empty"><span aria-hidden="true">—</span><span class="ui-visually-hidden">{ emptyNone.T(ctx) }</span></span>
+}
+
+templ enumValue(label string) {
+	@Badge() {
+		{ label }
+	}
+}

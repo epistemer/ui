@@ -153,3 +153,37 @@ if (document.readyState === "loading") {
 } else {
 	refreshAll(document);
 }
+
+// Tooltips (§5.3, WCAG 1.4.13): Esc hides a tooltip showing for the
+// hovered or focused trigger until the pointer and focus leave it. The key
+// stops here, so a dialog or popover around the trigger stays open.
+document.addEventListener(
+	"keydown",
+	(event) => {
+		if (event.key !== "Escape") return;
+		let hid = false;
+		for (const tip of document.querySelectorAll(".ui-tooltip")) {
+			const text = tip.querySelector(".ui-tooltip-text");
+			if (!text || text.hidden || !tip.matches(":hover, :focus-within")) continue;
+			text.hidden = true;
+			hid = true;
+			const restore = () => {
+				if (tip.matches(":hover, :focus-within")) return;
+				text.hidden = false;
+				tip.removeEventListener("pointerleave", restore);
+				tip.removeEventListener("focusout", later);
+			};
+			const later = () => setTimeout(restore, 0);
+			tip.addEventListener("pointerleave", restore);
+			tip.addEventListener("focusout", later);
+		}
+		if (hid) {
+			event.preventDefault();
+			event.stopImmediatePropagation();
+		}
+	},
+	true,
+);
+
+// The script has run (§10.1): CSS shows what needs it.
+document.documentElement.dataset.uiReady = "";

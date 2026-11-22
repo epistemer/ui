@@ -1,0 +1,57 @@
+package elements
+
+import (
+	"github.com/epistemer/i18n"
+	"github.com/epistemer/ui"
+)
+
+templ imgTag(attrs templ.Attributes) {
+	<img { attrs... }/>
+}
+
+templ textSpan(attrs templ.Attributes, text string) {
+	<span { attrs... }>{ text }</span>
+}
+
+templ spinner(attrs templ.Attributes, label i18n.Ter) {
+	<span { attrs... }>
+		<span class="ui-spinner-ring" aria-hidden="true"></span>
+		<span class="ui-visually-hidden">{ label.T(ctx) }</span>
+	</span>
+}
+
+templ tooltip(attrs templ.Attributes, text i18n.Ter) {
+	{{ requireTrigger(ctx) }}
+	@ui.Scope(tooltipID) {
+		<span { attrs... }>
+			@TooltipTrigger.Place(templ.Attributes{"aria-describedby": tooltipID.Get(ctx)}) {
+			}
+			<span class="ui-tooltip-text" id={ tooltipID.Get(ctx) } role="tooltip">{ text.T(ctx) }</span>
+		</span>
+	}
+}
+
+templ separator() {
+	<hr class="ui-separator"/>
+}
+
+templ verticalSeparator() {
+	<div class="ui-separator" role="separator" aria-orientation="vertical"></div>
+}
+
+templ heading(tag string, attrs templ.Attributes) {
+	switch tag {
+		case "h1":
+			<h1 { attrs... }>{ children... }</h1>
+		case "h2":
+			<h2 { attrs... }>{ children... }</h2>
+		case "h3":
+			<h3 { attrs... }>{ children... }</h3>
+		case "h4":
+			<h4 { attrs... }>{ children... }</h4>
+		case "h5":
+			<h5 { attrs... }>{ children... }</h5>
+		default:
+			<h6 { attrs... }>{ children... }</h6>
+	}
+}

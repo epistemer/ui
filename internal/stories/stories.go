@@ -8,7 +8,7 @@ import (
 	"github.com/a-h/templ"
 
 	"github.com/epistemer/ui/catalog"
-	"github.com/epistemer/ui/internal/spike/elements"
+	"github.com/epistemer/ui/elements"
 )
 
 func variant(name string, c templ.Component) catalog.Variant {
@@ -25,6 +25,16 @@ func All() []catalog.Story {
 			variant("sizes", buttonSizes()),
 			variant("states", buttonStates()),
 		}},
+		{Name: "icons/all", Variants: []catalog.Variant{variant("set", allIcons())}},
+		{Name: "elements/badge", Variants: []catalog.Variant{variant("tones", badges())}},
+		{Name: "elements/alert", Variants: []catalog.Variant{variant("levels", alerts())}},
+		{Name: "elements/card", Variants: []catalog.Variant{variant("regions", cards())}},
+		{Name: "elements/avatar", Variants: []catalog.Variant{variant("kinds", avatars())}},
+		{Name: "elements/spinner", Variants: []catalog.Variant{variant("sizes", spinners())}},
+		{Name: "elements/tooltip", Variants: []catalog.Variant{variant("icon-button", tooltips())}},
+		{Name: "elements/separator", Variants: []catalog.Variant{variant("both", separators())}},
+		{Name: "elements/heading", Variants: []catalog.Variant{variant("sizes", headings())}},
+		{Name: "elements/values", Variants: []catalog.Variant{variant("kinds", valueList()), variant("empty", valueEmpties())}},
 		{Name: "inputs/field", Variants: []catalog.Variant{
 			variant("fresh", promotionForm(promotionFresh())),
 			variant("filled", promotionForm(promotionFilled())),

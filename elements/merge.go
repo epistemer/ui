@@ -1,5 +1,3 @@
-// Package elements is the D4 spike of ui/elements: the Button builder
-// (Q2, Q3) and the attribute merge every component uses (design §5).
 package elements
 
 import (
@@ -12,11 +10,13 @@ import (
 
 // joined are attributes whose values are space-separated lists: a
 // caller's tokens are added to the component's, never replace them.
-var joined = map[string]bool{"class": true, "aria-describedby": true, "aria-labelledby": true}
+var joined = map[string]bool{"class": true, "aria-describedby": true, "aria-labelledby": true, "aria-controls": true}
 
 // Merge returns own with the caller's attributes applied (design §5):
 //   - keys compare without regard to case, and render in lower case;
-//   - class, aria-describedby and aria-labelledby are joined;
+//   - class, aria-describedby, aria-labelledby and aria-controls are
+//     space-separated lists: the caller's tokens are added after the
+//     component's, without repeats; either side must be a string;
 //   - a key in owned stays as the component set it, whatever the caller
 //     passed, because the component's behaviour needs it;
 //   - for any other key, the caller's value wins.

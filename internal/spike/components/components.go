@@ -10,7 +10,7 @@ import (
 
 	"github.com/epistemer/i18n"
 	"github.com/epistemer/ui"
-	"github.com/epistemer/ui/internal/spike/elements"
+	"github.com/epistemer/ui/elements"
 )
 
 // ui's own text (Q5): keys under ui.<package>, English by default.

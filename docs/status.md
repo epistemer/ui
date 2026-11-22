@@ -6,6 +6,36 @@ taken for epistemer, what's next, and what's waiting on epistemer.
 
 
 
+
+## 2026-11-22 — V3: icons and elements
+
+**Landed** (Claude):
+- `ui/icons`: 22 icons, Lucide's paths with its licence (ADR 0007), and
+  `Labelled`.
+- `ui/elements`, built to §5:
+  - Button moved from the spike, with `Label` and tones resolved against
+    each component's default, so `Neutral` renders `data-tone="neutral"`
+    and `Brand` on a button renders nothing;
+  - Badge, Alert (four message tones, with an icon and a hidden level
+    word; any other tone panics), Card with three slots, Avatar (initials
+    or a picture, decorative or named), Spinner, Tooltip (a required
+    trigger, Esc through the script), separators, Heading;
+  - the value renderers, which fall back to `Empty`;
+  - `Merge`, which now also joins `aria-controls`.
+- Stories for every element: 26 goldens pass the ids, names and selector
+  checks, and the reverse check on ui's CSS. The reverse check caught one
+  dead rule (`.ui-button[data-tone="brand"]`).
+
+Checked in the browser pane:
+- the tooltip shows on focus, is named by `aria-describedby`, hides on Esc
+  and comes back after focus leaves;
+- `data-ui-ready` is set;
+- the alerts are right in RTL and dark mode.
+
+The spike's own elements and icons are gone. The spike's inputs and
+components use ui's now.
+
+**Next.** V4: `ui/inputs`.
 ## 2026-11-22 — V2: the catalogue and the checks
 
 **Landed** (Claude):

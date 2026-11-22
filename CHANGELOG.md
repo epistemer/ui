@@ -23,6 +23,14 @@ All notable changes to this module. The format follows
   selector check on the app's CSS (§9.1).
 - uitest: `CheckNames` and `CheckSelectors` with `Prefix` (amendment A4).
 - `go run ./cmd/catalog` serves ui's own stories.
+- `ui/icons`: 22 icons from Lucide (ISC, ADR 0007) and `Labelled` (§4).
+- `ui/elements`: `Button` (with `Label` and the `Neutral` tone), `Badge`,
+  `Alert`, `Card` with its slots, `Avatar`, `Spinner`, `Tooltip` with
+  `TooltipTrigger`, `Separator`, `VerticalSeparator`, `Heading`, the value
+  renderers (`Text`, `Bool`, `Date`, `DateTime`, `Enum`, `Link`, `Image`,
+  `Amount`, `Empty`), `Merge`, and the `Variant`, `Size` and `Tone` types
+  (§2.2, §2.3, §5).
+- The ui script hides a tooltip on Esc and sets `<html data-ui-ready>`.
 ## [v0.1.0] - 2026-11-21
 
 The first release: the kernel and forms, the whole of the interface locked

@@ -6,46 +6,19 @@ import (
 	"io"
 
 	"github.com/a-h/templ"
+	"github.com/epistemer/i18n"
 )
 
-// Variant is a button's look.
-type Variant string
-
-const (
-	Solid   Variant = "" // the default: the accent's fill
-	Outline Variant = "outline"
-	Ghost   Variant = "ghost"
-)
-
-// Size is a component's size.
-type Size string
-
-const (
-	Small  Size = "s"
-	Medium Size = "" // the default
-	Large  Size = "l"
-)
-
-// Tone is the accent a component takes its colours from.
-type Tone string
-
-const (
-	Brand   Tone = "" // the default
-	Danger  Tone = "danger"
-	Warning Tone = "warning"
-	Success Tone = "success"
-	Info    Tone = "info"
-)
-
-// ButtonSpec is a button being described. Every method returns a changed
-// copy, so a spec can be shared and refined:
+// ButtonSpec is a button being described (§5.1). Every method returns a
+// changed copy, so a spec can be shared and refined:
 //
-//	var cancel = elements.Button().Variant(elements.Ghost)
+//	var cancel = elements.Button().Variant(elements.Ghost).Tone(elements.Neutral)
 //	@cancel.Href(back) { Cancel }
 //
-// It renders <button type="button">, or <a> when it has an href. A
-// disabled link renders without its href, with aria-disabled and
-// role="link", because <a> can't be disabled (design §5).
+// It renders <button type="button">, type="submit" with Submit, or <a
+// href> with Href. A disabled link renders without its href, with
+// aria-disabled and role="link", because <a> can't be disabled; the ui
+// script keeps it inert. Children are the content.
 type ButtonSpec struct {
 	variant  Variant
 	size     Size
@@ -53,6 +26,7 @@ type ButtonSpec struct {
 	href     templ.SafeURL
 	submit   bool
 	disabled bool
+	label    i18n.Ter
 	attrs    templ.Attributes
 }
 
@@ -65,7 +39,8 @@ func (b ButtonSpec) Variant(v Variant) ButtonSpec { b.variant = v; return b }
 // Size sets the size.
 func (b ButtonSpec) Size(s Size) ButtonSpec { b.size = s; return b }
 
-// Tone sets the accent.
+// Tone sets the colour role; the default is Brand, and Neutral suits a
+// Cancel beside a brand action.
 func (b ButtonSpec) Tone(t Tone) ButtonSpec { b.tone = t; return b }
 
 // Href makes the button a link.
@@ -77,9 +52,12 @@ func (b ButtonSpec) Submit() ButtonSpec { b.submit = true; return b }
 // Disabled disables it when d is true.
 func (b ButtonSpec) Disabled(d bool) ButtonSpec { b.disabled = d; return b }
 
-// Attrs adds attributes, merged as Merge does: the button keeps type,
-// role, href, disabled, aria-disabled and its variant attributes, which
-// only the builder's methods set.
+// Label names an icon-only button (aria-label).
+func (b ButtonSpec) Label(t i18n.Ter) ButtonSpec { b.label = t; return b }
+
+// Attrs adds attributes to the <button> or <a>, merged as Merge does. The
+// button keeps type, role, href, disabled, aria-disabled, its variant
+// attributes, and aria-label when Label is set.
 func (b ButtonSpec) Attrs(a templ.Attributes) ButtonSpec {
 	b.attrs = Merge(b.attrs, nil, a)
 	return b
@@ -87,7 +65,7 @@ func (b ButtonSpec) Attrs(a templ.Attributes) ButtonSpec {
 
 var buttonOwned = []string{"type", "role", "href", "disabled", "aria-disabled", "data-variant", "data-size", "data-tone"}
 
-func (b ButtonSpec) attributes() templ.Attributes {
+func (b ButtonSpec) attributes(ctx context.Context) templ.Attributes {
 	own := templ.Attributes{"class": "ui-button"}
 	if b.variant != Solid {
 		own["data-variant"] = string(b.variant)
@@ -95,8 +73,8 @@ func (b ButtonSpec) attributes() templ.Attributes {
 	if b.size != Medium {
 		own["data-size"] = string(b.size)
 	}
-	if b.tone != Brand {
-		own["data-tone"] = string(b.tone)
+	if t := toneAttr(b.tone, Brand); t != "" {
+		own["data-tone"] = t
 	}
 	switch {
 	case b.href != "" && b.disabled:
@@ -111,16 +89,21 @@ func (b ButtonSpec) attributes() templ.Attributes {
 		own["type"] = "button"
 		own["disabled"] = b.disabled
 	}
-	return Merge(own, buttonOwned, b.attrs)
+	owned := buttonOwned
+	if b.label != nil {
+		own["aria-label"] = b.label.T(ctx)
+		owned = append(owned[:len(owned):len(owned)], "aria-label")
+	}
+	return Merge(own, owned, b.attrs)
 }
 
 // Render renders the button with the caller's children as its content.
 func (b ButtonSpec) Render(ctx context.Context, w io.Writer) error {
 	if b.href != "" && b.submit {
-		panic(fmt.Sprintf("elements: a button with href %q can't submit", b.href))
+		panic(fmt.Sprintf("elements: Button with href %q can't submit", b.href))
 	}
 	if b.href != "" {
-		return linkTag(b.attributes()).Render(ctx, w)
+		return linkTag(b.attributes(ctx)).Render(ctx, w)
 	}
-	return buttonTag(b.attributes()).Render(ctx, w)
+	return buttonTag(b.attributes(ctx)).Render(ctx, w)
 }

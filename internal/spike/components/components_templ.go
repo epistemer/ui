@@ -12,8 +12,8 @@ import templruntime "github.com/a-h/templ/runtime"
 import (
 	"github.com/epistemer/i18n"
 	"github.com/epistemer/ui"
-	"github.com/epistemer/ui/internal/spike/elements"
-	"github.com/epistemer/ui/internal/spike/icons"
+	"github.com/epistemer/ui/elements"
+	"github.com/epistemer/ui/icons"
 )
 
 func dialog(title i18n.Ter) templ.Component {
