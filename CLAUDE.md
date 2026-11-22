@@ -30,9 +30,8 @@ this module.
   [docs/rich-inputs-interface.md](docs/rich-inputs-interface.md), was
   locked by epistemer on 2026-11-22 as amendment A7; milestones U1–U5
   build it.
-- `go run ./cmd/catalog` serves the stories, the toy shop's tables
-  and actions (`internal/toyshop`) at /shop/orders, and D8's spike
-  (`internal/spike`) at /spike/order and /spike/table.
+- `go run ./cmd/catalog` serves the stories and the toy shop's tables
+  and actions (`internal/toyshop`) at /shop/orders.
 - Claude owns this repository until v1.0.0, on the terms of
   [docs/ownership.md](docs/ownership.md) (delegated 2026-11-21). Only API
   design is epistemer's, and the lock of interface.md.

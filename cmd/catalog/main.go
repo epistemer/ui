@@ -12,7 +12,6 @@ import (
 	"github.com/epistemer/ui/catalog"
 	"github.com/epistemer/ui/components"
 	"github.com/epistemer/ui/elements"
-	"github.com/epistemer/ui/internal/spike"
 	"github.com/epistemer/ui/internal/stories"
 	"github.com/epistemer/ui/internal/toyshop"
 	"github.com/epistemer/ui/theme"
@@ -39,9 +38,6 @@ func main() {
 	// The toy shop's tables and actions, a page of their own with htmx.
 	shop := &toyshop.App{Store: toyshop.NewStore(), Theme: t, Scripts: templ.Raw(`<meta name="htmx-config" content='{"includeIndicatorStyles":false,"historyCacheSize":0}'><script src="/assets/htmx.min.js"></script>`)}
 	shop.Mount(mux)
-	// D8.2's spike: the remote select, uploads and list fields.
-	(&spike.App{Theme: t, Scripts: shop.Scripts}).Mount(mux)
-	log.Printf("D8 spike on http://%s%s/order", *addr, spike.Prefix)
 	log.Printf("toy shop on http://%s%s/orders", *addr, toyshop.Prefix)
 	mux.Handle("/", catalog.New(t, stories.All()...))
 	log.Fatal(http.ListenAndServe(*addr, mux))

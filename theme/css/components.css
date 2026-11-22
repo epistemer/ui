@@ -547,6 +547,20 @@
 	color: var(--ui-color-text-muted);
 }
 
+.ui-combobox-clear {
+	padding-inline: var(--ui-space-1);
+	border: 0;
+	font-size: var(--ui-text-l);
+	line-height: 1;
+	color: var(--ui-color-text-muted);
+	background: none;
+	cursor: pointer;
+
+	&:hover {
+		color: var(--ui-color-text);
+	}
+}
+
 .ui-combobox-popup {
 	max-block-size: 18em;
 	margin: 0;

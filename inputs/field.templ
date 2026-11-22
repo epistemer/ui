@@ -127,6 +127,7 @@ templ remoteField(f FieldSpec, wrapper templ.Attributes, chosen string) {
 			<ui-combobox { f.comboboxAttrs(ctx)... }>
 				<input { f.controlAttrs(ctx)... }/>
 				<span class="ui-combobox-chosen" id={ fieldID.Part(ctx, "chosen") }>{ chosen }</span>
+				<button type="button" class="ui-combobox-clear" tabindex="-1" aria-label={ comboboxClear.T(ctx, f.labelText(ctx)) } hidden>×</button>
 				<div class="ui-combobox-popup" popover="manual">
 					<ul class="ui-combobox-options" role="listbox" id={ fieldID.Part(ctx, "options") } aria-label={ f.labelText(ctx) }></ul>
 					<p class="ui-combobox-status"></p>

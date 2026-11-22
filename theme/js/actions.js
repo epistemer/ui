@@ -19,9 +19,10 @@ const body = () => document.getElementById("ui-action-dialog-body");
 let opener = null;
 
 const isAction = (elt, target) =>
-	target?.id === "ui-action-dialog-body" ||
-	elt.matches?.('[form="ui-action-form"], .ui-table-bulk [form]') ||
-	elt.closest?.(".ui-menu-popover, .ui-action-buttons");
+	!elt?.matches?.("ui-combobox") &&
+	(target?.id === "ui-action-dialog-body" ||
+		elt.matches?.('[form="ui-action-form"], .ui-table-bulk [form]') ||
+		elt.closest?.(".ui-menu-popover, .ui-action-buttons"));
 
 document.addEventListener("htmx:beforeRequest", (e) => {
 	const elt = e.detail.elt;
@@ -90,6 +91,7 @@ function refocus() {
 document.addEventListener("htmx:afterSettle", () => setTimeout(refocus, 0));
 document.addEventListener("htmx:beforeRequest", (e) => {
 	// Another request, not the answer's own refresh: the user moved on.
+	if (e.defaultPrevented) return;
 	const t = e.detail.target;
 	if (pending && t?.id !== "ui-action-dialog-body" && !t?.matches?.(".ui-table-results")) pending = null;
 });

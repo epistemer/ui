@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"strings"
 
 	"github.com/a-h/templ"
 	"github.com/epistemer/i18n"
@@ -19,16 +20,66 @@ import (
 	"github.com/epistemer/ui/forms/rule"
 )
 
-type toyLabeler map[string]string
+type toyRecord struct {
+	id   string
+	name string
+}
 
-func (l toyLabeler) LabelOf(_ context.Context, id string) (string, bool, error) {
-	name, ok := l[id]
-	return name, ok, nil
+type toyRecords []toyRecord
+
+func (rs toyRecords) LabelOf(_ context.Context, id string) (string, bool, error) {
+	for _, r := range rs {
+		if r.id == id {
+			return r.name, true, nil
+		}
+	}
+	return "", false, nil
+}
+
+func (rs toyRecords) search(q string, limit int) []toyRecord {
+	q = strings.ToLower(strings.TrimSpace(q))
+	var out []toyRecord
+	for _, r := range rs {
+		if q == "" || strings.Contains(strings.ToLower(r.name), q) {
+			out = append(out, r)
+			if len(out) == limit {
+				break
+			}
+		}
+	}
+	return out
 }
 
 var (
-	toyCustomers = toyLabeler{"7": "Ann Lee", "12": "Laila Haddad"}
-	toyProducts  = toyLabeler{"101": "Brick 2x4 red", "103": "Brick 2x2 yellow", "105": "Wheel small"}
+	toyCustomers = toyRecords{
+		{"1", "Bassem Aziz"},
+		{"2", "Carla Ruiz"},
+		{"3", "Dina Farouk"},
+		{"4", "Elias Berg"},
+		{"5", "Fatma Nour"},
+		{"6", "Gus Holm"},
+		{"7", "Ann Lee"},
+		{"8", "Hana Sato"},
+		{"9", "Ilse Vos"},
+		{"10", "Jamal Odeh"},
+		{"11", "Kira Novak"},
+		{"12", "Laila Haddad"},
+		{"13", "Mona Zaki"},
+		{"14", "Nils Lund"},
+		{"15", "Omar Saleh"},
+		{"16", "Petra Kos"},
+		{"17", "Quinn Ash"},
+		{"18", "Rana Adel"},
+		{"19", "Sami Halabi"},
+		{"20", "Tara Quist"},
+		{"21", "Uma Rao"},
+		{"22", "Victor Hale"},
+	}
+	toyProducts = toyRecords{
+		{"101", "Brick 2x4 red"},
+		{"103", "Brick 2x2 yellow"},
+		{"105", "Wheel small"},
+	}
 )
 
 func withGate(c templ.Component) templ.Component {

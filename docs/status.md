@@ -9,6 +9,63 @@ taken for epistemer, what's next, and what's waiting on epistemer.
 
 
 
+## 2026-11-23 — U3: the ui script for A7
+
+**Landed**, to rich-inputs-interface.md §6 and rich-inputs-design.md §3.3–§3.4, §4.3–§4.5 and §5.2–§5.3:
+- `theme/js/combobox.js`: `<ui-combobox>` upgrades when `data-ui-search`
+  and `globalThis.htmx` exist, reusing the server-rendered popup, listbox,
+  status, live region and clear button; debounces typing (250 ms) and
+  dispatches `ui-search` (at once on Down/Alt+Down), adds `q` in
+  `htmx:configRequest` keeping the link's query, aborts in-flight requests
+  with `htmx:abort` on commit/restore/blur, verifies status 200,
+  `responseURL` origin+pathname and `data-ui-suggestions` in its own
+  `htmx:beforeSwap` listener (stopping propagation), numbers option ids and
+  announces after swap, and handles the keyboard table and form reset;
+- `theme/js/repeat.js`: `<ui-repeat>` rewrites the detached clone's own
+  path prefix in `name`, `data-ui-path` and `data-ui-when` at every depth
+  (including nested `<template>.content`), suffixes this level's ids and
+  rewrites references token by token at every depth, appends and runs
+  `globalThis.htmx?.process(item)`, evaluates conditions before focusing,
+  renumbers legends and Remove buttons, and marks bounds with
+  `aria-disabled` and a visually hidden reason;
+- `theme/js/upload.js`: keep cards over checkboxes, chosen list with Remove
+  via `DataTransfer` and opt-in `data-ui-previews` object-URL thumbnails,
+  size and case-insensitive `accept` checks (untyped files deferring to the
+  server) with `setCustomValidity` and a capturing `submit` guard, drop
+  highlight, upload progress from `xhr.upload` in `htmx:beforeSend`, and
+  413 handling on upload fields with files;
+- `theme/js/actions.js`: `isAction` ignores `ui-combobox`, and the
+  `htmx:beforeRequest` listener that drops `pending` ignores
+  `e.defaultPrevented`;
+- `.ui-combobox-clear` in `theme/css/components.css`, with the clear button
+  rendered server-side `hidden` in `inputs/field.templ` so `TestStories`'s
+  reverse selector check sees it while script-off markup keeps it hidden;
+- `GET /demo/customers/search` (and `/demo/products/search`) in
+  `stories.Demo`; `internal/spike` removed; script tests in
+  `internal/jstest` for single-pass `fmt`, path/condition rewriting, size
+  formatting and `accept` matching.
+
+**Found in the pane** (Claude): in htmx 2.0.11 the swap events'
+`detail.elt` is the swap target (the listbox), not the element that asked,
+so the first version never ran its after-swap step; the requester is
+`detail.requestConfig.elt` (fixed, with a comment). Also: htmx reads
+`hx-get` when it processes an element, so a test that changes it must
+call `htmx.process` again.
+
+**Checked in the pane** (catalogue frames, with htmx): search, ids, count
+and announcement; Down and Enter choosing with `change` on the hidden
+input; typing then Esc within the debounce leaves the popup closed; more
+than 20 results; a 200 page that isn't an answer and a 404 both say the
+search failed, with the link's query kept; a nested list's clone with its
+remote select searching (`htmx.process`), unique ids, no broken
+references; upload keep cards, the size check refusing the submit, its
+error cleared; real keys in RTL dark (type, Down, Enter, Tab).
+
+Gemini 4 Argon (Medium) wrote it in a worktree, about 338k tokens; Claude
+fixed the swap-event check, ran the pane checks and every Go check.
+
+**Next.** U4: tables (`Column.Remote`) and the toy shop.
+
 ## 2026-11-23 — U2: inputs and components for A7
 
 **Landed**, to rich-inputs-interface.md §3, §4 and §7:
