@@ -9,6 +9,8 @@ github.com/epistemer/errors v0.1.0 h1:i+y3tko4m+WPdVQPCOY+d0103wu0PNWO6owAONR6SO
 github.com/epistemer/errors v0.1.0/go.mod h1:V7Tjdt8m6dN48qfFFeAks21lgphuTh3woJCbRAshLiI=
 github.com/epistemer/i18n v0.3.1 h1:/Q+L4Yl8VRxutEhPrDE66Kj5DA/vftSo4BAUbFtUAP8=
 github.com/epistemer/i18n v0.3.1/go.mod h1:vd7+xIQSNyUiWTEAirccNZXTJ5IWyWpBWcaO2texdlM=
+github.com/epistemer/ui v0.2.0 h1:S+63PEgZbUOmPRd4TEGVFTEaLgOgyZGs2ZADAZKHhdw=
+github.com/epistemer/ui v0.2.0/go.mod h1:C1Qi4uSbnV4OrxWImSIi0ezHL1qTpHtbRRPgYPSMusE=
 github.com/google/go-cmp v0.7.0 h1:wk8382ETsv4JYUZwIsn6YpYiWiBsYLSJiTsyBybVuN8=
 github.com/google/go-cmp v0.7.0/go.mod h1:pXiqmnSA92OHEEa9HXL2W4E7lf9JzCmGVUdgjX3N/iU=
 github.com/inconshreveable/mousetrap v1.1.0 h1:wN+x4NVGpMsO7ErUn/mUI3vEoE6Jt13X2s0bqwp9tc8=
