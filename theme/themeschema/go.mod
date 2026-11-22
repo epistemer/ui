@@ -4,13 +4,9 @@ go 1.27.0
 
 tool github.com/epistemer/cfgx/cmd/cfgx
 
-// Until ui is tagged with ui/theme (v0.2.0), the module builds against the
-// ui in this repository.
-replace github.com/epistemer/ui => ../..
-
 require (
 	github.com/epistemer/cfgx v0.2.0
-	github.com/epistemer/ui v0.0.0-00010101000000-000000000000
+	github.com/epistemer/ui v0.2.0
 	github.com/spf13/cobra v1.10.2
 )
 
