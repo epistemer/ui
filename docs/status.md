@@ -9,6 +9,17 @@ taken for epistemer, what's next, and what's waiting on epistemer.
 
 
 
+## 2026-11-23 — U5: v0.4.0
+
+**Landed** (Claude): the API checked both ways against
+rich-inputs-interface.md (every new identifier is there; `View[R].Err`
+recorded as a clarification); CHANGELOG `[v0.4.0]`, the README, the `ui`
+skill; the release, checked through the proxy. `theme/themeschema` stays
+at v0.2.0.
+
+**Next.** The roadmap after U: nothing planned in the D track; the
+backlog's items wait on epistemer or a second user.
+
 ## 2026-11-23 — v0.4.0 release review
 
 Review [0023](reviews/0023-v0-4-0.md), Gemini 4 Neon (High) (Argon was

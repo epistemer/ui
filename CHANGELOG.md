@@ -5,7 +5,9 @@ All notable changes to this module. The format follows
 [Semantic Versioning](https://semver.org/).
 
 
-## [Unreleased]
+## [v0.4.0] - 2026-11-23
+
+Amendment A7 (rich-inputs-interface.md, locked 2026-11-22): the remote select, uploads and list fields. Requires models v0.4.0, as v0.3.0 did. `theme/themeschema` is unchanged at v0.2.0.
 
 ### Added
 - `ui/forms/files` (U1, amendment A7): `Stored` and `Upload`.
