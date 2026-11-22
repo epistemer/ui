@@ -283,11 +283,20 @@ radius change at run time through cfgx
 (`theme/themeschema`). `go run ./cmd/catalog` shows every component in its
 states, in LTR and RTL and in light and dark.
 
-Status: v0.3.0. The designs are [docs/brief.md](docs/brief.md),
+A form field can be a remote select (`Field[T].Remote`: a record's id,
+searched through htmx and named by models' `listing.Labeler`), an upload
+that keeps or removes the files a record has (`Form.Upload`/`Uploads`), or
+a list whose rows people add and remove (`<ui-repeat>`); `inputs.Field`
+draws each.
+
+Status: v0.4.0. The designs are [docs/brief.md](docs/brief.md),
 [docs/forms-design.md](docs/forms-design.md) and
 [docs/visual-design.md](docs/visual-design.md); the contracts are
 [docs/interface.md](docs/interface.md) and
-[docs/visual-interface.md](docs/visual-interface.md); progress is in
+[docs/visual-interface.md](docs/visual-interface.md), with
+[docs/server-state-interface.md](docs/server-state-interface.md) (actions,
+tables) and [docs/rich-inputs-interface.md](docs/rich-inputs-interface.md)
+(remote select, uploads, lists); progress is in
 [docs/roadmap.md](docs/roadmap.md).
 
 Requires Go 1.27.
