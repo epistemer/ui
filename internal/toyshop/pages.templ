@@ -25,6 +25,9 @@ templ pageTmpl(th *theme.Theme, scripts templ.Component, title i18n.Ter, body te
 				@layout.NavItem(OrdersRoute()) {
 					Orders
 				}
+				@layout.NavItem(OrderNewRoute()) {
+					New order
+				}
 			}
 			@layout.AppMain {
 				@body
@@ -97,5 +100,26 @@ templ tagBody(chosen []int64, f *forms.Form) {
 			Save
 		}
 	</form>
+}
+
+templ orderNewPage(f *forms.Form, summary string) {
+	@layout.PageHeader(orderNewTitle).Breadcrumbs(layout.Crumb{Href: OrdersRoute(), Text: ordersTitle}, layout.Crumb{Text: orderNewTitle}) {
+	}
+	<div id="order-new">
+		if summary != "" {
+			@elements.Alert().Tone(elements.Success) {
+				{ summary }
+			}
+		}
+		{{ action := OrderNewPost().URL() }}
+		<form method="post" action={ templ.SafeURL(action) } enctype="multipart/form-data" hx-post={ action } hx-encoding="multipart/form-data" hx-target="#order-new" hx-select="#order-new" hx-swap="outerHTML" novalidate>
+			for c := range f.Controls() {
+				@inputs.Field(c)
+			}
+			@elements.Button().Submit() {
+				Create order
+			}
+		</form>
+	</div>
 }
 

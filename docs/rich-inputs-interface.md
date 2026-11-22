@@ -252,7 +252,10 @@ func (c Column[R]) Remote(search ui.Link, l listing.Labeler) Column[R]
 - The filter field is `Text` or `Number[int64]` with `Remote`; its
   parameter is owned by the table like any filter's.
 - The chip asks for a valid state only: a miss shows the id, an error
-  fails the request.
+  fails the request. *Clarification (U4, Claude):* the error travels in
+  a new field, `View[R].Err`, which `TableOf(…).Page(v)` returns from its
+  render, so the handler answers 500; an app that renders a view itself
+  checks it. `Page`'s signature is unchanged.
 
 ## 6. The script (amends visual-interface.md §10)
 

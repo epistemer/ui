@@ -19,18 +19,21 @@ import (
 // State is a request's state of a table: search, filters, sort, page and
 // size, bound from the query string. It is a listing.Source.
 type State[R any] struct {
-	t       *Table[R]
-	ctx     context.Context
-	path    string
-	query   url.Values
-	search  string
-	sort    string
-	desc    bool
-	page    int
-	size    int
-	form    *forms.Form
-	filters []filter[R]
-	valid   bool
+	t         *Table[R]
+	ctx       context.Context
+	path      string
+	query     url.Values
+	search    string
+	sort      string
+	desc      bool
+	page      int
+	size      int
+	form      *forms.Form
+	filters   []filter[R]
+	valid     bool
+	chipsDone bool
+	chips     []chip
+	chipErr   error
 }
 
 // Bind reads r's query string (§3.3). Its first call seals the table and
@@ -143,6 +146,10 @@ func (st *State[R]) ListingQuery() listing.Query {
 			n := f.c.c.Name
 			add := func(op listing.Op, v any) { q.Filters = append(q.Filters, listing.Filter{Column: n, Op: op, Value: v}) }
 			switch {
+			case f.i64 != nil:
+				if v, ok := f.i64.Get(); ok {
+					add(listing.Eq, v)
+				}
 			case f.text != nil:
 				if v, ok := f.text.Get(); ok && v != "" {
 					add(listing.Eq, v)

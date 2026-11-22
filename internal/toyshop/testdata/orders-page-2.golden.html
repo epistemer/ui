@@ -1,4 +1,4 @@
-<ui-table class="ui-table" data-ui-own="q sort page size status placed_at.from placed_at.to" data-ui-selected="%d selected" id="orders">
+<ui-table class="ui-table" data-ui-own="q sort page size customer_id status placed_at.from placed_at.to" data-ui-selected="%d selected" id="orders">
   <p class="ui-table-status ui-visually-hidden" id="orders-status" role="status"></p>
   <form action="/shop/orders" class="ui-table-tools" hx-get="/shop/orders" hx-push-url="true" hx-select="#orders" hx-swap="outerHTML" hx-sync="#orders:replace" hx-target="#orders" id="orders-state" method="get">
     <div class="ui-table-search">
@@ -14,9 +14,26 @@
     <div class="ui-table-filters">
       <div class="ui-field">
         <label class="ui-field-label" for="field--t-1">
+          Customer
+        </label>
+        <ui-combobox class="ui-combobox" data-ui-search="/shop/customers/search" data-ui-texts="{&#34;clear&#34;:&#34;Clear Customer&#34;,&#34;failed&#34;:&#34;Couldn&#39;t search. Try again.&#34;,&#34;more&#34;:&#34;Keep typing to narrow these down&#34;,&#34;none&#34;:&#34;No matches&#34;,&#34;results&#34;:&#34;Results: %d&#34;}" hx-get="/shop/customers/search" hx-params="none" hx-select="[data-ui-suggestions] &gt; li" hx-swap="innerHTML" hx-sync="this:replace" hx-target="find .ui-combobox-options" hx-trigger="ui-search" id="field--t-1-combobox">
+          <input aria-describedby="field--t-1-chosen" class="ui-input" id="field--t-1" inputmode="numeric" name="customer_id" type="text">
+          <span class="ui-combobox-chosen" id="field--t-1-chosen"></span>
+          <button aria-label="Clear Customer" class="ui-combobox-clear" hidden="" tabindex="-1" type="button">
+            ×
+          </button>
+          <div class="ui-combobox-popup" popover="manual">
+            <ul aria-label="Customer" class="ui-combobox-options" id="field--t-1-options" role="listbox"></ul>
+            <p class="ui-combobox-status"></p>
+          </div>
+          <p class="ui-visually-hidden" role="status"></p>
+        </ui-combobox>
+      </div>
+      <div class="ui-field">
+        <label class="ui-field-label" for="field--t-2">
           Status
         </label>
-        <select class="ui-input" id="field--t-1" name="status">
+        <select class="ui-input" id="field--t-2" name="status">
           <option value="">
             Choose…
           </option>
@@ -39,16 +56,16 @@
           Placed
         </legend>
         <div class="ui-field">
-          <label class="ui-field-label" for="field--t-3">
+          <label class="ui-field-label" for="field--t-4">
             From
           </label>
-          <input class="ui-input" id="field--t-3" name="placed_at.from" type="date">
+          <input class="ui-input" id="field--t-4" name="placed_at.from" type="date">
         </div>
         <div class="ui-field">
-          <label class="ui-field-label" for="field--t-4">
+          <label class="ui-field-label" for="field--t-5">
             To
           </label>
-          <input class="ui-input" id="field--t-4" name="placed_at.to" type="date">
+          <input class="ui-input" id="field--t-5" name="placed_at.to" type="date">
         </div>
       </fieldset>
     </div>
@@ -316,11 +333,11 @@
                     Reassign
                   </a>
                   <hr class="ui-separator">
-                  <button aria-describedby="menu-item--t-8-reason" aria-disabled="true" aria-labelledby="menu-item--t-8-label" class="ui-menu-item" data-tone="danger" data-ui-unavailable="" role="menuitem" tabindex="-1" type="button">
-                    <span class="ui-menu-item-label" id="menu-item--t-8-label">
+                  <button aria-describedby="menu-item--t-9-reason" aria-disabled="true" aria-labelledby="menu-item--t-9-label" class="ui-menu-item" data-tone="danger" data-ui-unavailable="" role="menuitem" tabindex="-1" type="button">
+                    <span class="ui-menu-item-label" id="menu-item--t-9-label">
                       Refund
                     </span>
-                    <span class="ui-action-reason" id="menu-item--t-8-reason">
+                    <span class="ui-action-reason" id="menu-item--t-9-reason">
                       only a paid order can be refunded
                     </span>
                   </button>
@@ -391,11 +408,11 @@
                     Reassign
                   </a>
                   <hr class="ui-separator">
-                  <button aria-describedby="menu-item--t-10-reason" aria-disabled="true" aria-labelledby="menu-item--t-10-label" class="ui-menu-item" data-tone="danger" data-ui-unavailable="" role="menuitem" tabindex="-1" type="button">
-                    <span class="ui-menu-item-label" id="menu-item--t-10-label">
+                  <button aria-describedby="menu-item--t-11-reason" aria-disabled="true" aria-labelledby="menu-item--t-11-label" class="ui-menu-item" data-tone="danger" data-ui-unavailable="" role="menuitem" tabindex="-1" type="button">
+                    <span class="ui-menu-item-label" id="menu-item--t-11-label">
                       Refund
                     </span>
-                    <span class="ui-action-reason" id="menu-item--t-10-reason">
+                    <span class="ui-action-reason" id="menu-item--t-11-reason">
                       only a paid order can be refunded
                     </span>
                   </button>
@@ -466,11 +483,11 @@
                     Reassign
                   </a>
                   <hr class="ui-separator">
-                  <button aria-describedby="menu-item--t-12-reason" aria-disabled="true" aria-labelledby="menu-item--t-12-label" class="ui-menu-item" data-tone="danger" data-ui-unavailable="" role="menuitem" tabindex="-1" type="button">
-                    <span class="ui-menu-item-label" id="menu-item--t-12-label">
+                  <button aria-describedby="menu-item--t-13-reason" aria-disabled="true" aria-labelledby="menu-item--t-13-label" class="ui-menu-item" data-tone="danger" data-ui-unavailable="" role="menuitem" tabindex="-1" type="button">
+                    <span class="ui-menu-item-label" id="menu-item--t-13-label">
                       Refund
                     </span>
-                    <span class="ui-action-reason" id="menu-item--t-12-reason">
+                    <span class="ui-action-reason" id="menu-item--t-13-reason">
                       only a paid order can be refunded
                     </span>
                   </button>
@@ -541,11 +558,11 @@
                     Reassign
                   </a>
                   <hr class="ui-separator">
-                  <button aria-describedby="menu-item--t-14-reason" aria-disabled="true" aria-labelledby="menu-item--t-14-label" class="ui-menu-item" data-tone="danger" data-ui-unavailable="" role="menuitem" tabindex="-1" type="button">
-                    <span class="ui-menu-item-label" id="menu-item--t-14-label">
+                  <button aria-describedby="menu-item--t-15-reason" aria-disabled="true" aria-labelledby="menu-item--t-15-label" class="ui-menu-item" data-tone="danger" data-ui-unavailable="" role="menuitem" tabindex="-1" type="button">
+                    <span class="ui-menu-item-label" id="menu-item--t-15-label">
                       Refund
                     </span>
-                    <span class="ui-action-reason" id="menu-item--t-14-reason">
+                    <span class="ui-action-reason" id="menu-item--t-15-reason">
                       only a paid order can be refunded
                     </span>
                   </button>
@@ -619,11 +636,11 @@
                     Reassign
                   </a>
                   <hr class="ui-separator">
-                  <button aria-describedby="menu-item--t-16-reason" aria-disabled="true" aria-labelledby="menu-item--t-16-label" class="ui-menu-item" data-tone="danger" data-ui-unavailable="" role="menuitem" tabindex="-1" type="button">
-                    <span class="ui-menu-item-label" id="menu-item--t-16-label">
+                  <button aria-describedby="menu-item--t-17-reason" aria-disabled="true" aria-labelledby="menu-item--t-17-label" class="ui-menu-item" data-tone="danger" data-ui-unavailable="" role="menuitem" tabindex="-1" type="button">
+                    <span class="ui-menu-item-label" id="menu-item--t-17-label">
                       Refund
                     </span>
-                    <span class="ui-action-reason" id="menu-item--t-16-reason">
+                    <span class="ui-action-reason" id="menu-item--t-17-reason">
                       only a paid order can be refunded
                     </span>
                   </button>
@@ -697,11 +714,11 @@
                     Reassign
                   </a>
                   <hr class="ui-separator">
-                  <button aria-describedby="menu-item--t-18-reason" aria-disabled="true" aria-labelledby="menu-item--t-18-label" class="ui-menu-item" data-tone="danger" data-ui-unavailable="" role="menuitem" tabindex="-1" type="button">
-                    <span class="ui-menu-item-label" id="menu-item--t-18-label">
+                  <button aria-describedby="menu-item--t-19-reason" aria-disabled="true" aria-labelledby="menu-item--t-19-label" class="ui-menu-item" data-tone="danger" data-ui-unavailable="" role="menuitem" tabindex="-1" type="button">
+                    <span class="ui-menu-item-label" id="menu-item--t-19-label">
                       Refund
                     </span>
-                    <span class="ui-action-reason" id="menu-item--t-18-reason">
+                    <span class="ui-action-reason" id="menu-item--t-19-reason">
                       only a paid order can be refunded
                     </span>
                   </button>
@@ -994,11 +1011,11 @@
                     Reassign
                   </a>
                   <hr class="ui-separator">
-                  <button aria-describedby="menu-item--t-23-reason" aria-disabled="true" aria-labelledby="menu-item--t-23-label" class="ui-menu-item" data-tone="danger" data-ui-unavailable="" role="menuitem" tabindex="-1" type="button">
-                    <span class="ui-menu-item-label" id="menu-item--t-23-label">
+                  <button aria-describedby="menu-item--t-24-reason" aria-disabled="true" aria-labelledby="menu-item--t-24-label" class="ui-menu-item" data-tone="danger" data-ui-unavailable="" role="menuitem" tabindex="-1" type="button">
+                    <span class="ui-menu-item-label" id="menu-item--t-24-label">
                       Refund
                     </span>
-                    <span class="ui-action-reason" id="menu-item--t-23-reason">
+                    <span class="ui-action-reason" id="menu-item--t-24-reason">
                       only a paid order can be refunded
                     </span>
                   </button>
@@ -1072,11 +1089,11 @@
                     Reassign
                   </a>
                   <hr class="ui-separator">
-                  <button aria-describedby="menu-item--t-25-reason" aria-disabled="true" aria-labelledby="menu-item--t-25-label" class="ui-menu-item" data-tone="danger" data-ui-unavailable="" role="menuitem" tabindex="-1" type="button">
-                    <span class="ui-menu-item-label" id="menu-item--t-25-label">
+                  <button aria-describedby="menu-item--t-26-reason" aria-disabled="true" aria-labelledby="menu-item--t-26-label" class="ui-menu-item" data-tone="danger" data-ui-unavailable="" role="menuitem" tabindex="-1" type="button">
+                    <span class="ui-menu-item-label" id="menu-item--t-26-label">
                       Refund
                     </span>
-                    <span class="ui-action-reason" id="menu-item--t-25-reason">
+                    <span class="ui-action-reason" id="menu-item--t-26-reason">
                       only a paid order can be refunded
                     </span>
                   </button>
@@ -1150,11 +1167,11 @@
                     Reassign
                   </a>
                   <hr class="ui-separator">
-                  <button aria-describedby="menu-item--t-27-reason" aria-disabled="true" aria-labelledby="menu-item--t-27-label" class="ui-menu-item" data-tone="danger" data-ui-unavailable="" role="menuitem" tabindex="-1" type="button">
-                    <span class="ui-menu-item-label" id="menu-item--t-27-label">
+                  <button aria-describedby="menu-item--t-28-reason" aria-disabled="true" aria-labelledby="menu-item--t-28-label" class="ui-menu-item" data-tone="danger" data-ui-unavailable="" role="menuitem" tabindex="-1" type="button">
+                    <span class="ui-menu-item-label" id="menu-item--t-28-label">
                       Refund
                     </span>
-                    <span class="ui-action-reason" id="menu-item--t-27-reason">
+                    <span class="ui-action-reason" id="menu-item--t-28-reason">
                       only a paid order can be refunded
                     </span>
                   </button>
@@ -1447,11 +1464,11 @@
                     Reassign
                   </a>
                   <hr class="ui-separator">
-                  <button aria-describedby="menu-item--t-32-reason" aria-disabled="true" aria-labelledby="menu-item--t-32-label" class="ui-menu-item" data-tone="danger" data-ui-unavailable="" role="menuitem" tabindex="-1" type="button">
-                    <span class="ui-menu-item-label" id="menu-item--t-32-label">
+                  <button aria-describedby="menu-item--t-33-reason" aria-disabled="true" aria-labelledby="menu-item--t-33-label" class="ui-menu-item" data-tone="danger" data-ui-unavailable="" role="menuitem" tabindex="-1" type="button">
+                    <span class="ui-menu-item-label" id="menu-item--t-33-label">
                       Refund
                     </span>
-                    <span class="ui-action-reason" id="menu-item--t-32-reason">
+                    <span class="ui-action-reason" id="menu-item--t-33-reason">
                       only a paid order can be refunded
                     </span>
                   </button>
@@ -1525,11 +1542,11 @@
                     Reassign
                   </a>
                   <hr class="ui-separator">
-                  <button aria-describedby="menu-item--t-34-reason" aria-disabled="true" aria-labelledby="menu-item--t-34-label" class="ui-menu-item" data-tone="danger" data-ui-unavailable="" role="menuitem" tabindex="-1" type="button">
-                    <span class="ui-menu-item-label" id="menu-item--t-34-label">
+                  <button aria-describedby="menu-item--t-35-reason" aria-disabled="true" aria-labelledby="menu-item--t-35-label" class="ui-menu-item" data-tone="danger" data-ui-unavailable="" role="menuitem" tabindex="-1" type="button">
+                    <span class="ui-menu-item-label" id="menu-item--t-35-label">
                       Refund
                     </span>
-                    <span class="ui-action-reason" id="menu-item--t-34-reason">
+                    <span class="ui-action-reason" id="menu-item--t-35-reason">
                       only a paid order can be refunded
                     </span>
                   </button>
@@ -1603,11 +1620,11 @@
                     Reassign
                   </a>
                   <hr class="ui-separator">
-                  <button aria-describedby="menu-item--t-36-reason" aria-disabled="true" aria-labelledby="menu-item--t-36-label" class="ui-menu-item" data-tone="danger" data-ui-unavailable="" role="menuitem" tabindex="-1" type="button">
-                    <span class="ui-menu-item-label" id="menu-item--t-36-label">
+                  <button aria-describedby="menu-item--t-37-reason" aria-disabled="true" aria-labelledby="menu-item--t-37-label" class="ui-menu-item" data-tone="danger" data-ui-unavailable="" role="menuitem" tabindex="-1" type="button">
+                    <span class="ui-menu-item-label" id="menu-item--t-37-label">
                       Refund
                     </span>
-                    <span class="ui-action-reason" id="menu-item--t-36-reason">
+                    <span class="ui-action-reason" id="menu-item--t-37-reason">
                       only a paid order can be refunded
                     </span>
                   </button>
@@ -1900,11 +1917,11 @@
                     Reassign
                   </a>
                   <hr class="ui-separator">
-                  <button aria-describedby="menu-item--t-41-reason" aria-disabled="true" aria-labelledby="menu-item--t-41-label" class="ui-menu-item" data-tone="danger" data-ui-unavailable="" role="menuitem" tabindex="-1" type="button">
-                    <span class="ui-menu-item-label" id="menu-item--t-41-label">
+                  <button aria-describedby="menu-item--t-42-reason" aria-disabled="true" aria-labelledby="menu-item--t-42-label" class="ui-menu-item" data-tone="danger" data-ui-unavailable="" role="menuitem" tabindex="-1" type="button">
+                    <span class="ui-menu-item-label" id="menu-item--t-42-label">
                       Refund
                     </span>
-                    <span class="ui-action-reason" id="menu-item--t-41-reason">
+                    <span class="ui-action-reason" id="menu-item--t-42-reason">
                       only a paid order can be refunded
                     </span>
                   </button>
@@ -1975,11 +1992,11 @@
                     Reassign
                   </a>
                   <hr class="ui-separator">
-                  <button aria-describedby="menu-item--t-43-reason" aria-disabled="true" aria-labelledby="menu-item--t-43-label" class="ui-menu-item" data-tone="danger" data-ui-unavailable="" role="menuitem" tabindex="-1" type="button">
-                    <span class="ui-menu-item-label" id="menu-item--t-43-label">
+                  <button aria-describedby="menu-item--t-44-reason" aria-disabled="true" aria-labelledby="menu-item--t-44-label" class="ui-menu-item" data-tone="danger" data-ui-unavailable="" role="menuitem" tabindex="-1" type="button">
+                    <span class="ui-menu-item-label" id="menu-item--t-44-label">
                       Refund
                     </span>
-                    <span class="ui-action-reason" id="menu-item--t-43-reason">
+                    <span class="ui-action-reason" id="menu-item--t-44-reason">
                       only a paid order can be refunded
                     </span>
                   </button>

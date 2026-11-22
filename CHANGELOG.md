@@ -32,6 +32,18 @@ All notable changes to this module. The format follows
   chosen file list with `DataTransfer` removal and optional `blob:` image
   previews, client size/type checks with a capturing submit guard, upload
   progress from `xhr.upload`, and 413 handling).
+- `ui/tables` (U4, amendment A7): `Column.Remote(search, labeler)` for a
+  remote-select filter on a `Text` or `Integer` column with `listing.Eq`
+  on its typed value, `View.Err` for propagating a remote filter's
+  `LabelOf` failure (checked by `components.TableOf.Page`), and chip
+  resolution through `LabelOf` (once per link filter per request for a
+  valid state; miss falls back to the id).
+- `internal/toyshop` (U4): a `customer_id` remote filter on the orders
+  table with `GET /shop/customers/search`, plus the order form at
+  `GET/POST /shop/orders/new` (customer remote select, receipt `Uploads`
+  with stored files served at `GET /shop/files/{key}`, repeatable `lines`
+  list with product remote select via `GET /shop/products/search`,
+  1.5 MiB `http.MaxBytesHandler` returning 413, and `inputs.WithLabelCache`).
 
 ### Changed
 - `inputs.Field` renders `KindList` with `<ui-repeat>` instead of returning

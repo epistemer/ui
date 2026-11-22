@@ -9,6 +9,41 @@ taken for epistemer, what's next, and what's waiting on epistemer.
 
 
 
+## 2026-11-23 — U4: tables (`Column.Remote`) and the toy shop
+
+**Landed**, to rich-inputs-interface.md §5 and rich-inputs-design.md §3.5, §4.2 and §4.5:
+- `tables`: `Column.Remote(search ui.Link, l listing.Labeler)` panics at
+  once on a nil link or `Labeler`; `Table.Check` (and so the first
+  `Bind`/`Row`) reports `Remote` without `Filter()` or on any kind other
+  than `column.Text` or `column.Integer`. The filter form builds a `Text`
+  or `Number[int64]` field with `forms`' `Remote(search, l)`, emitting
+  `listing.Eq` on the typed value (`string` or `int64`) and owning the
+  single parameter `<col>` (or `<table-name>.<col>` when prefixed) in
+  `View.Own` / `data-ui-own`, `Clear` and chip `Remove` links.
+- Chip resolution and error path: `State` resolves chips once per active
+  link filter per request (cached on `State`, and only for `Page` on a
+  valid state — `Rejected` never computes chips). Found shows the name,
+  miss shows the id, and a `LabelOf` error is recorded in `View.Err`
+  (exported on `tables.View[R]`); `components.TableOf.Page` returns
+  `v.Err` from `Render` before writing markup, failing the request (500)
+  without altering `State.Page`'s locked signature.
+- `internal/toyshop`: added `OrderListViewColumns.CustomerID` (`customer_id`,
+  `Hidden().Filter().Remote(...)`) to `Orders`, customer and product search
+  handlers (`GET /shop/customers/search`, `GET /shop/products/search`,
+  fetching `components.SuggestionLimit+1`), stored-file route
+  (`GET /shop/files/{key}` serving `receipt-pdf` and `box-png`), and the
+  new order page (`GET/POST /shop/orders/new`, wrapped in
+  `http.MaxBytesHandler` at 1.5 MiB returning 413 on `*http.MaxBytesError`,
+  422 on invalid input preserving keep states and showing the lost note,
+  and a success alert on valid submission), linked from the shop nav and
+  rendered with `inputs.WithLabelCache` and the shop's gate.
+- Tests covering `Column.Remote` panics, `Check`, typed `Eq` filters,
+  found/miss/error chips, single `LabelOf` call per request, `TableOf.Page`
+  error propagation, and the toy shop's search handlers and order page
+  (GET, 422, 200, 413). Updated orders table goldens for the new filter.
+
+**Next.** U5: release v0.4.0.
+
 ## 2026-11-23 — U3: the ui script for A7
 
 **Landed**, to rich-inputs-interface.md §6 and rich-inputs-design.md §3.3–§3.4, §4.3–§4.5 and §5.2–§5.3:

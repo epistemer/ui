@@ -28,6 +28,7 @@ import (
 	"github.com/epistemer/errors"
 	"github.com/epistemer/i18n"
 	"github.com/epistemer/models/column"
+	"github.com/epistemer/models/listing"
 
 	"github.com/epistemer/ui"
 	"github.com/epistemer/ui/actions"
@@ -56,6 +57,8 @@ type Column[R any] struct {
 	amount     func(R) i18n.Ter
 	src        func(R) ui.Link
 	alt        func(R) i18n.Ter
+	search     ui.Link
+	labeler    listing.Labeler
 }
 
 // Col starts a table column from a generated one.
@@ -69,6 +72,20 @@ func (c Column[R]) Sortable() Column[R] { c.sortable = true; return c }
 
 // Filter gives it a filter, by its kind (§3.4).
 func (c Column[R]) Filter() Column[R] { c.filter = true; return c }
+
+// Remote makes the column's filter a remote select with listing.Eq; the
+// chip names the value through l (R13). Legal on a Text or Integer column
+// with Filter(); a nil search link or Labeler panics at once.
+func (c Column[R]) Remote(search ui.Link, l listing.Labeler) Column[R] {
+	if search == nil {
+		panic(fmt.Sprintf("tables: Remote on %q with a nil search link", c.c.Name))
+	}
+	if l == nil {
+		panic(fmt.Sprintf("tables: Remote on %q with a nil Labeler", c.c.Name))
+	}
+	c.search, c.labeler = search, l
+	return c
+}
 
 // Hidden keeps it for a filter or a sort without showing it.
 func (c Column[R]) Hidden() Column[R] { c.hidden = true; return c }
@@ -239,7 +256,8 @@ func (t *Table[R]) labelColumn() string {
 }
 
 // Check reports what needs the whole declaration: no Label, a column
-// without a label, or a table with actions or bulk actions and no row
+// without a label, Remote on a column without Filter() or of a kind other
+// than Text or Integer, or a table with actions or bulk actions and no row
 // label, which names a row's controls.
 func (t *Table[R]) Check() error {
 	if t.label == nil {
@@ -248,6 +266,14 @@ func (t *Table[R]) Check() error {
 	for _, c := range t.cols {
 		if c.c.Label == nil {
 			return fmt.Errorf("tables: %s: column %q has no label", t.name, c.c.Name)
+		}
+		if c.labeler != nil {
+			if !c.filter {
+				return fmt.Errorf("tables: %s: Remote on %q without Filter()", t.name, c.c.Name)
+			}
+			if c.c.Kind != column.Text && c.c.Kind != column.Integer {
+				return fmt.Errorf("tables: %s: Remote on %q, which isn't text or an integer", t.name, c.c.Name)
+			}
 		}
 	}
 	if (t.actions != nil || t.bulk != nil) && t.labelColumn() == "" {
@@ -328,6 +354,7 @@ func Targeted[R any](r *http.Request, t *Table[R]) bool {
 type filter[R any] struct {
 	c          Column[R]
 	text       *forms.Field[string]
+	i64        *forms.Field[int64]
 	b          *forms.Field[bool]
 	ifrom, ito *forms.Field[int]
 	ffrom, fto *forms.Field[float64]
@@ -336,6 +363,9 @@ type filter[R any] struct {
 
 func (f filter[R]) params(t *Table[R]) []string {
 	n := t.param(f.c.c.Name)
+	if f.c.labeler != nil {
+		return []string{n}
+	}
 	switch f.c.c.Kind {
 	case column.Integer, column.Number, column.Date, column.Time:
 		return []string{n + ".from", n + ".to"}
@@ -368,16 +398,20 @@ func (t *Table[R]) filterForm() (*forms.Form, []filter[R]) {
 			}
 			x := filter[R]{c: c}
 			n, l := c.c.Name, c.c.Label
-			switch c.c.Kind {
-			case column.Text:
+			switch {
+			case c.labeler != nil && c.c.Kind == column.Text:
+				x.text = g.Text(n).Label(l).Remote(c.search, c.labeler)
+			case c.labeler != nil && c.c.Kind == column.Integer:
+				x.i64 = g.Number[int64](n).Label(l).Remote(c.search, c.labeler)
+			case c.c.Kind == column.Text:
 				x.text = g.Text(n).Label(l)
-			case column.Enum:
+			case c.c.Kind == column.Enum:
 				// A select of the column's options, which refuses a value not
 				// offered; the value is the option's string (finding 11).
 				x.text = g.Text(n).Label(l).Options(c.c.Options...)
-			case column.Bool:
+			case c.c.Kind == column.Bool:
 				x.b = g.Bool(n).Label(l)
-			case column.Integer:
+			case c.c.Kind == column.Integer:
 				p := g.Group(n, func(r *forms.Form) [2]*forms.Field[int] {
 					r.Label(l)
 					a, b := r.Int("from").Label(fromLabel), r.Int("to").Label(toLabel)
@@ -385,7 +419,7 @@ func (t *Table[R]) filterForm() (*forms.Form, []filter[R]) {
 					return [2]*forms.Field[int]{a, b}
 				})
 				x.ifrom, x.ito = p[0], p[1]
-			case column.Number:
+			case c.c.Kind == column.Number:
 				p := g.Group(n, func(r *forms.Form) [2]*forms.Field[float64] {
 					r.Label(l)
 					a, b := r.Float("from").Label(fromLabel), r.Float("to").Label(toLabel)
@@ -393,7 +427,7 @@ func (t *Table[R]) filterForm() (*forms.Form, []filter[R]) {
 					return [2]*forms.Field[float64]{a, b}
 				})
 				x.ffrom, x.fto = p[0], p[1]
-			case column.Date, column.Time:
+			case c.c.Kind == column.Date, c.c.Kind == column.Time:
 				p := g.Group(n, func(r *forms.Form) [2]*forms.Field[time.Time] {
 					r.Label(l)
 					a, b := r.Date("from").Label(fromLabel), r.Date("to").Label(toLabel)

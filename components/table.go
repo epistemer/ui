@@ -64,6 +64,9 @@ func (tv *TableView[R]) Attrs(a templ.Attributes) *TableView[R] {
 // Page renders the whole table.
 func (tv *TableView[R]) Page(v tables.View[R]) templ.Component {
 	return templ.ComponentFunc(func(ctx context.Context, w io.Writer) error {
+		if v.Err != nil {
+			return v.Err
+		}
 		return tableTmpl(tv.data(v)).Render(ctx, w)
 	})
 }

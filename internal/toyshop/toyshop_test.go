@@ -1,7 +1,9 @@
 package toyshop
 
 import (
+	"bytes"
 	"context"
+	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
 	"regexp"
@@ -11,13 +13,16 @@ import (
 	"github.com/epistemer/ui"
 	"github.com/epistemer/ui/actions"
 	"github.com/epistemer/ui/actions/actionstest"
+	"github.com/epistemer/ui/inputs"
 	"github.com/epistemer/ui/tables"
 	"github.com/epistemer/ui/tables/tablestest"
 	"github.com/epistemer/ui/theme"
 	"github.com/epistemer/ui/uitest"
 )
 
-func gated(ctx context.Context) context.Context { return actions.Gate.With(ctx, Gate) }
+func gated(ctx context.Context) context.Context {
+	return inputs.WithLabelCache(actions.Gate.With(ctx, Gate))
+}
 
 // css is ui's stylesheet, for CheckSelectors.
 func css(t *testing.T) string {
@@ -196,4 +201,175 @@ func TestOrdersPage(t *testing.T) {
 	uitest.CheckIDs(t, html)
 	uitest.CheckNames(t, html)
 	uitest.CheckSelectors(t, html, css(t))
+
+	// Remote customer filter binds, filters rows, and renders the chip with the customer's name.
+	w := do(h, "GET", "/shop/orders?customer_id=1", "", nil)
+	if w.Code != http.StatusOK {
+		t.Fatalf("filtered orders: %d", w.Code)
+	}
+	filtered := w.Body.String()
+	if !strings.Contains(filtered, "Customer: Layla Adel") || strings.Contains(filtered, "Omar Nabil") {
+		t.Errorf("customer filter chip/rows mismatch:\n%s", filtered)
+	}
+	uitest.CheckIDs(t, filtered)
+	uitest.CheckNames(t, filtered)
+	uitest.CheckSelectors(t, filtered, css(t))
+}
+
+func postMultipart(h http.Handler, target string, fields [][2]string, files []struct {
+	field, name string
+	data        []byte
+}) *httptest.ResponseRecorder {
+	var body bytes.Buffer
+	mw := multipart.NewWriter(&body)
+	for _, kv := range fields {
+		_ = mw.WriteField(kv[0], kv[1])
+	}
+	for _, f := range files {
+		fw, _ := mw.CreateFormFile(f.field, f.name)
+		_, _ = fw.Write(f.data)
+	}
+	_ = mw.Close()
+	r := httptest.NewRequest(http.MethodPost, target, &body)
+	r.Header.Set("Content-Type", mw.FormDataContentType())
+	w := httptest.NewRecorder()
+	h.ServeHTTP(w, r)
+	return w
+}
+
+func TestOrderNewPage(t *testing.T) {
+	h, _ := server(t)
+	styles := css(t)
+
+	// GET renders cleanly with stored files, remote selects, and one blank line.
+	w := do(h, http.MethodGet, "/shop/orders/new", "", nil)
+	if w.Code != http.StatusOK {
+		t.Fatalf("GET /shop/orders/new: %d", w.Code)
+	}
+	html := w.Body.String()
+	uitest.CheckIDs(t, html)
+	uitest.CheckNames(t, html)
+	uitest.CheckSelectors(t, html, styles)
+	for _, want := range []string{
+		`data-ui-search="/shop/customers/search"`,
+		`data-ui-search="/shop/products/search"`,
+		`name="receipt.keep" value="receipt-pdf" checked`,
+		`name="receipt.keep" value="box-png" checked`,
+		`src="/shop/files/box-png"`,
+		`name="lines[0].product_id"`,
+		`name="lines[0].qty"`,
+	} {
+		if !strings.Contains(html, want) {
+			t.Errorf("GET /shop/orders/new missing %q", want)
+		}
+	}
+
+	// Stored file route serves both files and 404s unknown keys.
+	if fw := do(h, http.MethodGet, "/shop/files/receipt-pdf", "", nil); fw.Code != http.StatusOK || fw.Header().Get("Content-Type") != "application/pdf" {
+		t.Errorf("receipt-pdf: %d %q", fw.Code, fw.Header().Get("Content-Type"))
+	}
+	if fw := do(h, http.MethodGet, "/shop/files/box-png", "", nil); fw.Code != http.StatusOK || fw.Header().Get("Content-Type") != "image/png" {
+		t.Errorf("box-png: %d %q", fw.Code, fw.Header().Get("Content-Type"))
+	}
+	if fw := do(h, http.MethodGet, "/shop/files/missing", "", nil); fw.Code != http.StatusNotFound {
+		t.Errorf("missing file: %d", fw.Code)
+	}
+
+	// Failed POST (missing customer) returns 422, preserves keep states, and shows the lost note.
+	failed := postMultipart(h, "/shop/orders/new", [][2]string{
+		{"receipt.keep", "receipt-pdf"},
+		{"lines[0].product_id", "1"},
+		{"lines[0].qty", "2"},
+	}, []struct {
+		field, name string
+		data        []byte
+	}{
+		{"receipt", "extra.pdf", []byte("%PDF-1.4\n%%EOF\n")},
+	})
+	if failed.Code != http.StatusUnprocessableEntity {
+		t.Fatalf("invalid POST: got %d, want 422", failed.Code)
+	}
+	fhtml := failed.Body.String()
+	uitest.CheckIDs(t, fhtml)
+	uitest.CheckNames(t, fhtml)
+	uitest.CheckSelectors(t, fhtml, styles)
+	if !strings.Contains(fhtml, `value="receipt-pdf" checked`) {
+		t.Error("kept file receipt-pdf wasn't preserved as checked")
+	}
+	if strings.Contains(fhtml, `value="box-png" checked`) {
+		t.Error("unchecked file box-png became checked again")
+	}
+	if !strings.Contains(fhtml, "ui-upload-lost") || !strings.Contains(fhtml, "Choose the files again") {
+		t.Error("lost note missing on failed upload form")
+	}
+
+	// Valid POST renders a success alert summarizing customer, line count, kept keys and added count.
+	ok := postMultipart(h, "/shop/orders/new", [][2]string{
+		{"customer_id", "1"},
+		{"receipt.keep", "box-png"},
+		{"lines[0].product_id", "1"},
+		{"lines[0].qty", "2"},
+		{"lines[1].product_id", "4"},
+		{"lines[1].qty", "3"},
+	}, []struct {
+		field, name string
+		data        []byte
+	}{
+		{"receipt", "invoice.pdf", []byte("%PDF-1.4\n%%EOF\n")},
+	})
+	if ok.Code != http.StatusOK {
+		t.Fatalf("valid POST: got %d, want 200\n%s", ok.Code, ok.Body.String())
+	}
+	ohtml := ok.Body.String()
+	uitest.CheckIDs(t, ohtml)
+	uitest.CheckNames(t, ohtml)
+	uitest.CheckSelectors(t, ohtml, styles)
+	for _, want := range []string{
+		`data-tone="success"`,
+		"Layla Adel",
+		"2 lines",
+		"box-png",
+		"added 1",
+	} {
+		if !strings.Contains(ohtml, want) {
+			t.Errorf("valid POST missing %q in:\n%s", want, ohtml)
+		}
+	}
+
+	// Body over the 1.5 MiB limit answers 413.
+	big := postMultipart(h, "/shop/orders/new", [][2]string{
+		{"customer_id", "1"},
+		{"lines[0].product_id", "1"},
+		{"lines[0].qty", "1"},
+	}, []struct {
+		field, name string
+		data        []byte
+	}{
+		{"receipt", "huge.pdf", bytes.Repeat([]byte("a"), maxOrderBody+1024)},
+	})
+	if big.Code != http.StatusRequestEntityTooLarge {
+		t.Errorf("oversized POST: got %d, want 413", big.Code)
+	}
+}
+
+func TestSearchHandlers(t *testing.T) {
+	h, _ := server(t)
+
+	// Customer search filters by q (case-insensitive).
+	w := do(h, http.MethodGet, "/shop/customers/search?q=LAYLA", "", nil)
+	if w.Code != http.StatusOK || !strings.Contains(w.Body.String(), "data-ui-suggestions") || !strings.Contains(w.Body.String(), `data-value="1"`) || !strings.Contains(w.Body.String(), "Layla Adel") || strings.Contains(w.Body.String(), "data-ui-more") {
+		t.Errorf("customer search q=LAYLA: %d\n%s", w.Code, w.Body.String())
+	}
+
+	// Empty q fetches SuggestionLimit+1 so data-ui-more is rendered.
+	w = do(h, http.MethodGet, "/shop/customers/search", "", nil)
+	if w.Code != http.StatusOK || !strings.Contains(w.Body.String(), "data-ui-suggestions") || !strings.Contains(w.Body.String(), "data-ui-more") {
+		t.Errorf("customer search empty q: %d\n%s", w.Code, w.Body.String())
+	}
+
+	// Product search filters by q.
+	w = do(h, http.MethodGet, "/shop/products/search?q=rob", "", nil)
+	if w.Code != http.StatusOK || !strings.Contains(w.Body.String(), "data-ui-suggestions") || !strings.Contains(w.Body.String(), `data-value="4"`) || !strings.Contains(w.Body.String(), "Robot") || strings.Contains(w.Body.String(), "data-ui-more") {
+		t.Errorf("product search q=rob: %d\n%s", w.Code, w.Body.String())
+	}
 }

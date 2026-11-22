@@ -2,18 +2,22 @@ package tables_test
 
 import (
 	"context"
+	"errors"
 	"net/http/httptest"
 	"net/url"
+	"slices"
 	"strings"
 	"testing"
 	"time"
 
 	"github.com/epistemer/i18n"
 	"github.com/epistemer/models/column"
+	"github.com/epistemer/models/listing"
 	"github.com/epistemer/models/option"
 
 	"github.com/epistemer/ui"
 	"github.com/epistemer/ui/actions"
+	"github.com/epistemer/ui/forms"
 	"github.com/epistemer/ui/tables"
 	"github.com/epistemer/ui/tables/tablestest"
 )
@@ -275,5 +279,211 @@ func TestDeclarationPanics(t *testing.T) {
 			}()
 			f()
 		}()
+	}
+}
+
+type stubLabeler struct {
+	names map[string]string
+	err   error
+	calls int
+}
+
+func (l *stubLabeler) LabelOf(_ context.Context, id string) (string, bool, error) {
+	l.calls++
+	if l.err != nil {
+		return "", false, l.err
+	}
+	name, ok := l.names[id]
+	return name, ok, nil
+}
+
+func TestRemotePanicsAndCheck(t *testing.T) {
+	lab := &stubLabeler{names: map[string]string{"1": "Ann"}}
+	search := ui.URL("/customers/search")
+
+	for name, f := range map[string]func(){
+		"nil search link": func() { tables.Col(c.ID).Filter().Remote(nil, lab) },
+		"nil labeler":     func() { tables.Col(c.ID).Filter().Remote(search, nil) },
+	} {
+		func() {
+			defer func() {
+				if r := recover(); r == nil || !strings.HasPrefix(r.(string), "tables: ") {
+					t.Errorf("%s: %v", name, r)
+				}
+			}()
+			f()
+		}()
+	}
+
+	numCol := column.Column[order]{Name: "rate", Label: lbl("Rate"), Kind: column.Number, Get: func(order) column.Value { return column.Value{} }}
+	for name, col := range map[string]tables.Column[order]{
+		"without filter": tables.Col(c.Total).Remote(search, lab),
+		"enum column":    tables.Col(c.Status).Filter().Remote(search, lab),
+		"date column":    tables.Col(c.Placed).Filter().Remote(search, lab),
+		"bool column":    tables.Col(c.Gift).Filter().Remote(search, lab),
+		"number column":  tables.Col(numCol).Filter().Remote(search, lab),
+	} {
+		tb := tables.New("r", c.ID, tables.Col(c.Email), col).Label(i18n.Static("R"))
+		if tb.Check() == nil {
+			t.Errorf("%s: Check passed", name)
+		}
+		func() {
+			defer func() {
+				if recover() == nil {
+					t.Errorf("%s: Bind didn't panic", name)
+				}
+			}()
+			tb.Bind(httptest.NewRequest("GET", "/", nil))
+		}()
+		func() {
+			defer func() {
+				if recover() == nil {
+					t.Errorf("%s: Row didn't panic", name)
+				}
+			}()
+			tb.Row(context.Background(), order{})
+		}()
+	}
+
+	// Remote before Filter on Text and Integer is legal.
+	okTable := tables.New("ok", c.ID,
+		tables.Col(c.Email).Remote(search, lab).Filter(),
+		tables.Col(c.Total).Remote(search, lab).Filter(),
+	).Label(i18n.Static("OK"))
+	tablestest.Check(t, okTable)
+}
+
+func TestRemoteFilterAndChips(t *testing.T) {
+	custLab := &stubLabeler{names: map[string]string{"7": "Ann Lee"}}
+	refLab := &stubLabeler{names: map[string]string{"u-42": "Batch 42"}}
+	custSearch := ui.URL("/customers/search")
+	refSearch := ui.URL("/refs/search")
+
+	custCol := column.Column[order]{Name: "customer_id", Label: lbl("Customer"), Kind: column.Integer, Get: func(o order) column.Value { return column.Value{Int: o.ID} }}
+	refCol := column.Column[order]{Name: "ref", Label: lbl("Ref"), Kind: column.Text, Get: func(o order) column.Value { return column.Value{Text: o.Email} }}
+
+	tb := tables.New("orders", c.ID,
+		tables.Col(c.Email),
+		tables.Col(custCol).Hidden().Filter().Remote(custSearch, custLab),
+		tables.Col(refCol).Hidden().Filter().Remote(refSearch, refLab),
+		tables.Col(c.Status).Filter(),
+	).Label(i18n.Static("Orders"))
+
+	// Integer and Text remote filters bind as Eq with typed values (int64, string).
+	st := tablestest.Bind(t, tb, "customer_id=7&ref=u-42&other=1")
+	if !st.Valid() {
+		t.Fatalf("expected valid state, got %v", tablestest.Errors(st))
+	}
+	q := tablestest.Query(st)
+	if len(q.Filters) != 2 {
+		t.Fatalf("filters %+v", q.Filters)
+	}
+	if q.Filters[0].Column != "customer_id" || q.Filters[0].Op != listing.Eq {
+		t.Errorf("int filter: %+v", q.Filters[0])
+	}
+	if got, ok := q.Filters[0].Value.(int64); !ok || got != 7 {
+		t.Errorf("int filter value: %T(%v), want int64(7)", q.Filters[0].Value, q.Filters[0].Value)
+	}
+	if q.Filters[1].Column != "ref" || q.Filters[1].Op != listing.Eq {
+		t.Errorf("text filter: %+v", q.Filters[1])
+	}
+	if got, ok := q.Filters[1].Value.(string); !ok || got != "u-42" {
+		t.Errorf("text filter value: %T(%v), want string(\"u-42\")", q.Filters[1].Value, q.Filters[1].Value)
+	}
+
+	// Parameter ownership, filter controls, and chips (found).
+	v := st.Page(nil, 0)
+	if v.Err != nil {
+		t.Fatalf("unexpected error: %v", v.Err)
+	}
+	if !slices.Contains(v.Own, "customer_id") || slices.Contains(v.Own, "customer_id.from") || !slices.Contains(v.Own, "ref") {
+		t.Errorf("own %v", v.Own)
+	}
+	if hidden(v.Hidden) != "other=1" {
+		t.Errorf("hidden %q", hidden(v.Hidden))
+	}
+	if len(v.Filters) < 2 || v.Filters[0].Kind() != forms.KindRemote || v.Filters[1].Kind() != forms.KindRemote {
+		t.Fatalf("filter controls: %v", v.Filters)
+	}
+	if s, l, id, ok := v.Filters[0].Remote(); !ok || s.URL() != custSearch.URL() || l != custLab || id != "7" {
+		t.Errorf("customer_id Remote() = (%v, %v, %q, %v)", s, l, id, ok)
+	}
+	if len(v.Chips) != 2 || v.Chips[0].Value != "Ann Lee" || v.Chips[1].Value != "Batch 42" {
+		t.Errorf("chips %+v", v.Chips)
+	}
+	if strings.Contains(string(v.Chips[0].Remove), "customer_id=") || !strings.Contains(string(v.Chips[0].Remove), "ref=u-42") {
+		t.Errorf("remove link %q", v.Chips[0].Remove)
+	}
+	if strings.Contains(string(v.Clear), "customer_id=") || strings.Contains(string(v.Clear), "ref=") {
+		t.Errorf("clear link %q", v.Clear)
+	}
+
+	// LabelOf is called once per link filter per request, even across repeated Page/Rejected calls.
+	_ = st.Rejected()
+	_ = st.Page(nil, 0)
+	if custLab.calls != 1 || refLab.calls != 1 {
+		t.Errorf("LabelOf calls: cust=%d ref=%d, want 1 each", custLab.calls, refLab.calls)
+	}
+
+	// Miss shows the id.
+	custLab.calls, refLab.calls = 0, 0
+	miss := tablestest.Bind(t, tb, "customer_id=999&ref=unknown").Page(nil, 0)
+	if miss.Err != nil || len(miss.Chips) != 2 || miss.Chips[0].Value != "999" || miss.Chips[1].Value != "unknown" {
+		t.Errorf("miss: err=%v chips=%+v", miss.Err, miss.Chips)
+	}
+	if custLab.calls != 1 || refLab.calls != 1 {
+		t.Errorf("miss calls: cust=%d ref=%d", custLab.calls, refLab.calls)
+	}
+
+	// Unset filters do not call LabelOf.
+	custLab.calls, refLab.calls = 0, 0
+	_ = tablestest.Bind(t, tb, "").Page(nil, 0)
+	if custLab.calls != 0 || refLab.calls != 0 {
+		t.Errorf("unset calls: cust=%d ref=%d", custLab.calls, refLab.calls)
+	}
+
+	// Invalid state never calls LabelOf.
+	custLab.calls, refLab.calls = 0, 0
+	bad := tablestest.Bind(t, tb, "customer_id=abc")
+	if bad.Valid() {
+		t.Fatal("non-integer bound")
+	}
+	_ = bad.Rejected()
+	_ = bad.Page(nil, 0)
+	if custLab.calls != 0 {
+		t.Errorf("invalid customer_id called LabelOf %d times", custLab.calls)
+	}
+	bad2 := tablestest.Bind(t, tb, "customer_id=7&status=bogus")
+	if bad2.Valid() {
+		t.Fatal("bogus status bound")
+	}
+	_ = bad2.Rejected()
+	if custLab.calls != 0 {
+		t.Errorf("invalid sibling filter called LabelOf %d times", custLab.calls)
+	}
+
+	// Error fails the view.
+	boom := errors.New("db down")
+	custLab.err = boom
+	custLab.calls = 0
+	errView := tablestest.Bind(t, tb, "customer_id=7").Page(nil, 0)
+	if !errors.Is(errView.Err, boom) || len(errView.Chips) != 0 {
+		t.Errorf("error view: err=%v chips=%+v", errView.Err, errView.Chips)
+	}
+	custLab.err = nil
+
+	// Prefixed table owns "<name>.<col>" and binds typed int64.
+	prefixed := tables.New("p", c.ID,
+		tables.Col(c.Email),
+		tables.Col(custCol).Hidden().Filter().Remote(custSearch, custLab),
+	).Label(i18n.Static("P")).Prefixed()
+	pst := tablestest.Bind(t, prefixed, "p.customer_id=7&customer_id=9")
+	pq := tablestest.Query(pst)
+	if len(pq.Filters) != 1 || pq.Filters[0].Value != int64(7) {
+		t.Errorf("prefixed query: %+v", pq.Filters)
+	}
+	pv := pst.Page(nil, 0)
+	if !slices.Contains(pv.Own, "p.customer_id") || hidden(pv.Hidden) != "customer_id=9" || len(pv.Chips) != 1 || pv.Chips[0].Value != "Ann Lee" {
+		t.Errorf("prefixed view: own=%v hidden=%q chips=%+v", pv.Own, hidden(pv.Hidden), pv.Chips)
 	}
 }
