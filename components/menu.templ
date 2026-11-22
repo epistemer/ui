@@ -1,0 +1,36 @@
+package components
+
+import (
+	"github.com/epistemer/ui"
+	"github.com/epistemer/ui/elements"
+	"github.com/epistemer/ui/icons"
+)
+
+templ menu(m MenuSpec) {
+	{{ requireItems(ctx) }}
+	@ui.Scope(menuID) {
+		<ui-menu { elements.Merge(templ.Attributes{"class": "ui-menu"}, nil, m.attrs)... }>
+			@MenuTrigger.Place(menuTriggerAttrs(ctx)) {
+				@elements.Button().Variant(elements.Outline).Tone(elements.Neutral).Attrs(MenuTrigger.Value(ctx)) {
+					{ m.label.T(ctx) }
+					@icons.ChevronDown()
+				}
+			}
+			<div class="ui-menu-popover" id={ menuID.Get(ctx) } popover role="menu" aria-labelledby={ menuID.Part(ctx, "trigger") }>
+				@MenuItems.Place()
+			</div>
+		</ui-menu>
+	}
+}
+
+templ menuButton(attrs templ.Attributes) {
+	<button { attrs... }>
+		{ children... }
+	</button>
+}
+
+templ menuLink(attrs templ.Attributes) {
+	<a { attrs... }>
+		{ children... }
+	</a>
+}

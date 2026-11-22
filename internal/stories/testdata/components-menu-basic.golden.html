@@ -1,5 +1,5 @@
 <ui-menu class="ui-menu">
-  <button aria-controls="menu--t-1" aria-haspopup="menu" class="ui-button" data-variant="outline" id="menu--t-1-trigger" popovertarget="menu--t-1" type="button">
+  <button aria-controls="menu--t-1" aria-haspopup="menu" class="ui-button" data-tone="neutral" data-variant="outline" id="menu--t-1-trigger" popovertarget="menu--t-1" type="button">
     Actions
     <svg aria-hidden="true" class="ui-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
       <path d="m6 9 6 6 6-6"></path>
@@ -15,11 +15,12 @@
     <a aria-disabled="true" class="ui-menu-item" role="menuitem" tabindex="-1">
       Archive
     </a>
-    <button class="ui-menu-item" data-tone="danger" data-ui-confirm="Delete this store?" role="menuitem" tabindex="-1" type="button">
+    <button class="ui-menu-item" data-tone="danger" data-ui-confirm="Delete this store?" form="delete-store" role="menuitem" tabindex="-1" type="submit">
       Delete
     </button>
   </div>
 </ui-menu>
+<form action="/catalog/none" id="delete-store" method="post"></form>
 <dialog aria-describedby="ui-confirm-question" aria-labelledby="ui-confirm-title" class="ui-dialog" data-ui-confirm-dialog="" id="ui-confirm">
   <header class="ui-dialog-header">
     <h2 class="ui-dialog-title" id="ui-confirm-title">
@@ -30,7 +31,7 @@
     <p id="ui-confirm-question"></p>
   </div>
   <footer class="ui-dialog-actions">
-    <button class="ui-button" command="close" commandfor="ui-confirm" data-variant="ghost" type="button" value="cancel">
+    <button autofocus="" class="ui-button" command="close" commandfor="ui-confirm" data-tone="neutral" data-variant="ghost" type="button" value="cancel">
       Cancel
     </button>
     <button class="ui-button" command="close" commandfor="ui-confirm" data-tone="danger" type="button" value="confirm">

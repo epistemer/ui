@@ -1,0 +1,22 @@
+package components
+
+import "github.com/epistemer/ui/elements"
+
+templ confirmDialog() {
+	<dialog id="ui-confirm" class="ui-dialog" aria-labelledby="ui-confirm-title" aria-describedby="ui-confirm-question" data-ui-confirm-dialog>
+		<header class="ui-dialog-header">
+			<h2 class="ui-dialog-title" id="ui-confirm-title">{ confirmTitle.T(ctx) }</h2>
+		</header>
+		<div class="ui-dialog-body">
+			<p id="ui-confirm-question"></p>
+		</div>
+		<footer class="ui-dialog-actions">
+			@elements.Button().Variant(elements.Ghost).Tone(elements.Neutral).Attrs(templ.Attributes{"commandfor": "ui-confirm", "command": "close", "value": "cancel", "autofocus": true}) {
+				{ confirmNo.T(ctx) }
+			}
+			@elements.Button().Tone(elements.Danger).Attrs(templ.Attributes{"commandfor": "ui-confirm", "command": "close", "value": "confirm"}) {
+				{ confirmYes.T(ctx) }
+			}
+		</footer>
+	</dialog>
+}

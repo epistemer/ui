@@ -1,0 +1,35 @@
+<div class="catalog-row">
+  <button class="ui-button" data-tone="danger" data-ui-confirm="Delete the store?" hx-post="/demo/delete" hx-swap="none" type="button">
+    Delete with htmx
+  </button>
+  <label>
+    Check the stock
+    <select data-ui-confirm="Check the stock now?" hx-get="/demo/stock" hx-swap="none" hx-trigger="change" name="stock">
+      <option value="">
+        Choose…
+      </option>
+      <option value="now">
+        Now
+      </option>
+    </select>
+  </label>
+</div>
+<dialog aria-describedby="ui-confirm-question" aria-labelledby="ui-confirm-title" class="ui-dialog" data-ui-confirm-dialog="" id="ui-confirm">
+  <header class="ui-dialog-header">
+    <h2 class="ui-dialog-title" id="ui-confirm-title">
+      Are you sure?
+    </h2>
+  </header>
+  <div class="ui-dialog-body">
+    <p id="ui-confirm-question"></p>
+  </div>
+  <footer class="ui-dialog-actions">
+    <button autofocus="" class="ui-button" command="close" commandfor="ui-confirm" data-tone="neutral" data-variant="ghost" type="button" value="cancel">
+      Cancel
+    </button>
+    <button class="ui-button" command="close" commandfor="ui-confirm" data-tone="danger" type="button" value="confirm">
+      Confirm
+    </button>
+  </footer>
+</dialog>
+<ui-toasts aria-live="polite" class="ui-toasts" id="ui-toasts" popover="manual"></ui-toasts>

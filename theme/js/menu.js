@@ -5,7 +5,8 @@
 // typeahead), closes after an item is chosen, and places the popover
 // itself where anchor positioning is missing.
 
-const anchored = CSS.supports("position-area", "block-end");
+// The fallback can be forced for testing with <html data-ui-no-anchor>.
+const anchored = CSS.supports("position-area", "block-end") && !document.documentElement.hasAttribute("data-ui-no-anchor");
 
 const items = (menu) =>
 	[...menu.querySelectorAll('[role^="menuitem"]')].filter((el) => !el.disabled && el.getAttribute("aria-disabled") !== "true");
@@ -67,7 +68,7 @@ class UIMenu extends HTMLElement {
 				break;
 			case "scroll":
 			case "resize":
-				this.#place();
+				this.#schedule();
 				break;
 		}
 	}
@@ -122,28 +123,60 @@ class UIMenu extends HTMLElement {
 		next.focus();
 	}
 
-	// Where the browser can't anchor the popover to its trigger, place it
-	// below the trigger's start edge ourselves, through CSSOM (a strict CSP
-	// allows it), and follow scrolling and resizing while it is open. In
-	// RTL the start edge is the right one.
+	// Where the browser can't anchor the popover to its trigger (Firefox),
+	// place it ourselves, through CSSOM (a strict CSP allows it): below the
+	// trigger at its start edge, above it when there's no room below, and
+	// clamped inside the viewport. It follows scrolling and resizing while
+	// open. In RTL the start edge is the right one.
 	#place() {
 		if (anchored || !this.#trigger || !this.#panel.matches(":popover-open")) return;
-		const r = this.#trigger.getBoundingClientRect();
-		const rtl = getComputedStyle(this).direction === "rtl";
 		const style = this.#panel.style;
+		// The gap is the anchored rule's, --ui-space-1, resolved in pixels.
+		style.margin = "0";
+		style.marginBlockStart = "var(--ui-space-1)";
+		const gap = parseFloat(getComputedStyle(this.#panel).marginBlockStart) || 4;
+		// Measure from a clean start, so the last placement can't squeeze it.
 		style.position = "fixed";
 		style.margin = "0";
-		style.top = `${r.bottom + 4}px`;
-		style.left = rtl ? "auto" : `${r.left}px`;
-		style.right = rtl ? `${document.documentElement.clientWidth - r.right}px` : "auto";
-		style.bottom = "auto";
+		style.inset = "0 auto auto 0";
+		const r = this.#trigger.getBoundingClientRect();
+		const p = this.#panel.getBoundingClientRect();
+		const vw = document.documentElement.clientWidth;
+		const vh = document.documentElement.clientHeight;
+		const rtl = getComputedStyle(this).direction === "rtl";
+		// Block axis: below, else above.
+		let top = r.bottom + gap;
+		if (top + p.height > vh && r.top - gap - p.height >= 0) top = r.top - gap - p.height;
+		// Inline axis: from the start edge, else from the end edge.
+		let left = rtl ? r.right - p.width : r.left;
+		if (left < 0 || left + p.width > vw) {
+			const other = rtl ? r.left : r.right - p.width;
+			if (other >= 0 && other + p.width <= vw) left = other;
+		}
+		// Then clamp inside the viewport.
+		left = Math.min(Math.max(left, gap), Math.max(gap, vw - p.width - gap));
+		top = Math.min(Math.max(top, gap), Math.max(gap, vh - p.height - gap));
+		style.top = `${top}px`;
+		style.left = `${left}px`;
 		window.addEventListener("scroll", this, { capture: true, passive: true });
 		window.addEventListener("resize", this, { passive: true });
+	}
+
+	// One placement per frame, however many scroll events arrive.
+	#frame = 0;
+	#schedule() {
+		if (this.#frame) return;
+		this.#frame = requestAnimationFrame(() => {
+			this.#frame = 0;
+			this.#place();
+		});
 	}
 
 	#unfollow() {
 		window.removeEventListener("scroll", this, { capture: true });
 		window.removeEventListener("resize", this);
+		cancelAnimationFrame(this.#frame);
+		this.#frame = 0;
 	}
 }
 

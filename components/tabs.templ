@@ -1,0 +1,17 @@
+package components
+
+templ tabs(attrs templ.Attributes) {
+	<nav { attrs... }>
+		<ul class="ui-tabs-list">
+			{ children... }
+		</ul>
+	</nav>
+}
+
+templ tab(attrs templ.Attributes) {
+	<li class="ui-tabs-item">
+		<a { attrs... }>
+			{ children... }
+		</a>
+	</li>
+}

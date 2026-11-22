@@ -48,10 +48,15 @@ func All() []catalog.Story {
 			variant("basic", dialogBasic()),
 			variant("custom-trigger", dialogCustomTrigger()),
 			variant("confirm", confirmForm()),
+			variant("confirm-htmx", confirmHtmx()),
 		}},
 		{Name: "components/menu", Variants: []catalog.Variant{
 			variant("basic", menuBasic()),
+			variant("icon-trigger", menuIcon()),
 			variant("in-a-table", menuInTable()),
 		}},
+		{Name: "components/tabs", Variants: []catalog.Variant{variant("navigation", tabsStory())}},
+		{Name: "components/toast", Variants: []catalog.Variant{variant("levels", toastsStory())}},
+		{Name: "components/detail-list", Variants: []catalog.Variant{variant("in-a-card", detailStory())}},
 	}
 }

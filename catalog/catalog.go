@@ -157,7 +157,9 @@ func (c *Catalog) frame(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	v := s.Variants[i]
-	render(w, r, frame(c.theme.Head(), s.Name+" — "+v.Name, dir, scheme, v.Render(r.Context())))
+	// anchor=off forces the script's placement of popovers, as in a
+	// browser without anchor positioning.
+	render(w, r, frame(c.theme.Head(), s.Name+" — "+v.Name, dir, scheme, q.Get("anchor") == "off", v.Render(r.Context())))
 }
 
 // tokens answers the token panel: the run-time tokens for the values in

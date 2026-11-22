@@ -1,0 +1,31 @@
+package components
+
+import (
+	"github.com/epistemer/i18n"
+	"github.com/epistemer/ui/icons"
+)
+
+templ toastRegion() {
+	<ui-toasts id="ui-toasts" class="ui-toasts" popover="manual" aria-live="polite"></ui-toasts>
+}
+
+templ toast(attrs templ.Attributes, icon templ.Component, word i18n.Ter, text i18n.Ter) {
+	<ui-toast { attrs... }>
+		@icon
+		<p class="ui-toast-text">
+			<span class="ui-visually-hidden">{ word.T(ctx) + " " }</span>
+			{ text.T(ctx) }
+		</p>
+		<button type="button" class="ui-toast-close" aria-label={ toastClose.T(ctx) }>
+			@icons.X()
+		</button>
+	</ui-toast>
+}
+
+templ toastSwap(toasts []templ.Component) {
+	<div hx-swap-oob="beforeend:#ui-toasts">
+		for _, t := range toasts {
+			@t
+		}
+	</div>
+}

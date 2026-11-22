@@ -2,8 +2,9 @@ package stories
 
 import (
 	"github.com/epistemer/i18n"
-	"github.com/epistemer/ui/internal/spike/components"
+	"github.com/epistemer/ui/components"
 	"github.com/epistemer/ui/elements"
+	"github.com/epistemer/ui/icons"
 )
 
 templ dialogBasic() {
@@ -12,7 +13,7 @@ templ dialogBasic() {
 			<p>The store's name and address appear on every receipt.</p>
 		}
 		@components.DialogActions {
-			@elements.Button().Variant(elements.Ghost).Attrs(components.DialogClose(ctx, "cancel")) {
+			@elements.Button().Variant(elements.Ghost).Tone(elements.Neutral).Attrs(components.DialogClose(ctx, "cancel")) {
 				Cancel
 			}
 			@elements.Button().Attrs(components.DialogClose(ctx, "save")) {
@@ -25,7 +26,7 @@ templ dialogBasic() {
 templ dialogCustomTrigger() {
 	@components.Dialog(i18n.Static("Order details")) {
 		@components.DialogTrigger {
-			@elements.Button().Variant(elements.Outline).Attrs(components.DialogTrigger.Value(ctx)) {
+			@elements.Button().Attrs(components.DialogTrigger.Value(ctx)) {
 				Open the details
 			}
 		}
@@ -44,6 +45,25 @@ templ confirmForm() {
 	@components.ConfirmDialog()
 }
 
+// confirmHtmx runs the confirmation's htmx paths: a click that htmx sends,
+// and a request a change starts; both answer with a toast out of band.
+templ confirmHtmx() {
+	<div class="catalog-row">
+		@elements.Button().Tone(elements.Danger).Attrs(components.Confirm(ctx, i18n.Static("Delete the store?"))).Attrs(templ.Attributes{"hx-post": "/demo/delete", "hx-swap": "none"}) {
+			Delete with htmx
+		}
+		<label>
+			Check the stock
+			<select name="stock" hx-get="/demo/stock" hx-trigger="change" hx-swap="none" data-ui-confirm="Check the stock now?">
+				<option value="">Choose…</option>
+				<option value="now">Now</option>
+			</select>
+		</label>
+	</div>
+	@components.ConfirmDialog()
+	@components.Toasts()
+}
+
 templ menuBasic() {
 	@components.Menu(i18n.Static("Actions")) {
 		@components.MenuItems {
@@ -56,12 +76,28 @@ templ menuBasic() {
 			@components.MenuItem().Href("/stores/1/archive").Disabled(true) {
 				Archive
 			}
-			@components.MenuItem().Danger().Attrs(components.Confirm(ctx, i18n.Static("Delete this store?"))) {
+			@components.MenuItem().Danger().Submit("delete-store").Attrs(components.Confirm(ctx, i18n.Static("Delete this store?"))) {
 				Delete
 			}
 		}
 	}
+	<form id="delete-store" method="post" action="/catalog/none"></form>
 	@components.ConfirmDialog()
+}
+
+templ menuIcon() {
+	@components.Menu(i18n.Static("More actions")) {
+		@components.MenuTrigger {
+			@elements.Button().Variant(elements.Ghost).Tone(elements.Neutral).Label(i18n.Static("More actions")).Attrs(components.MenuTrigger.Value(ctx)) {
+				@icons.More()
+			}
+		}
+		@components.MenuItems {
+			@components.MenuItem() {
+				Rename
+			}
+		}
+	}
 }
 
 templ menuInTable() {
@@ -90,4 +126,60 @@ templ menuInTable() {
 			}
 		</tbody>
 	</table>
+}
+
+templ tabsStory() {
+	@components.Tabs(i18n.Static("Store sections")) {
+		@components.Tab("/stores/1").Current(true) {
+			Details
+		}
+		@components.Tab("/stores/1/orders") {
+			Orders
+			@elements.Badge() {
+				12
+			}
+		}
+		@components.Tab("/stores/1/stock") {
+			Stock
+		}
+	}
+}
+
+templ toastsStory() {
+	<div class="catalog-row">
+		@components.Toast(i18n.Static("The store was saved.")).Tone(elements.Success)
+		@components.Toast(i18n.Static("Orders placed after 6 pm ship the next day."))
+		@components.Toast(i18n.Static("Three toys are almost out of stock.")).Tone(elements.Warning)
+		@components.Toast(i18n.Static("The payment failed.")).Tone(elements.Danger)
+	</div>
+	@components.Toasts()
+}
+
+templ detailStory() {
+	@elements.Card() {
+		@elements.CardHeader {
+			@elements.Heading(2).Size(elements.Small) {
+				Bricks & Co
+			}
+		}
+		@elements.CardBody {
+			@components.DetailList() {
+				@components.DetailRow(i18n.Static("City")) {
+					@elements.Text(i18n.Static("Alexandria"))
+				}
+				@components.DetailRow(i18n.Static("Open")) {
+					@elements.Bool(true)
+				}
+				@components.DetailRow(i18n.Static("Kind")) {
+					@elements.Enum(fixedChoice)
+				}
+				@components.DetailRow(i18n.Static("Takings")) {
+					@elements.Amount(i18n.Static("EGP 12,400.00"))
+				}
+				@components.DetailRow(i18n.Static("Notes")) {
+					@elements.Empty()
+				}
+			}
+		}
+	}
 }

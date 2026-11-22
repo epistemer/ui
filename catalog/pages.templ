@@ -66,14 +66,16 @@ templ shell(head templ.Component, stories []Story, current Story) {
 	</html>
 }
 
-templ frame(head templ.Component, title, dir, scheme string, story templ.Component) {
+templ frame(head templ.Component, title, dir, scheme string, noAnchor bool, story templ.Component) {
 	<!DOCTYPE html>
-	<html lang="en" dir={ dir } data-color-scheme={ scheme }>
+	<html lang="en" dir={ dir } data-color-scheme={ scheme } data-ui-no-anchor?={ noAnchor }>
 		<head>
 			<meta charset="utf-8"/>
 			<title>{ title }</title>
+			<meta name="htmx-config" content='{"includeIndicatorStyles":false}'/>
 			@head
 			<link rel="stylesheet" href="assets/frame.css"/>
+			<script src="assets/htmx.min.js"></script>
 		</head>
 		<body class="catalog-frame">
 			@story
