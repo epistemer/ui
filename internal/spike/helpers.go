@@ -35,6 +35,7 @@ var (
 	again      = i18n.Key("ui.inputs.upload.again", "Choose the files again")
 	tooLarge   = i18n.Key("ui.inputs.upload.too_large", "%s is larger than %s")
 	wrongType  = i18n.Key("ui.inputs.upload.wrong_type", "%s isn't a type this field takes")
+	bodyLarge  = i18n.Key("ui.inputs.upload.body_too_large", "These files are too large to send together. Send fewer at a time.")
 )
 
 func orNothing(c templ.Component) templ.Component {
@@ -81,7 +82,7 @@ func listTexts(ctx context.Context) string {
 }
 
 func uploadTexts(ctx context.Context) string {
-	return texts(ctx, map[string]i18n.Ter{"remove": removeFile, "undo": undo, "chosen": chosenText, "tooLarge": tooLarge, "wrongType": wrongType})
+	return texts(ctx, map[string]i18n.Ter{"remove": removeFile, "undo": undo, "chosen": chosenText, "tooLarge": tooLarge, "wrongType": wrongType, "bodyTooLarge": bodyLarge})
 }
 
 // chosen is the name shown for the field's id (§3.2): looked up only for

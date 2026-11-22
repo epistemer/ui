@@ -9,6 +9,32 @@ taken for epistemer, what's next, and what's waiting on epistemer.
 
 
 
+## 2026-11-22 — D8.3 and D8.4 drafted: the handlers amendment and the contract
+
+**Landed** (Claude), docs only, plus the spike:
+- Three facts the spike hadn't settled, now in the design:
+  - with a route capped below two files, a 413 that htmx doesn't swap
+    showed nothing, so the spike's script now puts a message on the
+    form's upload fields and keeps the files (§4.5);
+  - the `LabelOf` memo needs an owner: an opt-in `inputs.WithLabelCache`
+    (R10);
+  - a remote field with no gate panics, as actions do.
+- The record: D8.2's row and §8.1 say the spike has no goldens and
+  checked the shape without script in markup only.
+- D8.3: handlers' [ADR 0006](https://github.com/epistemer/handlers/pull/18),
+  `//h:body` and `x-max-body`, questions H5–H9.
+- D8.4: [rich-inputs-interface.md](rich-inputs-interface.md), amendment
+  A7, questions L1–L7; `StoredFile` and `Upload` move to a leaf package
+  `ui/forms/files` (L1), since `rule` can't import forms.
+- Review [0021](reviews/0021-d8-4-contract.md) (Gemini 4 Argon High,
+  with handlers' 0007): 18 findings, 17 valid and one in part, all folded in.
+
+**Next.** On epistemer's answers: handlers A5 built and released, then
+the build milestones of A7.
+
+**Waiting on epistemer** (API design): R1–R28 (design §9), L1–L7
+(contract §8), H5–H9 (handlers' ADR 0006).
+
 ## 2026-11-22 — D8.2: the slice spike of the remote select, uploads and list fields
 
 **Landed** (Claude):

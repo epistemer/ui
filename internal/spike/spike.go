@@ -9,7 +9,9 @@ import (
 	"bytes"
 	"context"
 	"embed"
+	stderrors "errors"
 	"fmt"
+	"log"
 	"mime/multipart"
 	"net/http"
 	"regexp"
@@ -234,7 +236,9 @@ func (a *App) Mount(mux *http.ServeMux) {
 	}
 	mux.Handle("GET "+Prefix+"/assets/", http.StripPrefix(Prefix, http.FileServerFS(assets)))
 	mux.Handle("GET "+Prefix+"/order", h(a.order))
-	mux.Handle("POST "+Prefix+"/order", h(a.order))
+	// A body limit below the upload's, as handlers' WithMaxBody sets one
+	// per surface (§4.5): what does a person see past it?
+	mux.Handle("POST "+Prefix+"/order", http.MaxBytesHandler(h(a.order), 3<<19))
 	mux.Handle("GET "+Prefix+"/assign", h(a.assign))
 	mux.Handle("POST "+Prefix+"/assign", h(a.assign))
 	mux.Handle("GET "+Prefix+"/table", h(a.table))
@@ -303,9 +307,18 @@ func (a *App) order(w http.ResponseWriter, r *http.Request) error {
 	if r.Method == http.MethodPost {
 		// Parsed first, so forms and the hand-bound upload read one body.
 		if err := r.ParseMultipartForm(32 << 20); err != nil && err != http.ErrNotMultipart {
+			var tooLarge *http.MaxBytesError
+			if stderrors.As(err, &tooLarge) {
+				// What handlers' error writer answers: 413 (handlers.Status).
+				http.Error(w, "the request is too large", http.StatusRequestEntityTooLarge)
+				return nil
+			}
 			return err
 		}
 		ok := o.f.Submit(r.Context(), r)
+		if err := o.f.Err(); err != nil && !ok {
+			log.Printf("spike: order: %v", err)
+		}
 		o.receipt.bind(r)
 		if ok {
 			var kept []string
