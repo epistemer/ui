@@ -231,7 +231,7 @@ tried). The server renders, on `<ui-combobox>`:
 
 ```html
 <ui-combobox class="ui-combobox" id="…" data-ui-search="/admin/customers/search"
-             hx-get="/admin/customers/search" hx-trigger="ui-search delay:250ms"
+             hx-get="/admin/customers/search" hx-trigger="ui-search" hx-params="none"
              hx-target="find .ui-combobox-options" hx-select="[data-ui-suggestions] > li"
              hx-swap="innerHTML" hx-sync="this:replace" data-ui-texts="…">
 ```
@@ -241,15 +241,20 @@ manual popover holding the listbox and the visible status) and a visually
 hidden live region. Without script none of these show: a popover stays
 closed.
 
-- **The trigger is the script's.** It dispatches `ui-search` on the
-  element at each keystroke; htmx waits 250 ms after the last and
-  replaces a request still in flight (`hx-sync`). The script adds `q` in
-  `htmx:configRequest` on its own element, keeping the link's query.
-- **Stale requests are vetoed, not raced.** When the text is committed
-  (a choice, a restore, leaving), a request about to start is cancelled
-  in `htmx:beforeRequest`, and one in flight is aborted by dispatching
-  `htmx:abort` on the element. The script never references the `htmx`
-  object for this: events only.
+- **The trigger and the debounce are the script's.** It waits 250 ms
+  after the last keystroke, then dispatches `ui-search` on the element;
+  Down and Alt+Down dispatch it at once. Not htmx's `delay`: an
+  `htmx:abort` doesn't cancel htmx's delay timer, so a stale search would
+  still start after a choice (review 0022). htmx replaces a request still
+  in flight (`hx-sync`).
+- **Only `q` is sent.** `hx-params="none"` keeps htmx from sending the
+  combobox's own hidden input; the script adds `q` in
+  `htmx:configRequest`, which runs after that filter, keeping the link's
+  query.
+- **Stale requests are cancelled.** When the text is committed (a
+  choice, a restore, leaving), the script clears its own timer and aborts
+  a request in flight by dispatching `htmx:abort` on the element. It never
+  references the `htmx` object for this: events only.
 - **Without htmx the field isn't upgraded.** The script upgrades only
   when `globalThis.htmx` exists; otherwise the field stays the text
   input of the id, as without script. The remote select needs htmx, as a
@@ -297,17 +302,23 @@ func (h *H) CustomerSearch(w http.ResponseWriter, r *http.Request) error {
   `<li role="option" aria-selected="false" data-value="…">label</li>` per
   option, at most `SuggestionLimit` (20); given more, it renders 20 and a
   last `<li data-ui-more hidden>` (R6). No paging and no infinite scroll.
-- `hx-select` takes only the answer's items, so a page that isn't an
-  answer swaps in nothing. After the swap the script gives each option an
-  id, `<input id>-opt-<n>` (unique per combobox: the server doesn't know
-  which asked), moves the `data-ui-more` item out of the listbox into the
-  status ("Keep typing to narrow these down"), counts the options and
-  announces.
-- **What counts as an answer**: in `htmx:beforeSwap`, a response whose
-  `xhr.responseURL` isn't the address asked (a session that expired
-  redirects to a sign-in page) isn't swapped. That, `htmx:responseError`
-  or `htmx:sendError` on the element says "Couldn't search. Try again."
-  and keeps the previous choice.
+- **What counts as an answer**, checked in the element's own
+  `htmx:beforeSwap` listener, which stops the event there (the actions
+  script would otherwise force a 422 to swap): status 200; the
+  `xhr.responseURL`'s origin and path are the search link's (a session
+  that expired redirects to a sign-in page; the query is left out of the
+  comparison, since a server may re-encode it); and the body holds
+  `data-ui-suggestions`, which every answer does, even an empty one.
+  Anything else isn't swapped (`shouldSwap = false`, and the script's own
+  after-swap step skips it) and says "Couldn't search. Try again.", as do
+  `htmx:responseError` and `htmx:sendError`; the previous choice stays.
+  So "No matches" means an answer with no items, never a page that
+  wasn't one.
+- After the swap the script gives each option an id, `<input
+  id>-opt-<n>` (unique per combobox: the server doesn't know which
+  asked), removes the `data-ui-more` item, sets the status to the count
+  and, when that item was there, to "Keep typing to narrow these down"
+  from `data-ui-texts`, and announces.
 - The options are the app's handler's markup, swapped as htmx swaps any
   answer; templ escapes the labels.
 - Given none, the status says "No matches".
