@@ -40,7 +40,9 @@ findings and the two releases.
 The reviewer recommended `selected` for the selection's parameter (T6),
 now the default.
 
-**Waiting for epistemer:** the lock, with questions T1–T11 (§10).
+**Locked** by epistemer the same day, with the defaults of T1–T11:
+amendment A6 (interface.md §10, visual-interface.md §13.5). D7 is done; the
+T milestones are planned in the roadmap.
 
 ## 2026-11-22 — D7.2: the slice spike of links, actions and tables
 

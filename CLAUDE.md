@@ -20,9 +20,10 @@ this module.
   [docs/server-state-design.md](docs/server-state-design.md), a draft with
   ADRs 0008–0010. Its amendment A5 (links: `ui.Link`, `ui.URL`, eight
   signatures) is locked, in both contracts, and built (2026-11-22).
-- The contract of actions and tables is drafted in
-  [docs/server-state-interface.md](docs/server-state-interface.md) (D7.5)
-  until epistemer locks it, as amendment A6.
+- The contract of actions and tables is
+  [docs/server-state-interface.md](docs/server-state-interface.md),
+  locked by epistemer on 2026-11-22 as amendment A6; milestones T1–T4
+  build it.
 - `internal/spike` holds D7.2's slice spike of actions and tables (not
   API; its findings are design §12.1). Run it with
   `go run ./internal/spike/cmd/shop`. It goes when T3 lands.
