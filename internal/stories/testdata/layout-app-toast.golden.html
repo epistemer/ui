@@ -1,0 +1,50 @@
+<div class="ui-app">
+  <a class="ui-app-skip" href="#ui-main">
+    Skip to content
+  </a>
+  <header class="ui-app-bar"></header>
+  <main class="ui-app-main" id="ui-main" tabindex="-1">
+    <header class="ui-page-header">
+      <h1 class="ui-page-title">
+        Stores
+      </h1>
+    </header>
+    <ui-toast class="ui-toast" data-tone="success" data-ui-timeout="6000">
+      <svg aria-hidden="true" class="ui-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="10"></circle>
+        <path d="m16 9-5.5 5.5L8 12"></path>
+      </svg>
+      <p class="ui-toast-text">
+        <span class="ui-visually-hidden">
+          Success:
+        </span>
+        The store was saved.
+      </p>
+      <button aria-label="Dismiss" class="ui-toast-close" type="button">
+        <svg aria-hidden="true" class="ui-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+          <path d="M18 6 6 18"></path>
+          <path d="m6 6 12 12"></path>
+        </svg>
+      </button>
+    </ui-toast>
+  </main>
+  <dialog aria-describedby="ui-confirm-question" aria-labelledby="ui-confirm-title" class="ui-dialog" data-ui-confirm-dialog="" id="ui-confirm">
+    <header class="ui-dialog-header">
+      <h2 class="ui-dialog-title" id="ui-confirm-title">
+        Are you sure?
+      </h2>
+    </header>
+    <div class="ui-dialog-body">
+      <p id="ui-confirm-question"></p>
+    </div>
+    <footer class="ui-dialog-actions">
+      <button autofocus="" class="ui-button" command="close" commandfor="ui-confirm" data-tone="neutral" data-variant="ghost" type="button" value="cancel">
+        Cancel
+      </button>
+      <button class="ui-button" command="close" commandfor="ui-confirm" data-tone="danger" type="button" value="confirm">
+        Confirm
+      </button>
+    </footer>
+  </dialog>
+  <ui-toasts aria-live="polite" class="ui-toasts" id="ui-toasts" popover="manual"></ui-toasts>
+</div>

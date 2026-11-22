@@ -5,7 +5,7 @@ import (
 	"github.com/epistemer/ui/icons"
 )
 
-templ pageHeader(p PageHeaderSpec, actions templ.Component, hasActions bool) {
+templ pageHeader(p PageHeaderSpec, actions templ.Component, hasActions, hasDescription bool) {
 	<header { elements.Merge(templ.Attributes{"class": "ui-page-header"}, nil, p.attrs)... }>
 		if len(p.crumbs) > 0 {
 			<nav class="ui-breadcrumbs" aria-label={ pageCrumbs.T(ctx) }>
@@ -21,10 +21,8 @@ templ pageHeader(p PageHeaderSpec, actions templ.Component, hasActions bool) {
 								} else {
 									<span aria-current="page">{ c.Text.T(ctx) }</span>
 								}
-							} else if c.Href != "" {
-								<a href={ c.Href }>{ c.Text.T(ctx) }</a>
 							} else {
-								<span>{ c.Text.T(ctx) }</span>
+								<a href={ c.Href }>{ c.Text.T(ctx) }</a>
 							}
 						</li>
 					}
@@ -32,7 +30,7 @@ templ pageHeader(p PageHeaderSpec, actions templ.Component, hasActions bool) {
 			</nav>
 		}
 		<h1 class="ui-page-title">{ p.title.T(ctx) }</h1>
-		if p.description != nil {
+		if hasDescription {
 			<p class="ui-page-description">{ p.description.T(ctx) }</p>
 		}
 		if hasActions {

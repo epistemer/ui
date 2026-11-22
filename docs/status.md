@@ -9,26 +9,47 @@ taken for epistemer, what's next, and what's waiting on epistemer.
 
 
 
-## 2026-11-22 — V6: ui/layout (in progress)
+## 2026-11-22 — V6: ui/layout
 
-**Landed on `v6-layout`, not yet a PR** (Claude):
-- `ui/layout` per §8: Document (lang and dir from `i18n.Code`, `ColorSchemeOf` reading the
-  cookie), App with the drawer toggle, NavItem, NavSection, ColorSchemeMenu (menuitemradio
-  items, a Sun/Moon trigger), Auth, and PageHeader (breadcrumbs; actions only when they write
-  something).
-- `layout.css` (breakpoint 60rem, sizes in `em` because the checker rejects `rem`) and
-  `layout.js` (the drawer, and the scheme with its cookie).
-- One choice in the markup: the navigation toggle comes before the brand in the bar, at the
-  drawer's edge. The app renders the toggle and the nav only when `AppNav` is filled.
+**Landed** (Claude):
+- `ui/layout` per §8:
+  - Document, with lang and dir from `i18n.Code`, and `ColorSchemeOf`
+    reading the cookie;
+  - App, with the drawer toggle, NavItem, NavSection and ColorSchemeMenu
+    (menuitemradio items under a Sun/Moon trigger);
+  - Auth;
+  - PageHeader: breadcrumbs, and actions only when they write something.
+- `layout.css`: breakpoint 60rem; sizes in `em`, because the checker
+  rejects `rem` outside media queries; a 3.5em bar that the drawer, the
+  sticky column and the scroll padding start below.
+- `layout.js`: the drawer, and the colour scheme with its cookie.
+- Stories: `layout/app` (shell, dark-picked, no-nav, toast), `layout/auth`
+  (sign-in, with errors), and `layout/page-header`. The app shell is the
+  roadmap's full page of the toy shop.
+- Kept from §8.2's list without fixing an order: the toggle sits before
+  the brand, at the drawer's edge. The app renders the toggle and the nav
+  only when `AppNav` is filled, and the brand and bar-end only when
+  theirs are.
 
-**Left for V6:**
-- stories for the app, auth and page header, which the reverse check needs (TestStories fails
-  until they exist), and their goldens;
-- unit tests: panics, owned keys, lang and dir, the scheme cookie;
-- a browser check of the drawer and the scheme menu;
-- review 0011, then the PR.
+**Review** ([0011](reviews/0011-v6-layout.md)): Gemini 4 Argon (Medium),
+about 63k tokens. Nine findings; eight changed the code.
+
+**Checked in the browser pane**, at narrow widths through a 500px iframe,
+because viewport emulation doesn't reach a hidden pane:
+- the drawer: from the start edge in RTL, below the bar, focus on the
+  first item; Esc returns focus to the toggle; an outside click, or a
+  plain click on an item, closes it; a ctrl-click doesn't;
+- Esc goes to an open menu before the drawer;
+- the scheme menu: `<html>`, the cookie, `aria-checked`, the trigger's
+  icon, and the sync on `pageshow`.
+
+Not checked: closing the drawer when the screen widens. A hidden pane
+fires neither `resize` nor `matchMedia` change events. The layout itself
+is right either way, since the wide grid is CSS alone.
 
 **Merged:** #25 (V4) and #26 (V5), after green CI and review 0010.
+
+**Next.** V7: the v0.2.0 release.
 
 ## 2026-11-22 — V5: components
 

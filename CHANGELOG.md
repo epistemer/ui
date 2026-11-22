@@ -52,6 +52,17 @@ All notable changes to this module. The format follows
   The ui script adds `<ui-toasts>` and `<ui-toast>`, which move toasts
   into an open modal dialog and back. Menus are placed by script where
   anchor positioning is missing, flipping and clamping to the viewport.
+- `ui/layout` (§8):
+  - `Document`, with `lang` and `dir` from the request's locale, and
+    `ColorScheme` with `ColorSchemeOf`;
+  - `App` with its slots, `NavItem`, `NavSection` and `ColorSchemeMenu`;
+  - `Auth` with its slots;
+  - `PageHeader` with `Crumb`.
+
+  The ui script opens and closes the app's navigation drawer on narrow
+  screens, and keeps the colour scheme picked in the cookie
+  `ui-color-scheme`.
+
 ## [v0.1.0] - 2026-11-21
 
 The first release: the kernel and forms, the whole of the interface locked

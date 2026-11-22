@@ -1,7 +1,12 @@
 /* ui.layout: ui/layout's rules (visual-interface.md §8). */
 
 /* The app shell (§8.2): the bar, the navigation and the main content. The
-   breakpoint, 60rem, is the script's too (layout.js). */
+   breakpoint, 60rem, is the script's too (layout.js). The bar is 3.5em
+   high, which the drawer, the sticky column and scrolling all start below. */
+:root:has(.ui-app) {
+	scroll-padding-block-start: 3.5em;
+}
+
 .ui-app {
 	display: grid;
 	grid-template-areas: "bar" "nav" "main";
@@ -41,7 +46,7 @@
 	display: flex;
 	align-items: center;
 	gap: var(--ui-space-3);
-	min-block-size: 3.5em;
+	block-size: 3.5em;
 	padding-inline: var(--ui-space-4);
 	border-block-end: 1px solid var(--ui-color-border);
 	background-color: var(--ui-color-surface-raised);
@@ -145,11 +150,12 @@
 			display: inline-flex;
 		}
 
+		/* Below the bar, so its toggle stays in reach to close it. */
 		& .ui-app-nav {
 			position: fixed;
-			inset-block: 0;
+			inset-block: 3.5em 0;
 			inset-inline-start: 0;
-			z-index: 3;
+			z-index: 1;
 			inline-size: min(18em, 85vi);
 			overflow-block: auto;
 			border-block-end: 0;
@@ -165,7 +171,7 @@
 
 /* Wide screens: a static column. */
 @media (width >= 60rem) {
-	.ui-app {
+	.ui-app:has(> .ui-app-nav) {
 		grid-template-areas: "bar bar" "nav main";
 		grid-template-rows: auto 1fr;
 		grid-template-columns: 16em minmax(0, 1fr);
@@ -272,6 +278,13 @@
 	display: flex;
 	flex-direction: column;
 	gap: var(--ui-space-4);
+
+	/* The form the body holds lays its fields out the same way. */
+	& > form {
+		display: flex;
+		flex-direction: column;
+		gap: var(--ui-space-4);
+	}
 }
 
 .ui-auth-footer {
@@ -290,9 +303,6 @@
 	display: grid;
 	grid-template-columns: minmax(0, 1fr) auto;
 	grid-template-areas: "crumbs crumbs" "title actions" "description actions";
-	align-items: center;
-	column-gap: var(--ui-space-4);
-	row-gap: var(--ui-space-1);
 	margin-block-end: var(--ui-space-5);
 }
 
@@ -333,14 +343,19 @@
 	font-size: var(--ui-text-xl);
 }
 
+/* Spacing by margins, not gaps: a missing part leaves an empty track,
+   which a gap would still space. */
 .ui-page-description {
 	grid-area: description;
 	margin: 0;
+	margin-block-start: var(--ui-space-1);
 	color: var(--ui-color-text-muted);
 }
 
 .ui-page-actions {
 	grid-area: actions;
+	align-self: center;
+	margin-inline-start: var(--ui-space-4);
 	display: flex;
 	flex-wrap: wrap;
 	gap: var(--ui-space-2);

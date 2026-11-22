@@ -17,12 +17,16 @@ templ app(a AppSpec) {
 					@icons.Menu()
 				</button>
 			}
-			<div class="ui-app-brand">
-				@AppBrand.Place()
-			</div>
-			<div class="ui-app-bar-end">
-				@AppBar.Place()
-			</div>
+			if AppBrand.Filled(ctx) {
+				<div class="ui-app-brand">
+					@AppBrand.Place()
+				</div>
+			}
+			if AppBar.Filled(ctx) {
+				<div class="ui-app-bar-end">
+					@AppBar.Place()
+				</div>
+			}
 		</header>
 		if AppNav.Filled(ctx) {
 			<nav id="ui-app-nav" class="ui-app-nav" aria-label={ appNavigation.T(ctx) }>

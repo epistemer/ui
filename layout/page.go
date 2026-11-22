@@ -15,7 +15,7 @@ import (
 
 // Crumb is one step of a page's breadcrumbs.
 type Crumb struct {
-	Href templ.SafeURL // empty for the current page
+	Href templ.SafeURL // empty only for the current page, the last crumb
 	Text i18n.Ter
 }
 
@@ -52,19 +52,24 @@ func (p PageHeaderSpec) Render(ctx context.Context, w io.Writer) error {
 	if p.title == nil || strings.TrimSpace(p.title.T(ctx)) == "" {
 		panic("layout: PageHeader with no title: a page needs its heading")
 	}
-	for _, c := range p.crumbs {
+	for i, c := range p.crumbs {
 		if c.Text == nil || strings.TrimSpace(c.Text.T(ctx)) == "" {
 			panic("layout: PageHeader with a crumb that has no text")
+		}
+		if c.Href == "" && i < len(p.crumbs)-1 {
+			panic("layout: PageHeader with a crumb above the page that has no href: only the last crumb, the page itself, may have none")
 		}
 	}
 	// The actions render only when the children write something, so an
 	// empty block leaves no empty box.
 	var actions bytes.Buffer
-	if err := templ.GetChildren(ctx).Render(ctx, &actions); err != nil {
+	children, ctx := templ.GetChildren(ctx), templ.ClearChildren(ctx)
+	if err := children.Render(ctx, &actions); err != nil {
 		return err
 	}
 	if strings.TrimSpace(actions.String()) == "" {
 		actions.Reset()
 	}
-	return pageHeader(p, templ.Raw(actions.String()), actions.Len() > 0).Render(templ.ClearChildren(ctx), w)
+	hasDescription := p.description != nil && strings.TrimSpace(p.description.T(ctx)) != ""
+	return pageHeader(p, templ.Raw(actions.String()), actions.Len() > 0, hasDescription).Render(ctx, w)
 }

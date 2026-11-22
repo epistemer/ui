@@ -28,33 +28,65 @@ document.addEventListener("click", (event) => {
 	}
 	for (const open of openToggles()) {
 		const nav = navOf(open);
-		// A click outside the drawer closes it, and so does choosing an item.
-		if (!nav?.contains(target) || target.closest("a[href]")) open.setAttribute("aria-expanded", "false");
+		if (!nav?.contains(target)) {
+			open.setAttribute("aria-expanded", "false"); // a click outside it
+			continue;
+		}
+		// Choosing an item closes it, but not a click that opens the link
+		// elsewhere (a new tab or window) or that a listener cancelled.
+		const elsewhere = event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey;
+		if (target.closest("a[href]") && !elsewhere && !event.defaultPrevented) open.setAttribute("aria-expanded", "false");
 	}
 });
 
-document.addEventListener("keydown", (event) => {
-	if (event.key !== "Escape" || event.defaultPrevented) return;
-	// Esc belongs to an open popover or modal first.
-	if (document.querySelector(":popover-open, dialog:modal")) return;
-	for (const toggle of openToggles()) {
-		toggle.setAttribute("aria-expanded", "false");
-		if (navOf(toggle)?.contains(document.activeElement)) toggle.focus();
-	}
-});
+// close hides a drawer; focus inside it, which would be lost, goes back to
+// the toggle.
+function close(toggle) {
+	const hadFocus = navOf(toggle)?.contains(document.activeElement);
+	toggle.setAttribute("aria-expanded", "false");
+	if (hadFocus) toggle.focus();
+}
 
-document.addEventListener("htmx:afterSwap", closeAll);
+// Capturing, so this runs before any listener that might close a popover
+// or dialog: Esc belongs to an open popover or modal first.
+document.addEventListener(
+	"keydown",
+	(event) => {
+		if (event.key !== "Escape" || event.defaultPrevented) return;
+		if (document.querySelector(":popover-open, dialog:modal")) return;
+		const open = [...openToggles()];
+		if (!open.length) return;
+		event.preventDefault();
+		for (const toggle of open) close(toggle);
+	},
+	true,
+);
+
+document.addEventListener("htmx:afterSwap", () => {
+	for (const toggle of openToggles()) close(toggle);
+});
 wide.addEventListener("change", (event) => event.matches && closeAll());
 
 // The colour scheme menu: <html data-color-scheme> and the cookie
 // ui-color-scheme, which layout.ColorSchemeOf reads, so the next page
 // renders in the same scheme. "system" clears both.
-const schemes = new Set(["light", "dark"]);
+const schemes = new Set(["system", "light", "dark"]);
+
+// syncSchemes checks the item for the scheme in use, from <html>: after a
+// pick, and when htmx or the back-forward cache restores a page rendered
+// with an older one.
+function syncSchemes() {
+	const current = document.documentElement.dataset.colorScheme ?? "system";
+	for (const el of document.querySelectorAll("[data-ui-color-scheme]")) {
+		el.setAttribute("aria-checked", String(el.dataset.uiColorScheme === current));
+	}
+}
 
 document.addEventListener("click", (event) => {
 	const item = event.target instanceof Element ? event.target.closest("[data-ui-color-scheme]") : null;
 	if (!item || item.getAttribute("aria-disabled") === "true") return;
-	const picked = schemes.has(item.dataset.uiColorScheme) ? item.dataset.uiColorScheme : "system";
+	const picked = item.dataset.uiColorScheme;
+	if (!schemes.has(picked)) return;
 	const root = document.documentElement;
 	if (picked === "system") {
 		delete root.dataset.colorScheme;
@@ -63,7 +95,8 @@ document.addEventListener("click", (event) => {
 		root.dataset.colorScheme = picked;
 		document.cookie = `ui-color-scheme=${picked}; path=/; max-age=31536000; SameSite=Lax`;
 	}
-	for (const el of document.querySelectorAll("[data-ui-color-scheme]")) {
-		el.setAttribute("aria-checked", String(el.dataset.uiColorScheme === picked));
-	}
+	syncSchemes();
 });
+
+document.addEventListener("htmx:historyRestore", syncSchemes);
+window.addEventListener("pageshow", (event) => event.persisted && syncSchemes());

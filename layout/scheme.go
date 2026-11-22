@@ -14,12 +14,12 @@ import (
 // script sets <html data-color-scheme> and the cookie ui-color-scheme when
 // someone picks one, and keeps the items' aria-checked in step.
 func ColorSchemeMenu(current ColorScheme) templ.Component {
-	switch current {
-	case SystemScheme, LightScheme, DarkScheme:
-	default:
-		panic("layout: ColorSchemeMenu with colour scheme " + string(current) + ": use SystemScheme, LightScheme or DarkScheme")
-	}
 	return templ.ComponentFunc(func(ctx context.Context, w io.Writer) error {
+		switch current {
+		case SystemScheme, LightScheme, DarkScheme:
+		default:
+			panic("layout: ColorSchemeMenu with colour scheme " + string(current) + ": use SystemScheme, LightScheme or DarkScheme")
+		}
 		return schemeMenu(current).Render(ctx, w)
 	})
 }
