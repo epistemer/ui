@@ -9,6 +9,33 @@ taken for epistemer, what's next, and what's waiting on epistemer.
 
 
 
+## 2026-11-22 — T2: tables
+
+**Landed** (Claude), to server-state-interface.md §3:
+- `ui/tables` on models v0.4.0's `column`:
+  - declaration panics, and a table sealed at its first `Bind` or `Row`,
+    which also panics on what `Check` reports;
+  - ids escaped from text keys;
+  - the selection under `selected` (T6), read back by `Selected`;
+  - `Answer`'s retarget and reselect, and `Targeted`;
+  - a hidden size beside the sort;
+  - chips that format their values: an option's label, a bool's word, a
+    date as `Date` renders it;
+  - every address local, and the pager named after its table.
+- `tablestest`, with `actionstest`'s options.
+- Two clarifications of the locked text, in the contract:
+  - `selected` is a reserved filter name;
+  - ids escape `_` too, so an escape is never ambiguous.
+
+**Review** ([0017](reviews/0017-t2-tables.md)): Gemini 4 Argon (Medium),
+about 35k tokens. Ten findings, all fixed:
+- an empty text key;
+- a capped page;
+- chips from bound values;
+- a query normalised once, so junk never travels on in links;
+- a cloned slice of columns, and sealing before checking;
+- `View.Selection` removed, since it isn't in the locked text.
+
 ## 2026-11-22 — T1: actions
 
 **Landed** (Claude), to server-state-interface.md §2, §4.2–§4.4 and §5:

@@ -8,7 +8,7 @@ require (
 	github.com/a-h/templ v0.3.1118
 	github.com/epistemer/errors v0.1.0
 	github.com/epistemer/i18n v0.3.1
-	github.com/epistemer/models v0.3.0
+	github.com/epistemer/models v0.4.0
 	github.com/epistemer/ui v0.0.0-00010101000000-000000000000
 	github.com/shopspring/decimal v1.6.0
 )

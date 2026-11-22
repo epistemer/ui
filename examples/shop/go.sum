@@ -4,8 +4,8 @@ github.com/epistemer/errors v0.1.0 h1:i+y3tko4m+WPdVQPCOY+d0103wu0PNWO6owAONR6SO
 github.com/epistemer/errors v0.1.0/go.mod h1:V7Tjdt8m6dN48qfFFeAks21lgphuTh3woJCbRAshLiI=
 github.com/epistemer/i18n v0.3.1 h1:/Q+L4Yl8VRxutEhPrDE66Kj5DA/vftSo4BAUbFtUAP8=
 github.com/epistemer/i18n v0.3.1/go.mod h1:vd7+xIQSNyUiWTEAirccNZXTJ5IWyWpBWcaO2texdlM=
-github.com/epistemer/models v0.3.0 h1:l8bMn5opOA+403genDvo8gWXRl0EuLDKJM8kvqR2d/s=
-github.com/epistemer/models v0.3.0/go.mod h1:lmR4QjFtnikg3B94EIEuDr7RFchCIuHBTc2ko/CV0iY=
+github.com/epistemer/models v0.4.0 h1:ujAvnkqQCDC9t6YUlJAoc9ydS9NfLdQi1gCjdNnYZo4=
+github.com/epistemer/models v0.4.0/go.mod h1:lmR4QjFtnikg3B94EIEuDr7RFchCIuHBTc2ko/CV0iY=
 github.com/google/go-cmp v0.7.0 h1:wk8382ETsv4JYUZwIsn6YpYiWiBsYLSJiTsyBybVuN8=
 github.com/google/go-cmp v0.7.0/go.mod h1:pXiqmnSA92OHEEa9HXL2W4E7lf9JzCmGVUdgjX3N/iU=
 github.com/shopspring/decimal v1.6.0 h1:DcTwjCj4tJPLuGZYsR9W0hyX9pQwMIkdo26Ig1T9xX4=

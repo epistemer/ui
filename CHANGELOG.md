@@ -7,7 +7,8 @@ All notable changes to this module. The format follows
 
 ## Unreleased
 
-Actions, amendment A6 (server-state-interface.md), milestone T1.
+Actions and tables, amendment A6 (server-state-interface.md), milestones
+T1 and T2. ui now requires models v0.4.0.
 
 ### Added
 - `ui/actions`: `New` and its builders, `To`, `Unless`, `If`, `Resolve`,
@@ -15,6 +16,13 @@ Actions, amendment A6 (server-state-interface.md), milestone T1.
   request's gate refuses its link, and unavailable with a reason when the
   record's state forbids it.
 - `ui/actions/actionstest`: `Context`, `Refuse`, `Assert`, `Unavailable`.
+- `ui/tables` (T2): `New`, `Col` and its options, `Table` (`Label`,
+  `RowLabel`, `Sort`, `Sizes`, `Unpaged`, `Prefixed`, `Actions`, `Bulk`,
+  `Check`, `ID`, `RowID`, `Selected`, `SelectionName`, `Bind`, `Row`),
+  `State` (a `listing.Source`; `Valid`, `Errors`, `Answer`, `Page`,
+  `Rejected`), `Targeted`, and the view's types. On models v0.4.0's
+  `column`.
+- `ui/tables/tablestest`: `Bind`, `Query`, `Errors`, `Check`.
 - `ui/components`: `ActionButtons`, `ActionMenu` (`ID`, `LabelledBy`),
   `ActionForm`, `ActionDialog`, `ActionTitle`, `InActionDialog`, and
   `Reply` (`Toast`, `Replace`, `Remove`, `Refresh`, `Fail`, `Else`, `Go`,
