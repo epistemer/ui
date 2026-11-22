@@ -31,6 +31,7 @@ type ButtonSpec struct {
 	submit   bool
 	disabled bool
 	label    i18n.Ter
+	reason   i18n.Ter // Unavailable's
 	attrs    templ.Attributes
 }
 
@@ -56,6 +57,14 @@ func (b ButtonSpec) Submit() ButtonSpec { b.submit = true; return b }
 
 // Disabled disables it when d is true.
 func (b ButtonSpec) Disabled(d bool) ButtonSpec { b.disabled = d; return b }
+
+// Unavailable renders a button that can be read but not used: an action
+// the record's state forbids (server-state-interface.md §5, S21). It is
+// aria-disabled and focusable, does nothing with script or without (no
+// href, type="button", no form, formaction or request attribute), and
+// reason, in a Tooltip around it, describes it. Apart from Disabled, which
+// stays native. A blank reason panics at render.
+func (b ButtonSpec) Unavailable(reason i18n.Ter) ButtonSpec { b.reason = reason; return b }
 
 // Label names an icon-only button (aria-label).
 func (b ButtonSpec) Label(t i18n.Ter) ButtonSpec { b.label = t; return b }
@@ -104,7 +113,7 @@ func (b ButtonSpec) attributes(ctx context.Context) templ.Attributes {
 
 // Render renders the button with the caller's children as its content.
 func (b ButtonSpec) Render(ctx context.Context, w io.Writer) error {
-	if b.href != "" && b.submit {
+	if b.href != "" && b.submit && b.reason == nil {
 		panic(fmt.Sprintf("elements: Button with href %q can't submit", b.href))
 	}
 	checkVariant("Button", b.variant)
@@ -113,8 +122,49 @@ func (b ButtonSpec) Render(ctx context.Context, w io.Writer) error {
 	if b.label != nil && strings.TrimSpace(b.label.T(ctx)) == "" {
 		panic("elements: Button with a blank Label: an icon-only button needs a name")
 	}
+	if b.reason != nil {
+		if strings.TrimSpace(b.reason.T(ctx)) == "" {
+			panic("elements: Button with a blank Unavailable reason")
+		}
+		return unavailableTag(b.unavailableAttributes(ctx), b.reason).Render(ctx, w)
+	}
 	if b.href != "" {
 		return linkTag(b.attributes(ctx)).Render(ctx, w)
 	}
 	return buttonTag(b.attributes(ctx)).Render(ctx, w)
+}
+
+// inert lists the attributes an unavailable control drops, so it does
+// nothing without script or with htmx.
+func inert(k string) bool {
+	switch k {
+	case "href", "form", "formaction", "formmethod", "formenctype", "formnovalidate", "formtarget", "data-ui-confirm", "commandfor", "command", "popovertarget":
+		return true
+	}
+	return strings.HasPrefix(k, "hx-") || strings.HasPrefix(k, "data-hx-")
+}
+
+func (b ButtonSpec) unavailableAttributes(ctx context.Context) templ.Attributes {
+	own := templ.Attributes{"class": "ui-button", "type": "button", "aria-disabled": "true"}
+	if b.variant != Solid {
+		own["data-variant"] = string(b.variant)
+	}
+	if b.size != Medium {
+		own["data-size"] = string(b.size)
+	}
+	if t := toneAttr(b.tone, Brand); t != "" {
+		own["data-tone"] = t
+	}
+	owned := buttonOwned
+	if b.label != nil {
+		own["aria-label"] = b.label.T(ctx)
+		owned = append(owned[:len(owned):len(owned)], "aria-label")
+	}
+	rest := templ.Attributes{}
+	for k, v := range b.attrs {
+		if !inert(strings.ToLower(k)) {
+			rest[k] = v
+		}
+	}
+	return Merge(own, owned, rest)
 }

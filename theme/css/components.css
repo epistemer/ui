@@ -268,3 +268,51 @@
 	margin: 0;
 	min-inline-size: 0;
 }
+
+/* Actions (server-state-interface.md §4.2, §4.3). */
+.ui-action-buttons {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--ui-space-2);
+}
+
+/* An unavailable menu item: its label, then its reason on a line of its
+   own. */
+.ui-menu-item[data-ui-unavailable] {
+	flex-wrap: wrap;
+}
+
+.ui-menu-item-label {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--ui-space-2);
+}
+
+.ui-action-reason {
+	flex-basis: 100%;
+	font-size: var(--ui-text-xs);
+	color: var(--ui-color-text-muted);
+}
+
+/* The action dialog holds a form: its own padding, since its title comes
+   with the content loaded. */
+.ui-action-dialog {
+	padding: var(--ui-space-4);
+}
+
+.ui-action-dialog-close {
+	display: flex;
+	justify-content: end;
+}
+
+.ui-action-dialog-body {
+	display: flex;
+	flex-direction: column;
+	gap: var(--ui-space-3);
+
+	& > form {
+		display: flex;
+		flex-direction: column;
+		gap: var(--ui-space-3);
+	}
+}

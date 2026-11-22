@@ -1,0 +1,61 @@
+package stories
+
+import (
+	"github.com/epistemer/i18n"
+
+	"github.com/epistemer/ui/actions"
+	"github.com/epistemer/ui/components"
+	"github.com/epistemer/ui/elements"
+	"github.com/epistemer/ui/forms"
+	"github.com/epistemer/ui/inputs"
+)
+
+// shellParts are what a shell renders that actions point at.
+templ shellParts() {
+	@components.ActionForm()
+	@components.ActionDialog()
+}
+
+templ actionButtonsStory(items []actions.Item) {
+	@components.ActionButtons(items)
+	@shellParts()
+}
+
+templ actionMenuStory(items []actions.Item) {
+	<p id="order-1042-label">omar42@example.com</p>
+	@components.ActionMenu(i18n.Static("Actions"), items).ID("order-1042-actions").LabelledBy("order-1042-label")
+	@shellParts()
+}
+
+templ actionCard() {
+	@elements.Card() {
+		@elements.CardBody {
+			<p>Order #1042, placed on Tuesday.</p>
+		}
+		@elements.CardFooter {
+			{{ items := editItems(ctx) }}
+			@components.ActionButtons(items)
+		}
+	}
+}
+
+// actionsHtmx runs the action paths: an Open action into the dialog, a
+// confirmed request answered with a toast, and a refusal.
+templ actionsHtmx(items []actions.Item) {
+	@components.ActionButtons(items)
+	@components.ConfirmDialog()
+	@components.Toasts()
+	@shellParts()
+}
+
+templ reassignPage(f *forms.Form, alone bool) {
+	@components.ActionTitle(i18n.Static("Reassign order #1042"))
+	<form method="post" action="/demo/reassign" hx-post="/demo/reassign" hx-target="#ui-action-dialog-body" hx-swap="innerHTML" novalidate>
+		for c := range f.Controls() {
+			@inputs.Field(c)
+		}
+		@elements.Button().Submit() {
+			Save
+		}
+	</form>
+}

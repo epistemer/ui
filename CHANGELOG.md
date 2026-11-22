@@ -7,6 +7,29 @@ All notable changes to this module. The format follows
 
 ## Unreleased
 
+Actions, amendment A6 (server-state-interface.md), milestone T1.
+
+### Added
+- `ui/actions`: `New` and its builders, `To`, `Unless`, `If`, `Resolve`,
+  `Item`, `Gate`, `AllowAll`, `Allowed`. An action is absent when the
+  request's gate refuses its link, and unavailable with a reason when the
+  record's state forbids it.
+- `ui/actions/actionstest`: `Context`, `Refuse`, `Assert`, `Unavailable`.
+- `ui/components`: `ActionButtons`, `ActionMenu` (`ID`, `LabelledBy`),
+  `ActionForm`, `ActionDialog`, `ActionTitle`, `InActionDialog`, and
+  `Reply` (`Toast`, `Replace`, `Remove`, `Refresh`, `Fail`, `Else`, `Go`,
+  `ErrNotLocal`).
+- `ButtonSpec.Unavailable` and `MenuItemSpec.Unavailable`: aria-disabled,
+  focusable, inert, described by a reason. Menus' arrow keys stop on them.
+- `MenuSpec.ID`, a keyed id for a menu's trigger.
+- The ui script: a 422 swaps; the action dialog opens with what is loaded
+  into it, is named by its `ActionTitle`, and gives focus back after the
+  answer.
+
+### Changed
+- `layout.App` and `layout.Auth` render `ActionForm` and `ActionDialog`
+  beside the confirmation and the toasts.
+
 ### Fixed
 - `forms.FromRequest` (and so `Submit`) bound a body that something had
   already parsed (`r.ParseForm`, a middleware) as a blank form. It reads

@@ -1,0 +1,51 @@
+<p id="order-1042-label">
+  omar42@example.com
+</p>
+<ui-menu class="ui-menu">
+  <button aria-controls="order-1042-actions-menu" aria-haspopup="menu" aria-labelledby="order-1042-actions order-1042-label" class="ui-button" data-size="s" data-tone="neutral" data-variant="ghost" id="order-1042-actions" popovertarget="order-1042-actions-menu" type="button">
+    <svg aria-hidden="true" class="ui-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+      <circle cx="12" cy="12" r="1"></circle>
+      <circle cx="19" cy="12" r="1"></circle>
+      <circle cx="5" cy="12" r="1"></circle>
+    </svg>
+    <span class="ui-visually-hidden">
+      Actions
+    </span>
+  </button>
+  <div aria-labelledby="order-1042-actions" class="ui-menu-popover" id="order-1042-actions-menu" popover="" role="menu">
+    <a class="ui-menu-item" href="/orders/1042" role="menuitem" tabindex="-1">
+      <svg aria-hidden="true" class="ui-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+        <path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"></path>
+        <circle cx="12" cy="12" r="3"></circle>
+      </svg>
+      View
+    </a>
+    <a class="ui-menu-item" href="/demo/reassign" hx-get="/demo/reassign" hx-push-url="false" hx-swap="innerHTML" hx-target="#ui-action-dialog-body" role="menuitem" tabindex="-1">
+      Reassign
+    </a>
+    <hr class="ui-separator">
+    <button aria-describedby="menu-item--t-2-reason" aria-disabled="true" aria-labelledby="menu-item--t-2-label" class="ui-menu-item" data-tone="danger" data-ui-unavailable="" role="menuitem" tabindex="-1" type="button">
+      <span class="ui-menu-item-label" id="menu-item--t-2-label">
+        Refund
+      </span>
+      <span class="ui-action-reason" id="menu-item--t-2-reason">
+        only a paid order can be refunded
+      </span>
+    </button>
+    <button class="ui-menu-item" data-tone="danger" data-ui-confirm="Delete this order?" form="ui-action-form" formaction="/demo/fail" hx-post="/demo/fail" hx-swap="none" role="menuitem" tabindex="-1" type="submit">
+      Delete
+    </button>
+  </div>
+</ui-menu>
+<form hidden="" id="ui-action-form" method="post"></form>
+<dialog aria-label="Action" class="ui-dialog ui-action-dialog" id="ui-action-dialog">
+  <div class="ui-action-dialog-close">
+    <button aria-label="Close" class="ui-button" command="close" commandfor="ui-action-dialog" data-size="s" data-tone="neutral" data-variant="ghost" type="button" value="">
+      <svg aria-hidden="true" class="ui-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+        <path d="M18 6 6 18"></path>
+        <path d="m6 6 12 12"></path>
+      </svg>
+    </button>
+  </div>
+  <div class="ui-action-dialog-body" id="ui-action-dialog-body"></div>
+</dialog>

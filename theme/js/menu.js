@@ -8,8 +8,13 @@
 // The fallback can be forced for testing with <html data-ui-no-anchor>.
 const anchored = CSS.supports("position-area", "block-end") && !document.documentElement.hasAttribute("data-ui-no-anchor");
 
+// The items arrow keys move over: every one but Disabled ones. An
+// unavailable item (data-ui-unavailable) is aria-disabled too, but stays
+// reachable, so its reason can be read (amendment A6).
 const items = (menu) =>
-	[...menu.querySelectorAll('[role^="menuitem"]')].filter((el) => !el.disabled && el.getAttribute("aria-disabled") !== "true");
+	[...menu.querySelectorAll('[role^="menuitem"]')].filter(
+		(el) => el.hasAttribute("data-ui-unavailable") || (!el.disabled && el.getAttribute("aria-disabled") !== "true"),
+	);
 
 class UIMenu extends HTMLElement {
 	// Private fields: an element's own properties (popover, hidden, title…)

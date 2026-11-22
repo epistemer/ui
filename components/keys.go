@@ -9,6 +9,8 @@ var (
 	confirmYes   = i18n.Key("ui.components.confirm.yes", "Confirm")
 	confirmNo    = i18n.Key("ui.components.confirm.no", "Cancel")
 	toastClose   = i18n.Key("ui.components.toast.close", "Dismiss")
+
+	actionDialogLabel = i18n.Key("ui.components.actions.dialog", "Action")
 )
 
 // A toast's hidden level words are Alert's: the same keys, one translation.

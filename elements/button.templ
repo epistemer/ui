@@ -1,5 +1,7 @@
 package elements
 
+import "github.com/epistemer/i18n"
+
 templ buttonTag(attrs templ.Attributes) {
 	<button { attrs... }>
 		{ children... }
@@ -10,4 +12,15 @@ templ linkTag(attrs templ.Attributes) {
 	<a { attrs... }>
 		{ children... }
 	</a>
+}
+
+// unavailableTag is an unavailable button in a Tooltip saying why.
+templ unavailableTag(attrs templ.Attributes, reason i18n.Ter) {
+	@Tooltip(reason) {
+		@TooltipTrigger {
+			<button { Merge(attrs, nil, TooltipTrigger.Value(ctx))... }>
+				{ children... }
+			</button>
+		}
+	}
 }

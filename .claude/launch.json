@@ -1,0 +1,27 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "catalog",
+      "runtimeExecutable": "go",
+      "runtimeArgs": [
+        "run",
+        "./cmd/catalog",
+        "-addr",
+        "localhost:7331"
+      ],
+      "port": 7331
+    },
+    {
+      "name": "shop",
+      "runtimeExecutable": "go",
+      "runtimeArgs": [
+        "run",
+        "./internal/spike/cmd/shop",
+        "-addr",
+        "localhost:7332"
+      ],
+      "port": 7332
+    }
+  ]
+}
