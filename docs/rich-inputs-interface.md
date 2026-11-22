@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | **Draft** of amendment A7, for epistemer to lock (roadmap D8.4). Its questions are R1–R28 of the design (§9 there) and L1–L6 below; each stands on its default until answered. Once locked, it amends [interface.md](interface.md) (forms), [visual-interface.md](visual-interface.md) (inputs, components, CSS, the script) and [server-state-interface.md](server-state-interface.md) (tables) |
+| Status | **Draft** of amendment A7, for epistemer to lock (roadmap D8.4). Its questions are R1–R28 of the design (§9 there) and L1–L7 below; epistemer answered R1, R2, R4, R7, R9, R15, R16, R23, R24, R27, L1 and L7 on 2026-11-22; the rest stand on their defaults until the lock. Once locked, it amends [interface.md](interface.md) (forms), [visual-interface.md](visual-interface.md) (inputs, components, CSS, the script) and [server-state-interface.md](server-state-interface.md) (tables) |
 | Date | 2026-11-22 |
 | Roadmap item | D8.4 |
 | Inputs | [rich-inputs-design.md](rich-inputs-design.md) (R1–R28, the spike's findings §8.1), ADRs [0011](adr/0011-remote-select.md)–[0013](adr/0013-list-fields.md), reviews [0019](reviews/0019-rich-inputs-design.md) and [0020](reviews/0020-d8-2-spike.md), the spike in `internal/spike`, handlers' ADR 0006 (a route's own body limit, drafted with this) |
@@ -145,12 +145,15 @@ func (c Control) Bounds() (min, max int)
   built at indices `0..MinItems-1` as the template row is. The list
   itself isn't changed: `Items()` stays empty and `Add` appends as
   before. *(not spiked)*
-- **An item that posts nothing** (L7): an item whose fields are all
-  unchecked checkboxes posts no name, and binding would drop it. Each
-  item renders `<input type="hidden" name="<path>[i]">` (no member), and
-  forms counts an index posted bare like that as an item. A change to
-  the locked rule of §5.8, which counts an index only through a member's
-  name. *(not spiked)*
+- **An item that posts nothing** (L7, decided: no marker). §5.8 stays as
+  locked: an index counts only through a member's name. A row whose
+  controls all post nothing when empty is dropped on bind, before its
+  rules run (so a `Required` in it doesn't fire): unchecked checkboxes
+  (`Checkbox`), a multi-select with nothing chosen (`Texts` with
+  options), and controls a condition disabled. Text inputs, selects
+  (`Bool`, `Enum`, a single `Options`), and file inputs always post. A
+  list whose rows could hold only the first kind adds a field of the
+  second. forms' doc comment on `List` says so (review 0022).
 
 ### 2.4 Rules (§6.2) *(not spiked)*
 
@@ -196,9 +199,9 @@ S9).
 
 | Kind | Element |
 |---|---|
-| `KindRemote` | `<ui-combobox class="ui-combobox" data-ui-search="…" data-ui-texts="…">` holding the text input of the id (`name` = path, `Control.Attrs` applied) and `<span class="ui-combobox-chosen" id="…-chosen">` with the chosen name, named by the input's `aria-describedby`. Text that didn't convert: the input holds it, the span is empty. A refused search link: no `data-ui-search` (R7) |
+| `KindRemote` | `<ui-combobox class="ui-combobox" id="…" data-ui-search="…" data-ui-texts="…">` with the htmx attributes of design §3.3 (`hx-get` the search link, `hx-trigger="ui-search"`, `hx-params="none"`, `hx-target="find .ui-combobox-options"`, `hx-select="[data-ui-suggestions] > li"`, `hx-swap="innerHTML"`, `hx-sync="this:replace"`), holding the text input of the id (`name` = path, `Control.Attrs` applied), `<span class="ui-combobox-chosen" id="…-chosen">` with the chosen name, named by the input's `aria-describedby`, then `<div class="ui-combobox-popup" popover="manual">` holding `<ul class="ui-combobox-options" role="listbox" id="…-options">` (named by the input's `aria-controls` once upgraded) and `<p class="ui-combobox-status">`, and a visually hidden live region. Text that didn't convert: the input holds it, the span is empty. A refused search link: no `data-ui-search` and no `hx-*` (R7) |
 | `KindUpload`, `KindUploads`, `KindFile`, `KindFiles` | `<div class="ui-field ui-upload" data-ui-texts="…">`: label, help, the lost note (`<p class="ui-field-help ui-upload-lost">`, when `Lost`, named by the input's `aria-describedby`, not an error), for an upload field `<ul class="ui-upload-files">` of `<li class="ui-upload-file">` each holding a thumbnail (`Image` with an admitted `Href`), the checkbox `name="<path>.keep"` checked by its keep state, `<label>` around "Keep" and the name as text only, and the name as a link beside it when the gate admits `Href`; then the file input (`ui-upload-input`, `multiple` for `KindUploads` and `KindFiles`, `Control.Attrs` applied), `<ul class="ui-upload-chosen">`, `<progress class="ui-upload-progress" max="100" hidden>`, a visually hidden status, the error. `File` and `Files` change from visual-interface §6.1's plain input *(not spiked for them)* |
-| `KindList` | `<fieldset class="ui-list">` with its legend and help; `<ui-repeat data-ui-path data-ui-next data-ui-min data-ui-max data-ui-texts>` (bounds from `Control.Bounds`) holding `<ol class="ui-list-items">` of `<li class="ui-list-item">`, each the item marker of §2.3 and a `<fieldset class="ui-group">` with the legend "Item n", its fields and `<button type="button" class="ui-button ui-list-remove" data-ui-remove hidden>`; a `<template>` of the template row in the same markup; `<button type="button" class="ui-button ui-list-add" data-ui-add hidden>`; a visually hidden status; then the list's error. `inputs.Field` no longer returns an error for a list |
+| `KindList` | `<fieldset class="ui-list">` with its legend and help; `<ui-repeat data-ui-path data-ui-next data-ui-min data-ui-max data-ui-texts>` (bounds from `Control.Bounds`) holding `<ol class="ui-list-items">` of `<li class="ui-list-item">`, each a `<fieldset class="ui-group">` with the legend "Item n", its fields and `<button type="button" class="ui-button ui-list-remove" data-ui-remove hidden>`; a `<template>` of the template row in the same markup; `<button type="button" class="ui-button ui-list-add" data-ui-add hidden>`; a visually hidden status; then the list's error. `inputs.Field` no longer returns an error for a list |
 
 - `data-ui-texts` is a JSON object of the element's texts, translated
   (ADR 0005: the script holds no catalogue). What the server knows it
@@ -223,10 +226,11 @@ type Suggestion struct {
 // fetches one more, so Suggestions can tell there were more.
 const SuggestionLimit = 20
 
-// Suggestions renders a search's answer: <ul data-ui-suggestions> of
-// <li data-value> with the label as text, the first SuggestionLimit, and
-// data-ui-more when there were more. No ids, no roles: the script builds
-// the options.
+// Suggestions renders a search's answer, which the combobox hx-selects:
+// <ul data-ui-suggestions> of <li role="option" aria-selected="false"
+// data-value> with the label as text, the first SuggestionLimit, then
+// <li data-ui-more hidden> when there were more. No ids: the script gives
+// them, unique per combobox, after the swap.
 func Suggestions(s ...Suggestion) templ.Component
 ```
 
@@ -254,8 +258,8 @@ func (c Column[R]) Remote(search ui.Link, l listing.Labeler) Column[R]
 
 | Element or behaviour | Does |
 |---|---|
-| `<ui-combobox>` | Upgrades the shape of §3.1 when it has `data-ui-search`: the hidden input takes the name; the visible one becomes `role="combobox"` (`aria-autocomplete="list"`, `aria-expanded`, `aria-controls`), with a clear button (`tabindex="-1"`), a manual popover holding the listbox and the visible status, and a visually hidden live region outside the popover. On upgrade it removes `inputmode` and the chosen span, and that span's id from `aria-describedby`; unconverted text stays in the visible input. Fetches the search link with `q` set through `URLSearchParams` (keeping the link's own query), itself, no htmx, debounced 250 ms, cancelling the last; accepts only a 200, not redirected, whose root is `ul[data-ui-suggestions]`; builds each option from `data-value` and text. Keyboard and events as design §3.4 |
-| `<ui-repeat>` | Shows its own Add and Remove buttons; clones the template, rewriting its own path prefix in `name`, `data-ui-path` and `data-ui-when` at every depth, suffixing this level's ids and every reference to them; renumbers legends and Remove buttons; evaluates conditions before focusing the first visible, enabled control; announces; marks Add and Remove unavailable at the bounds with the reason (`aria-disabled`) |
+| `<ui-combobox>` | Upgrades the shape of §3.1 when it has `data-ui-search` and `globalThis.htmx` exists (otherwise the field stays the text input of the id): the hidden input takes the name; the visible one becomes `role="combobox"` (`aria-autocomplete="list"`, `aria-expanded`, `aria-controls`), with a clear button (`tabindex="-1"`). It removes `inputmode` and the chosen span, and that span's id from `aria-describedby`; unconverted text stays in the visible input. Searching (design §3.3): it debounces typing itself (250 ms) and then dispatches `ui-search` on itself (at once for Down and Alt+Down); adds `q` in `htmx:configRequest`, keeping the link's query; when the text is committed clears its timer and aborts a request in flight with an `htmx:abort` event; in its own `htmx:beforeSwap` listener, stopping the event there, refuses anything but a 200 whose `responseURL` has the link's origin and path and whose body holds `data-ui-suggestions`; after a swap gives each option the id `<input id>-opt-<n>`, removes the `data-ui-more` item and puts the `more` text in the status, counts and announces; on a refused answer, `htmx:responseError` or `htmx:sendError` says it failed. It never references the `htmx` object but to test that it exists. Keyboard and events as design §3.4 *(the htmx search not spiked: the spike's script used `fetch`)* |
+| `<ui-repeat>` | Shows its own Add and Remove buttons; clones the template, rewriting its own path prefix in `name`, `data-ui-path` and `data-ui-when` at every depth, suffixing this level's ids and every reference to them; rewrites the clone while it is detached, appends it, then calls `globalThis.htmx?.process(item)` on it; renumbers legends and Remove buttons; evaluates conditions before focusing the first visible, enabled control; announces; marks Add and Remove unavailable at the bounds with the reason (`aria-disabled`) |
 | Uploads | Keep cards over the checkboxes; the chosen list with Remove (through `DataTransfer`); size and type checks with `setCustomValidity` and a capturing `submit` refusal (forms are `novalidate`); the drop highlight; the type check defers to the server for a file the system gives no type; progress from the request's own `xhr.upload` (`htmx:beforeSend`); a 413 with files chosen puts `body_too_large` on the upload fields and keeps the form (a send error is left to htmx); choosing files again clears it |
 
 Announcements go through a timer, never an animation frame.
@@ -291,19 +295,19 @@ R1–R28 are the design's (§9 there). These are the contract's own:
 
 | # | Question | Default | Alternative |
 |---|---|---|---|
-| L1 | Where `Stored` and `Upload` live | A leaf package `ui/forms/files` (`files.Stored`, `files.Upload`), because `rule` can't import forms, which imports it | Upload rules as methods on a field type of its own (`f.Upload(…).MaxFiles(3)`), keeping the types in forms |
+| L1 | Where `Stored` and `Upload` live | **Decided** by epistemer. A leaf package `ui/forms/files` (`files.Stored`, `files.Upload`), because `rule` can't import forms, which imports it | Upload rules as methods on a field type of its own (`f.Upload(…).MaxFiles(3)`), keeping the types in forms |
 | L2 | `Control.Remote`'s shape | One method giving link, `Labeler`, id and ok | Three methods (`Search()`, `Labeler()`, `ID()`) |
 | L3 | `Column.Remote` without `Filter()` | `Check` reports it | `Remote` implies `Filter()` |
 | L4 | The script-off upload's keep control | A checked checkbox per stored file, `name="<path>.keep"` | A hidden input per kept file, with a remove checkbox |
 | L5 | What `Suggestions` takes | `...Suggestion` | `[]Suggestion` and a `More(bool)` builder, so a handler that pages can say so without a 21st row |
 | L6 | The parameter the combobox sends | `q`, fixed | A `data-ui-param` per field |
-| L7 | An item that posts no name (only unchecked checkboxes) | A bare marker per item, `<path>[i]`, which forms counts (a change to locked §5.8) | No marker; such an item is dropped, and an item must hold a field that always posts |
+| L7 | An item that posts no name (only unchecked checkboxes) | **Decided** by epistemer: no marker; §5.8 stays, and such a row uses `Bool` or holds a field that always posts. As drafted: a bare marker forms counts | — |
 
 ## 9. Not spiked
 
 Marked above, collected: a single-file `Upload` replacing its stored
 file; `Required`, `MinFiles` and `MaxFiles` on uploads; the lost note on
 `File` and `Files`; a text (uuid) id; `MinItems` blank items in a new
-list; the item marker; `Column.Remote` and its chip in a real table; goldens (the build
+list; the search through htmx (the spike used `fetch`); `Column.Remote` and its chip in a real table; goldens (the build
 adds them); a screen-reader pass; the upgrade's flash, measured in a
 visible pane.
