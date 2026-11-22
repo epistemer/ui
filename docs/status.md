@@ -4,6 +4,31 @@ Newest entry first. Each working session adds one: what landed, decisions
 taken for epistemer, what's next, and what's waiting on epistemer.
 
 
+
+## 2026-11-22 — V1: `ui/theme`
+
+**Landed** (Claude):
+- `ui/theme`, moved from the spike and cut to visual-interface.md §3.
+  - Everything but §3's identifiers is unexported: the token table, the
+    colour maths and the derivation.
+  - `Config`'s getters carry the `Theme` prefix.
+  - The checks return declared errors, and a font check refuses CSS-wide
+    keywords.
+- `theme/themeschema`, a nested module, so cfgx stays out of ui's go.mod.
+  - A toy shop's generated settings satisfy `theme.Config`, load the token
+    table's defaults, and refuse a bad colour, font list or radius.
+  - It builds against the repository's ui through a `replace` until
+    v0.2.0 is tagged.
+- `ui/internal/themehook` hands the joined stylesheet and the derived
+  tokens to ui's own packages. The catalogue's token panel now asks it,
+  with themeschema's key names. It is internal: the module table in
+  visual-interface.md §1 names it for catalogtest, and the catalogue's use
+  is the same kind.
+- The spike now uses `ui/theme`, so there's one copy. jstest reads
+  `theme/js/cond.js`, and CI runs themeschema in every per-module step.
+
+**Next.** V2: `ui/catalog`, `catalogtest`, and uitest's `CheckNames` and
+`CheckSelectors` (A4).
 ## 2026-11-22 — D6: the visual packages' interface is locked
 
 epistemer locked [visual-interface.md](visual-interface.md) with the

@@ -14,8 +14,8 @@ import (
 // renders the head tags that load them.
 type Theme struct {
 	prefix  string // such as "/ui", without a trailing slash
-	bundle  *Bundle
-	runtime *Runtime
+	bundle  *bundle
+	runtime *runtimeTheme
 }
 
 // New returns a Theme mounted at prefix, reading run-time values from c.
@@ -24,15 +24,12 @@ func New(prefix string, c Config) (*Theme, error) {
 	if !strings.HasPrefix(prefix, "/") || strings.HasPrefix(prefix, "//") || strings.ContainsAny(prefix, `\?#"'<> `) {
 		return nil, fmt.Errorf("theme: prefix %q: want a path on this origin, such as /ui", prefix)
 	}
-	b, err := NewBundle()
+	b, err := newBundle()
 	if err != nil {
 		return nil, err
 	}
-	return &Theme{prefix: strings.TrimSuffix(prefix, "/"), bundle: b, runtime: NewRuntime(c)}, nil
+	return &Theme{prefix: strings.TrimSuffix(prefix, "/"), bundle: b, runtime: newRuntime(c)}, nil
 }
-
-// Bundle returns the static assets.
-func (t *Theme) Bundle() *Bundle { return t.bundle }
 
 const immutable = "public, max-age=31536000, immutable"
 
@@ -44,7 +41,7 @@ func (t *Theme) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if name, ok := strings.CutPrefix(rest, "theme/"); ok {
-		css, hash := t.runtime.Current()
+		css, hash := t.runtime.current()
 		w.Header().Set("Content-Type", "text/css; charset=utf-8")
 		if name == hash+".css" {
 			w.Header().Set("Cache-Control", immutable)
@@ -80,7 +77,7 @@ func (t *Theme) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 // that order: the theme's tokens come after ui's own, in the same layer.
 func (t *Theme) Head() templ.Component {
 	return templ.ComponentFunc(func(ctx context.Context, w io.Writer) error {
-		_, hash := t.runtime.Current()
+		_, hash := t.runtime.current()
 		base := t.prefix + "/" + t.bundle.Hash + "/"
 		_, err := io.WriteString(w,
 			`<link rel="stylesheet" href="`+templ.EscapeString(base+"ui.css")+`">`+

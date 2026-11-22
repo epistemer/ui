@@ -4,6 +4,17 @@ All notable changes to this module. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow
 [Semantic Versioning](https://semver.org/).
 
+
+## Unreleased
+
+### Added
+- `ui/theme`: the token table, `Config` with `Defaults` and the checks
+  `CheckColor`, `CheckFont` and `CheckRadius` (errors `errors.theme.*`),
+  and `Theme`. `Theme` serves ui's stylesheet and script under one release
+  hash, and the run-time theme whose accent colours are derived for
+  contrast. Its `Head` links both (visual-interface.md §3).
+- `github.com/epistemer/ui/theme/themeschema`, a nested module: the cfgx
+  group `theme`, whose generated settings satisfy `theme.Config`.
 ## [v0.1.0] - 2026-11-21
 
 The first release: the kernel and forms, the whole of the interface locked

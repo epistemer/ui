@@ -40,7 +40,7 @@ type vector struct {
 // conformance vectors: the same files forms' own Go evaluator passes
 // (forms-design §7.3).
 func TestConditionVectors(t *testing.T) {
-	vm := load(t, "../spike/theme/js/cond.js")
+	vm := load(t, "../../theme/js/cond.js")
 	evaluate, ok := goja.AssertFunction(vm.Get("evaluate"))
 	if !ok {
 		t.Fatal("cond.js defines no evaluate")
@@ -90,7 +90,7 @@ func TestConditionVectors(t *testing.T) {
 // can't: a field whose activity is a chain (its own condition and its
 // group's), as the ui script collects from nested wrappers.
 func TestConditionChains(t *testing.T) {
-	vm := load(t, "../spike/theme/js/cond.js")
+	vm := load(t, "../../theme/js/cond.js")
 	evaluate, _ := goja.AssertFunction(vm.Get("evaluate"))
 	run := func(values map[string][]string) bool {
 		t.Helper()

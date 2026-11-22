@@ -10,11 +10,11 @@ import (
 	"net/http"
 	"net/url"
 	"slices"
-	"strings"
 
 	"github.com/a-h/templ"
 
-	"github.com/epistemer/ui/internal/spike/theme"
+	"github.com/epistemer/ui/internal/themehook"
+	"github.com/epistemer/ui/theme"
 )
 
 // Variant is one state of a story.
@@ -106,35 +106,22 @@ func (c *Catalog) frame(w http.ResponseWriter, r *http.Request) {
 }
 
 // tokens answers the token panel: the run-time tokens for the values in
-// the query, derived in Go as the theme stylesheet derives them.
+// the query (themeschema's key names), derived in Go as the theme
+// stylesheet derives them.
 func (c *Catalog) tokens(w http.ResponseWriter, r *http.Request) {
-	q := r.URL.Query()
-	pairs := theme.Overrides(queryConfig{q.Get})
-	out := make(map[string]string, len(pairs))
-	for _, kv := range pairs {
+	values := map[string]string{}
+	for k, v := range r.URL.Query() {
+		if len(v) > 0 {
+			values[k] = v[0]
+		}
+	}
+	out := map[string]string{}
+	for _, kv := range themehook.Tokens(values) {
 		out[kv[0]] = kv[1]
 	}
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(out)
 }
-
-type queryConfig struct{ get func(string) string }
-
-func (q queryConfig) or(key, def string) string {
-	if v := strings.TrimSpace(q.get(key)); v != "" {
-		return v
-	}
-	return def
-}
-
-func (q queryConfig) BrandColor() string   { return q.or("brand", theme.Defaults{}.BrandColor()) }
-func (q queryConfig) DangerColor() string  { return q.or("danger", theme.Defaults{}.DangerColor()) }
-func (q queryConfig) WarningColor() string { return q.or("warning", theme.Defaults{}.WarningColor()) }
-func (q queryConfig) SuccessColor() string { return q.or("success", theme.Defaults{}.SuccessColor()) }
-func (q queryConfig) InfoColor() string    { return q.or("info", theme.Defaults{}.InfoColor()) }
-func (q queryConfig) FontSans() string     { return q.or("font-sans", theme.Defaults{}.FontSans()) }
-func (q queryConfig) FontMono() string     { return q.or("font-mono", theme.Defaults{}.FontMono()) }
-func (q queryConfig) Radius() string       { return q.or("radius", theme.Defaults{}.Radius()) }
 
 func render(w http.ResponseWriter, r *http.Request, c templ.Component) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")

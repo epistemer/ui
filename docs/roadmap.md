@@ -174,7 +174,7 @@ A finding that changes locked text is an amendment, brought to epistemer.
 
 | ✓ | ID | Item | Done when |
 |---|---|---|---|
-| ☐ | V1 | `ui/theme`: token table, `Config` and its checks, the joined stylesheet and script under one hash, the run-time stylesheet with derived contrast, `Head`, the CSS checks; `themeschema` as a nested module | §3 holds, the CSS checks and the contrast sweep pass, and themeschema's getters satisfy `theme.Config` in a test app schema |
+| ☑ | V1 | `ui/theme`: token table, `Config` and its checks, the joined stylesheet and script under one hash, the run-time stylesheet with derived contrast, `Head`, the CSS checks; `themeschema` as a nested module | §3 holds, the CSS checks and the contrast sweep pass, and themeschema's getters satisfy `theme.Config` in a test app schema |
 | ☐ | V2 | `ui/catalog` and `catalogtest`, `cmd/catalog`; uitest's `CheckNames` and `CheckSelectors` (A4) | §9 and §13.1 hold; the spike's stories run through catalogtest |
 | ☐ | V3 | `ui/icons` (the Lucide set, ADR) and `ui/elements` (Button, Badge, Alert, Card, Avatar, Spinner, Tooltip, Separator, Heading, value renderers, `Merge`) | §4 and §5 hold, every element has stories |
 | ☐ | V4 | `ui/inputs`: every kind but lists, hints above the control, errors with their level word, the password reveal; the condition evaluator in the ui script | §6 and §10's conditions hold; the vectors pass in jstest |

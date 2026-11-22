@@ -11,25 +11,25 @@ import (
 	"strings"
 )
 
-// Layers are ui's cascade layers, lowest first (ADR 0004). "tokens" is
+// layers are ui's cascade layers, lowest first (ADR 0004). "tokens" is
 // rendered from the token table; every other layer is css/<name>.css.
-var Layers = []string{"reset", "tokens", "base", "elements", "inputs", "components", "layout"}
+var layers = []string{"reset", "tokens", "base", "elements", "inputs", "components", "layout"}
 
 //go:embed css/*.css js/*.js
 var assetFS embed.FS
 
-// Bundle is ui's static assets for one release: the joined stylesheet and
+// bundle is ui's static assets for one release: the joined stylesheet and
 // the script modules, served under one content hash (ADR 0004, 0005).
-type Bundle struct {
+type bundle struct {
 	Hash  string            // of every file, so relative module imports stay in one release
 	Files map[string][]byte // "ui.css", "ui.js", other modules
 }
 
-// NewBundle joins the layers and reads the script modules.
-func NewBundle() (*Bundle, error) {
+// newBundle joins the layers and reads the script modules.
+func newBundle() (*bundle, error) {
 	var css strings.Builder
 	css.WriteString("@layer " + layerList() + ";\n")
-	for _, name := range Layers {
+	for _, name := range layers {
 		var body string
 		if name == "tokens" {
 			body = renderTokens(Defaults{})
@@ -54,12 +54,12 @@ func NewBundle() (*Bundle, error) {
 		}
 		files[path.Base(p)] = b
 	}
-	return &Bundle{Hash: hashFiles(files), Files: files}, nil
+	return &bundle{Hash: hashFiles(files), Files: files}, nil
 }
 
 func layerList() string {
-	names := make([]string, len(Layers))
-	for i, n := range Layers {
+	names := make([]string, len(layers))
+	for i, n := range layers {
 		names[i] = "ui." + n
 	}
 	return strings.Join(names, ", ")
@@ -84,8 +84,8 @@ func hashFiles(files map[string][]byte) string {
 func renderTokens(c Config) string {
 	var b strings.Builder
 	b.WriteString(":root {\n\tcolor-scheme: light dark;\n")
-	for _, t := range Surfaces {
-		fmt.Fprintf(&b, "\t--ui-%s: light-dark(%s, %s);\n", t.Name, t.Light, t.Dark)
+	for _, t := range surfaces {
+		fmt.Fprintf(&b, "\t--ui-%s: light-dark(%s, %s);\n", t.Name, t.light, t.dark)
 	}
 	b.WriteString(renderAccents(c))
 	b.WriteString(renderScales(c))
@@ -105,29 +105,29 @@ func renderTokens(c Config) string {
 func accentTokens(c Config) [][2]string {
 	var out [][2]string
 	add := func(name, value string) { out = append(out, [2]string{"--ui-" + name, value}) }
-	for _, a := range Accents {
-		fill := MustHex(validColor(fillOf(c, a.Name), a.Fill))
-		l, d := Derive(fill, Light), Derive(fill, Dark)
-		add("color-"+a.Name, fill.Hex())
-		add("color-on-"+a.Name, l.On.Hex())
-		add("color-"+a.Name+"-hover", l.Hover.Hex())
-		add("color-"+a.Name+"-active", l.Active.Hex())
-		add("color-"+a.Name+"-text", "light-dark("+l.Text.Hex()+", "+d.Text.Hex()+")")
-		add("color-"+a.Name+"-subtle", "light-dark("+l.Subtle.Hex()+", "+d.Subtle.Hex()+")")
+	for _, a := range accents {
+		fill := mustHex(validColor(fillOf(c, a.Name), a.Fill))
+		l, d := derive(fill, schemeLight), derive(fill, schemeDark)
+		add("color-"+a.Name, fill.hex())
+		add("color-on-"+a.Name, l.On.hex())
+		add("color-"+a.Name+"-hover", l.Hover.hex())
+		add("color-"+a.Name+"-active", l.Active.hex())
+		add("color-"+a.Name+"-text", "light-dark("+l.Text.hex()+", "+d.Text.hex()+")")
+		add("color-"+a.Name+"-subtle", "light-dark("+l.Subtle.hex()+", "+d.Subtle.hex()+")")
 	}
 	add("color-focus", "var(--ui-color-brand-text)")
 	return out
 }
 
-// Overrides lists the tokens an admin's values set, in the order the theme
+// overrides lists the tokens an admin's values set, in the order the theme
 // stylesheet declares them: the accents and their partners, the font
 // families and the radius base. Invalid values give the defaults.
-func Overrides(c Config) [][2]string {
+func overrides(c Config) [][2]string {
 	out := accentTokens(c)
 	out = append(out,
-		[2]string{"--ui-font-sans", validFont(c.FontSans(), scaleDefault("font-sans"))},
-		[2]string{"--ui-font-mono", validFont(c.FontMono(), scaleDefault("font-mono"))},
-		[2]string{"--ui-radius", validLength(c.Radius(), scaleDefault("radius"))},
+		[2]string{"--ui-font-sans", validFont(c.ThemeFontSans(), scaleDefault("font-sans"))},
+		[2]string{"--ui-font-mono", validFont(c.ThemeFontMono(), scaleDefault("font-mono"))},
+		[2]string{"--ui-radius", validLength(c.ThemeRadius(), scaleDefault("radius"))},
 	)
 	return out
 }
@@ -142,15 +142,15 @@ func renderAccents(c Config) string {
 
 func renderScales(c Config) string {
 	var b strings.Builder
-	for _, t := range Scales {
-		v := t.Light
+	for _, t := range scales {
+		v := t.light
 		switch t.Name {
 		case "radius":
-			v = validLength(c.Radius(), t.Light)
+			v = validLength(c.ThemeRadius(), t.light)
 		case "font-sans":
-			v = validFont(c.FontSans(), t.Light)
+			v = validFont(c.ThemeFontSans(), t.light)
 		case "font-mono":
-			v = validFont(c.FontMono(), t.Light)
+			v = validFont(c.ThemeFontMono(), t.light)
 		}
 		fmt.Fprintf(&b, "\t--ui-%s: %s;\n", t.Name, v)
 	}

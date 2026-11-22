@@ -1,4 +1,4 @@
-// ui's client script (ADR 0005), D4 spike. Plain modules, no framework.
+// ui's client script (ADR 0005). Plain modules, no framework.
 
 import { evaluate } from "./cond.js";
 import "./menu.js";

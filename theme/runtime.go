@@ -13,30 +13,30 @@ import (
 // fills, the font families and the radius scale's base. cfgx's generated
 // settings satisfy it through themeschema's group.
 type Config interface {
-	BrandColor() string
-	DangerColor() string
-	WarningColor() string
-	SuccessColor() string
-	InfoColor() string
-	FontSans() string
-	FontMono() string
-	Radius() string
+	ThemeBrandColor() string
+	ThemeDangerColor() string
+	ThemeWarningColor() string
+	ThemeSuccessColor() string
+	ThemeInfoColor() string
+	ThemeFontSans() string
+	ThemeFontMono() string
+	ThemeRadius() string
 }
 
 // Defaults is the token table's own values.
 type Defaults struct{}
 
-func (Defaults) BrandColor() string   { return accentDefault("brand") }
-func (Defaults) DangerColor() string  { return accentDefault("danger") }
-func (Defaults) WarningColor() string { return accentDefault("warning") }
-func (Defaults) SuccessColor() string { return accentDefault("success") }
-func (Defaults) InfoColor() string    { return accentDefault("info") }
-func (Defaults) FontSans() string     { return scaleDefault("font-sans") }
-func (Defaults) FontMono() string     { return scaleDefault("font-mono") }
-func (Defaults) Radius() string       { return scaleDefault("radius") }
+func (Defaults) ThemeBrandColor() string   { return accentDefault("brand") }
+func (Defaults) ThemeDangerColor() string  { return accentDefault("danger") }
+func (Defaults) ThemeWarningColor() string { return accentDefault("warning") }
+func (Defaults) ThemeSuccessColor() string { return accentDefault("success") }
+func (Defaults) ThemeInfoColor() string    { return accentDefault("info") }
+func (Defaults) ThemeFontSans() string     { return scaleDefault("font-sans") }
+func (Defaults) ThemeFontMono() string     { return scaleDefault("font-mono") }
+func (Defaults) ThemeRadius() string       { return scaleDefault("radius") }
 
 func accentDefault(name string) string {
-	for _, a := range Accents {
+	for _, a := range accents {
 		if a.Name == name {
 			return a.Fill
 		}
@@ -45,9 +45,9 @@ func accentDefault(name string) string {
 }
 
 func scaleDefault(name string) string {
-	for _, t := range Scales {
+	for _, t := range scales {
 		if t.Name == name {
-			return t.Light
+			return t.light
 		}
 	}
 	panic("theme: no token " + name)
@@ -56,15 +56,15 @@ func scaleDefault(name string) string {
 func fillOf(c Config, accent string) string {
 	switch accent {
 	case "brand":
-		return c.BrandColor()
+		return c.ThemeBrandColor()
 	case "danger":
-		return c.DangerColor()
+		return c.ThemeDangerColor()
 	case "warning":
-		return c.WarningColor()
+		return c.ThemeWarningColor()
 	case "success":
-		return c.SuccessColor()
+		return c.ThemeSuccessColor()
 	case "info":
-		return c.InfoColor()
+		return c.ThemeInfoColor()
 	}
 	panic("theme: no accent " + accent)
 }
@@ -75,11 +75,11 @@ func fillOf(c Config, accent string) string {
 
 var hexColor = regexp.MustCompile(`^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$`)
 
-// ValidColor reports whether s is a colour the theme accepts.
-func ValidColor(s string) bool { return hexColor.MatchString(s) }
+// isColor reports whether s is a colour the theme accepts.
+func isColor(s string) bool { return hexColor.MatchString(s) }
 
 func validColor(s, def string) string {
-	if ValidColor(s) {
+	if isColor(s) {
 		return s
 	}
 	return def
@@ -87,9 +87,9 @@ func validColor(s, def string) string {
 
 var length = regexp.MustCompile(`^(0|\d{1,2}(\.\d{1,3})?(px|rem|em))$`)
 
-// ValidLength reports whether s is a radius base the theme accepts: 0, or
+// isRadius reports whether s is a radius base the theme accepts: 0, or
 // a length in px, rem or em of at most 32px or 2rem.
-func ValidLength(s string) bool {
+func isRadius(s string) bool {
 	if !length.MatchString(s) {
 		return false
 	}
@@ -105,7 +105,7 @@ func ValidLength(s string) bool {
 }
 
 func validLength(s, def string) string {
-	if ValidLength(s) {
+	if isRadius(s) {
 		return s
 	}
 	return def
@@ -116,16 +116,16 @@ var (
 	plainFamily  = regexp.MustCompile(`^[A-Za-z][A-Za-z0-9-]{0,63}$`) // Inter, system-ui, sans-serif
 )
 
-// ValidFont reports whether s is a font-family list the theme accepts:
+// isFont reports whether s is a font-family list the theme accepts:
 // quoted family names and single-word names, separated by commas.
-func ValidFont(s string) bool {
+func isFont(s string) bool {
 	parts := strings.Split(s, ",")
 	if len(parts) > 12 {
 		return false
 	}
 	for _, p := range parts {
 		p = strings.TrimSpace(p)
-		if !quotedFamily.MatchString(p) && !plainFamily.MatchString(p) {
+		if !quotedFamily.MatchString(p) && (!plainFamily.MatchString(p) || cssWide[strings.ToLower(p)]) {
 			return false
 		}
 	}
@@ -133,16 +133,16 @@ func ValidFont(s string) bool {
 }
 
 func validFont(s, def string) string {
-	if ValidFont(s) {
+	if isFont(s) {
 		return s
 	}
 	return def
 }
 
-// Runtime serves the theme stylesheet built from a Config (design §4). It
+// runtimeTheme serves the theme stylesheet built from a Config (design §4). It
 // rebuilds the stylesheet when the values it reads differ from the last
 // ones, so it needs no change callback from cfgx.
-type Runtime struct {
+type runtimeTheme struct {
 	cfg Config
 
 	mu   sync.Mutex
@@ -151,22 +151,22 @@ type Runtime struct {
 	hash string
 }
 
-// NewRuntime returns a Runtime reading c.
-func NewRuntime(c Config) *Runtime { return &Runtime{cfg: c} }
+// newRuntime returns a runtimeTheme reading c.
+func newRuntime(c Config) *runtimeTheme { return &runtimeTheme{cfg: c} }
 
-// Current returns the theme stylesheet for c's current values and its hash.
-func (r *Runtime) Current() (css []byte, hash string) {
+// current returns the theme stylesheet for c's current values and its hash.
+func (r *runtimeTheme) current() (css []byte, hash string) {
 	c := r.cfg
 	key := strings.Join([]string{
-		c.BrandColor(), c.DangerColor(), c.WarningColor(), c.SuccessColor(), c.InfoColor(),
-		c.FontSans(), c.FontMono(), c.Radius(),
+		c.ThemeBrandColor(), c.ThemeDangerColor(), c.ThemeWarningColor(), c.ThemeSuccessColor(), c.ThemeInfoColor(),
+		c.ThemeFontSans(), c.ThemeFontMono(), c.ThemeRadius(),
 	}, "\x00")
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	if key != r.key || r.css == nil {
 		var b strings.Builder
 		b.WriteString("@layer ui.tokens {\n:root {\n")
-		for _, kv := range Overrides(c) {
+		for _, kv := range overrides(c) {
 			b.WriteString("\t" + kv[0] + ": " + kv[1] + ";\n")
 		}
 		b.WriteString("}\n}\n")
