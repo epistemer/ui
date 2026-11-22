@@ -28,3 +28,9 @@ this module.
   this repository, which is public: examples and tests use a toy shop. zp's
   own issues are out of scope, and no release waits on moving zp.
 - Every working session adds an entry to docs/status.md.
+- Generate templ from the repository root, with the version in go.mod:
+  `go run github.com/a-h/templ/cmd/templ@v0.3.1118 generate`. Never use
+  `-path`, because generated files record file names relative to where
+  templ runs, and CI's drift check runs from the root. templ also skips a
+  generated file that is newer than its source, so after a `-path` run,
+  touch the `.templ` files before generating again.
