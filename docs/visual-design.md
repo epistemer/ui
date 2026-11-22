@@ -494,3 +494,13 @@ forms-backed field, Dialog, the shared confirmation and Menu (part 2).
       page behind it. The confirmation should `autofocus` Cancel rather
       than rely on order. The guide's toasts are `popover="manual"`;
       `ariaNotify()` is Baseline only since September 2026.
+21. **A popover above a modal can't be reached** (V5, the check §7.5 of
+    the interface asked for). A toast shown above an open modal is visible
+    but inert, because the modal makes the rest of the page inert, a
+    popover shown later included. So §7.5's other branch holds: toasts go
+    into a region inside the top modal (the one holding focus, else the
+    last opened), and those already shown move there when a modal opens.
+    They move back once its `open` attribute goes, watched with a
+    MutationObserver, because the `close` event waits for rendering. A
+    live region is shown before a toast goes into it, in a later task, or
+    it isn't announced. Review 0010 shaped these details.

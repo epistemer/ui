@@ -10,45 +10,21 @@
 // inside it, and back to the page's region when it closes.
 
 class UIToasts extends HTMLElement {
-	#paused = false;
-
 	connectedCallback() {
-		this.addEventListener("pointerenter", this);
-		this.addEventListener("pointerleave", this);
-		this.addEventListener("focusin", this);
-		this.addEventListener("focusout", this);
 		this.addEventListener("click", this);
 		this.sync();
 	}
 
-	get paused() {
-		return this.#paused;
-	}
-
 	handleEvent(event) {
-		switch (event.type) {
-			case "pointerenter":
-			case "focusin":
-				this.#paused = true;
-				break;
-			case "pointerleave":
-				this.#paused = this.matches(":focus-within");
-				break;
-			case "focusout":
-				this.#paused = this.matches(":hover") || this.contains(event.relatedTarget);
-				break;
-			case "click": {
-				const close = event.target instanceof Element ? event.target.closest(".ui-toast-close") : null;
-				if (close) this.dismiss(close.closest("ui-toast"));
-				break;
-			}
-		}
+		const close = event.target instanceof Element ? event.target.closest(".ui-toast-close") : null;
+		if (close) this.dismiss(close.closest("ui-toast"));
 	}
 
-	// raise shows the region again, on top of anything opened since.
-	raise() {
-		if (this.matches(":popover-open")) this.hidePopover();
-		if (this.childElementCount) this.showPopover();
+	// open shows the region, so it is in the accessibility tree before a
+	// toast goes into it: a live region that appears with its content
+	// isn't announced.
+	open() {
+		if (!this.matches(":popover-open")) this.showPopover();
 	}
 
 	sync() {
@@ -69,6 +45,13 @@ class UIToasts extends HTMLElement {
 	}
 }
 
+// topModal is the open modal dialog people can reach: the one holding
+// focus, else the last opened (a confirmation over a dialog).
+function topModal() {
+	const modals = [...document.querySelectorAll("dialog")].filter((d) => d.matches(":modal"));
+	return document.activeElement?.closest("dialog:modal") ?? modals.at(-1) ?? null;
+}
+
 // dialogRegion is the region inside an open modal dialog, made on demand;
 // when the dialog closes, its toasts go back to the page's region.
 function dialogRegion(dialog, region) {
@@ -85,8 +68,14 @@ function dialogRegion(dialog, region) {
 	const watch = new MutationObserver(() => {
 		if (dialog.open) return;
 		watch.disconnect();
-		for (const t of [...inner.children]) region.append(t);
+		const back = [...inner.children];
 		inner.remove();
+		if (back.length) {
+			region.open();
+			setTimeout(() => region.append(...back), 50);
+		} else {
+			region.sync();
+		}
 	});
 	watch.observe(dialog, { attributes: true, attributeFilter: ["open"] });
 	return inner;
@@ -102,7 +91,8 @@ function dismissToast(toast) {
 	const next = toast.nextElementSibling ?? toast.previousElementSibling;
 	const dialog = toast.closest("dialog");
 	toast.remove();
-	if (hadFocus) (next?.querySelector(".ui-toast-close") ?? dialog)?.focus();
+	const inDialog = dialog?.querySelector("[autofocus], button, [href], input, select, textarea");
+	if (hadFocus) (next?.querySelector(".ui-toast-close") ?? inDialog)?.focus();
 }
 
 class UIToast extends HTMLElement {
@@ -113,14 +103,20 @@ class UIToast extends HTMLElement {
 	connectedCallback() {
 		const region = document.getElementById("ui-toasts");
 		if (!region) return; // no region: stays where it was rendered
-		const modal = [...document.querySelectorAll("dialog")].find((d) => d.matches(":modal"));
+		const modal = topModal();
 		const home = modal ? dialogRegion(modal, region) : region;
-		if (this.parentElement !== home) {
-			home.append(this); // connects again, in its region
+		const shown = home === region ? region.matches(":popover-open") : home.isConnected && home.childElementCount > 0;
+		if (this.parentElement !== home || !shown) {
+			// Show the region first, then add the toast in a later task, so
+			// the live region is there to announce it.
+			const from = this.parentElement;
+			this.remove();
+			if (from === region) region.sync();
+			if (home === region) region.open();
+			setTimeout(() => home.append(this), 50);
 			return;
 		}
-		if (home === region) region.raise?.();
-		if (this.#timer) return; // moved back from a dialog: keep its timeout
+		if (this.#timer) return; // moved between regions: keep its timeout
 		const ms = Number(this.dataset.uiTimeout);
 		if (ms > 0) {
 			this.#left = ms;
@@ -130,21 +126,26 @@ class UIToast extends HTMLElement {
 	}
 
 	disconnectedCallback() {
-		// Moving between regions disconnects and connects again in one task;
-		// only a toast that stays out is stopped.
-		queueMicrotask(() => {
-			if (!this.isConnected) clearInterval(this.#timer);
-		});
+		// Moving between regions disconnects and connects again; only a
+		// toast that stays out is stopped.
+		setTimeout(() => {
+			if (!this.isConnected) {
+				clearInterval(this.#timer);
+				this.#timer = 0;
+			}
+		}, 100);
 	}
 
+	// The timeout pauses while the pointer is over the toasts or focus is
+	// in them, read from the page each tick, so no event can leave it stuck.
 	#tick() {
 		const now = performance.now();
 		const holder = this.parentElement;
-		const paused = holder?.paused ?? holder?.matches(":hover, :focus-within");
-		if (!paused) this.#left -= now - this.#last;
+		if (!holder?.matches(":hover, :focus-within")) this.#left -= now - this.#last;
 		this.#last = now;
 		if (this.#left <= 0) {
 			clearInterval(this.#timer);
+			this.#timer = 0;
 			dismissToast(this);
 		}
 	}
@@ -156,6 +157,20 @@ document.addEventListener("click", (event) => {
 	const close = event.target instanceof Element ? event.target.closest(".ui-toasts[data-ui-in-dialog] .ui-toast-close") : null;
 	if (close) dismissToast(close.closest("ui-toast"));
 });
+
+// A modal dialog opening makes the page's region inert: its toasts move
+// into the dialog.
+new MutationObserver((records) => {
+	if (!records.some((r) => r.target instanceof HTMLDialogElement && r.target.open)) return;
+	const region = document.getElementById("ui-toasts");
+	const modal = topModal();
+	if (!region || !modal || !region.childElementCount) return;
+	const moving = [...region.children];
+	region.replaceChildren();
+	region.sync();
+	const inner = dialogRegion(modal, region);
+	setTimeout(() => inner.append(...moving), 50);
+}).observe(document.documentElement, { attributes: true, attributeFilter: ["open"], subtree: true });
 
 if (!customElements.get("ui-toasts")) customElements.define("ui-toasts", UIToasts);
 if (!customElements.get("ui-toast")) customElements.define("ui-toast", UIToast);

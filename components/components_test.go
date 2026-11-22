@@ -2,6 +2,7 @@ package components
 
 import (
 	"context"
+	"fmt"
 	"strings"
 	"testing"
 
@@ -31,6 +32,17 @@ func panics(t *testing.T, what string, c templ.Component) {
 	c.Render(ui.WithIDs(context.Background(), ui.Sequence("t")), &strings.Builder{})
 }
 
+// panicsWith is panics for a panic whose message holds want.
+func panicsWith(t *testing.T, what, want string, c templ.Component) {
+	t.Helper()
+	defer func() {
+		if r := recover(); r == nil || !strings.Contains(fmt.Sprint(r), want) {
+			t.Errorf("%s: got panic %v, want one with %q", what, r, want)
+		}
+	}()
+	c.Render(ui.WithIDs(context.Background(), ui.Sequence("t")), &strings.Builder{})
+}
+
 func TestPanics(t *testing.T) {
 	panics(t, "a dialog without a body", Dialog(i18n.Static("x")))
 	panics(t, "a dialog without a title", Dialog(nil))
@@ -40,6 +52,10 @@ func TestPanics(t *testing.T) {
 	panics(t, "a toast without text", Toast(i18n.Static(" ")))
 	panics(t, "tabs without a name", Tabs(nil))
 	panics(t, "a detail row without a label", DetailRow(nil))
+	panicsWith(t, "a dialog with a blank title", "no title", Dialog(i18n.Static(" ")))
+	panicsWith(t, "a menu with a blank label", "no label", Menu(i18n.Static("")))
+	panicsWith(t, "tabs with a blank name", "no label", Tabs(i18n.Static("\t")))
+	panicsWith(t, "a detail row with a blank label", "no label", DetailRow(i18n.Static(" ")))
 	defer func() {
 		if recover() == nil {
 			t.Error("Confirm with no question")

@@ -3,6 +3,7 @@ package components
 import (
 	"context"
 	"io"
+	"strings"
 
 	"github.com/a-h/templ"
 	"github.com/epistemer/i18n"
@@ -46,8 +47,8 @@ func (d DetailRowSpec) Attrs(a templ.Attributes) DetailRowSpec {
 }
 
 func (d DetailRowSpec) Render(ctx context.Context, w io.Writer) error {
-	if d.label == nil {
-		panic("components: DetailRow(nil): a row needs its label")
+	if d.label == nil || strings.TrimSpace(d.label.T(ctx)) == "" {
+		panic("components: DetailRow with no label: a row needs its label")
 	}
 	return detailRow(elements.Merge(templ.Attributes{"class": "ui-detail-row"}, nil, d.attrs), d.label).Render(ctx, w)
 }

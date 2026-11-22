@@ -47,6 +47,15 @@ MutationObserver), not its `close` event, which waits for rendering
 The confirmation's click listener now skips fields that take input, so a
 select that confirms its change isn't asked when clicked.
 
+**Review** ([0010](reviews/0010-v5-components.md)): Gemini 4 Argon
+(Medium), about 40k tokens. Twelve findings; eight changed the code, mostly
+the toasts around modals (toasts already shown move into a modal that
+opens, live regions are shown before they're filled, no pause flag), the
+menu's own placement (clean measurement, inline flip, one per frame, the
+gap from `--ui-space-1`), blank names, and checkboxes in the confirmation.
+Checked again in the pane: toasts move into the confirmation and back and
+still time out; the menu flips near either edge in RTL.
+
 **Next.** V6: `ui/layout`, and `internal/spike` removed (already empty).
 ## 2026-11-22 — V4: inputs
 

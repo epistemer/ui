@@ -3,6 +3,7 @@ package components
 import (
 	"context"
 	"io"
+	"strings"
 
 	"github.com/a-h/templ"
 	"github.com/epistemer/i18n"
@@ -53,8 +54,8 @@ func (d DialogSpec) Attrs(a templ.Attributes) DialogSpec {
 }
 
 func (d DialogSpec) Render(ctx context.Context, w io.Writer) error {
-	if d.title == nil {
-		panic("components: Dialog(nil): a dialog needs its title")
+	if d.title == nil || strings.TrimSpace(d.title.T(ctx)) == "" {
+		panic("components: Dialog with no title: a dialog needs its name")
 	}
 	return ui.Slotted(dialog(d), DialogTrigger, DialogBody, DialogActions).Render(ctx, w)
 }

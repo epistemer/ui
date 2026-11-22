@@ -3,6 +3,7 @@ package components
 import (
 	"context"
 	"io"
+	"strings"
 
 	"github.com/a-h/templ"
 	"github.com/epistemer/i18n"
@@ -32,8 +33,8 @@ func (t TabsSpec) Attrs(a templ.Attributes) TabsSpec {
 }
 
 func (t TabsSpec) Render(ctx context.Context, w io.Writer) error {
-	if t.label == nil {
-		panic("components: Tabs(nil): a row of tabs needs its name")
+	if t.label == nil || strings.TrimSpace(t.label.T(ctx)) == "" {
+		panic("components: Tabs with no label: a row of tabs needs its name")
 	}
 	own := templ.Attributes{"class": "ui-tabs", "aria-label": t.label.T(ctx)}
 	return tabs(elements.Merge(own, []string{"aria-label"}, t.attrs)).Render(ctx, w)

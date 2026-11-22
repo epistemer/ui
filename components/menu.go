@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"strings"
 
 	"github.com/a-h/templ"
 	"github.com/epistemer/i18n"
@@ -43,8 +44,8 @@ func (m MenuSpec) Attrs(a templ.Attributes) MenuSpec {
 }
 
 func (m MenuSpec) Render(ctx context.Context, w io.Writer) error {
-	if m.label == nil {
-		panic("components: Menu(nil): a menu needs its label")
+	if m.label == nil || strings.TrimSpace(m.label.T(ctx)) == "" {
+		panic("components: Menu with no label: a menu needs its name")
 	}
 	return ui.Slotted(menu(m), MenuTrigger, MenuItems).Render(ctx, w)
 }
