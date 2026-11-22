@@ -11,6 +11,7 @@ import templruntime "github.com/a-h/templ/runtime"
 
 import (
 	"github.com/epistemer/i18n"
+	"github.com/epistemer/ui"
 	"github.com/epistemer/ui/components"
 	"github.com/epistemer/ui/elements"
 	"github.com/epistemer/ui/forms"
@@ -103,7 +104,7 @@ func appShell(scheme layout.ColorScheme, withNav bool) templ.Component {
 						}
 						return nil
 					})
-					templ_7745c5c3_Err = layout.NavItem("/dashboard").Render(templ.WithChildren(ctx, templ_7745c5c3_Var5), templ_7745c5c3_Buffer)
+					templ_7745c5c3_Err = layout.NavItem(ui.URL("/dashboard")).Render(templ.WithChildren(ctx, templ_7745c5c3_Var5), templ_7745c5c3_Buffer)
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -125,7 +126,7 @@ func appShell(scheme layout.ColorScheme, withNav bool) templ.Component {
 						}
 						return nil
 					})
-					templ_7745c5c3_Err = layout.NavItem("/orders").Current(true).Render(templ.WithChildren(ctx, templ_7745c5c3_Var6), templ_7745c5c3_Buffer)
+					templ_7745c5c3_Err = layout.NavItem(ui.URL("/orders")).Current(true).Render(templ.WithChildren(ctx, templ_7745c5c3_Var6), templ_7745c5c3_Buffer)
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -159,7 +160,7 @@ func appShell(scheme layout.ColorScheme, withNav bool) templ.Component {
 							}
 							return nil
 						})
-						templ_7745c5c3_Err = layout.NavItem("/toys").Render(templ.WithChildren(ctx, templ_7745c5c3_Var8), templ_7745c5c3_Buffer)
+						templ_7745c5c3_Err = layout.NavItem(ui.URL("/toys")).Render(templ.WithChildren(ctx, templ_7745c5c3_Var8), templ_7745c5c3_Buffer)
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
@@ -181,7 +182,7 @@ func appShell(scheme layout.ColorScheme, withNav bool) templ.Component {
 							}
 							return nil
 						})
-						templ_7745c5c3_Err = layout.NavItem("/stores").Render(templ.WithChildren(ctx, templ_7745c5c3_Var9), templ_7745c5c3_Buffer)
+						templ_7745c5c3_Err = layout.NavItem(ui.URL("/stores")).Render(templ.WithChildren(ctx, templ_7745c5c3_Var9), templ_7745c5c3_Buffer)
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
@@ -391,15 +392,15 @@ func ordersHeader() templ.Component {
 				}
 				return nil
 			})
-			templ_7745c5c3_Err = elements.Button().Href("/orders/new").Render(templ.WithChildren(ctx, templ_7745c5c3_Var18), templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = elements.Button().Href(ui.URL("/orders/new")).Render(templ.WithChildren(ctx, templ_7745c5c3_Var18), templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			return nil
 		})
 		templ_7745c5c3_Err = layout.PageHeader(i18n.Static("Orders")).Description(i18n.Static("Every order placed in the last 30 days.")).Breadcrumbs(
-			layout.Crumb{Href: "/", Text: i18n.Static("Home")},
-			layout.Crumb{Href: "/shop", Text: i18n.Static("Shop")},
+			layout.Crumb{Href: ui.URL("/"), Text: i18n.Static("Home")},
+			layout.Crumb{Href: ui.URL("/shop"), Text: i18n.Static("Shop")},
 			layout.Crumb{Text: i18n.Static("Orders")},
 		).Render(templ.WithChildren(ctx, templ_7745c5c3_Var16), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {

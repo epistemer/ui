@@ -10,6 +10,7 @@ import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
 import (
+	"github.com/epistemer/ui"
 	"time"
 
 	"github.com/epistemer/i18n"
@@ -83,7 +84,7 @@ func valueList() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = elements.Link("/stores/1", i18n.Static("Store 1")).Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = elements.Link(ui.URL("/stores/1"), i18n.Static("Store 1")).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -91,7 +92,7 @@ func valueList() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = elements.Image("/static/logo.png", i18n.Static("The store's logo")).Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = elements.Image(ui.URL("/static/logo.png"), i18n.Static("The store's logo")).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -164,7 +165,7 @@ func valueEmpties() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = elements.Link("", i18n.Static("Nowhere")).Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = elements.Link(ui.URL(""), i18n.Static("Nowhere")).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -172,7 +173,7 @@ func valueEmpties() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = elements.Image("/static/pattern.png", nil).Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = elements.Image(ui.URL("/static/pattern.png"), nil).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

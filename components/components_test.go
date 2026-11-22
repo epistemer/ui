@@ -47,10 +47,13 @@ func TestPanics(t *testing.T) {
 	panics(t, "a dialog without a body", Dialog(i18n.Static("x")))
 	panics(t, "a dialog without a title", Dialog(nil))
 	panics(t, "a menu without items", Menu(i18n.Static("x")))
-	panics(t, "a submitting link item", MenuItem().Href("/x").Submit("f"))
+	panics(t, "a submitting link item", MenuItem().Href(ui.URL("/x")).Submit("f"))
 	panics(t, "a toast in brand", Toast(i18n.Static("x")).Tone(elements.Brand))
 	panics(t, "a toast without text", Toast(i18n.Static(" ")))
 	panics(t, "tabs without a name", Tabs(nil))
+	panicsWith(t, "a tab without an address", "no address", Tab(nil))
+	panicsWith(t, "a tab with an empty address", "no address", Tab(ui.URL("")))
+	panicsWith(t, "a tab with a refused address", "no address", Tab(ui.URL("javascript:alert(1)")))
 	panics(t, "a detail row without a label", DetailRow(nil))
 	panicsWith(t, "a dialog with a blank title", "no title", Dialog(i18n.Static(" ")))
 	panicsWith(t, "a menu with a blank label", "no label", Menu(i18n.Static("")))
@@ -71,11 +74,16 @@ func TestOwned(t *testing.T) {
 			t.Errorf("missing %s: %s", want, html)
 		}
 	}
-	html = render(t, MenuItem().Href("/x").Disabled(true))
+	for _, l := range []ui.Link{nil, ui.URL(""), ui.URL("javascript:void(0)")} {
+		if html := render(t, MenuItem().Href(l)); strings.Contains(html, "href") || !strings.Contains(html, `type="button"`) {
+			t.Errorf("an item with no address (%v) isn't a button: %s", l, html)
+		}
+	}
+	html = render(t, MenuItem().Href(ui.URL("/x")).Disabled(true))
 	if strings.Contains(html, "href") || !strings.Contains(html, `aria-disabled="true"`) {
 		t.Errorf("disabled link item: %s", html)
 	}
-	html = render(t, Tab("/a").Current(true).Attrs(templ.Attributes{"href": "/b", "aria-current": "false"}))
+	html = render(t, Tab(ui.URL("/a")).Current(true).Attrs(templ.Attributes{"href": "/b", "aria-current": "false"}))
 	if !strings.Contains(html, `href="/a"`) || !strings.Contains(html, `aria-current="page"`) {
 		t.Errorf("tab: %s", html)
 	}

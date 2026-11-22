@@ -11,6 +11,7 @@ import templruntime "github.com/a-h/templ/runtime"
 
 import (
 	"github.com/epistemer/i18n"
+	"github.com/epistemer/ui"
 	"github.com/epistemer/ui/components"
 	"github.com/epistemer/ui/elements"
 	"github.com/epistemer/ui/icons"
@@ -415,7 +416,7 @@ func menuBasic() templ.Component {
 					}
 					return nil
 				})
-				templ_7745c5c3_Err = components.MenuItem().Href("/stores/1/edit").Render(templ.WithChildren(ctx, templ_7745c5c3_Var19), templ_7745c5c3_Buffer)
+				templ_7745c5c3_Err = components.MenuItem().Href(ui.URL("/stores/1/edit")).Render(templ.WithChildren(ctx, templ_7745c5c3_Var19), templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -459,7 +460,7 @@ func menuBasic() templ.Component {
 					}
 					return nil
 				})
-				templ_7745c5c3_Err = components.MenuItem().Href("/stores/1/archive").Disabled(true).Render(templ.WithChildren(ctx, templ_7745c5c3_Var21), templ_7745c5c3_Buffer)
+				templ_7745c5c3_Err = components.MenuItem().Href(ui.URL("/stores/1/archive")).Disabled(true).Render(templ.WithChildren(ctx, templ_7745c5c3_Var21), templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -657,7 +658,7 @@ func menuInTable() templ.Component {
 			var templ_7745c5c3_Var30 string
 			templ_7745c5c3_Var30, templ_7745c5c3_Err = templ.JoinStringErrs(s)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/stories/components.templ`, Line: 111, Col: 12}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/stories/components.templ`, Line: 112, Col: 12}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var30))
 			if templ_7745c5c3_Err != nil {
@@ -709,7 +710,7 @@ func menuInTable() templ.Component {
 						}
 						return nil
 					})
-					templ_7745c5c3_Err = components.MenuItem().Href("/stores/edit").Render(templ.WithChildren(ctx, templ_7745c5c3_Var33), templ_7745c5c3_Buffer)
+					templ_7745c5c3_Err = components.MenuItem().Href(ui.URL("/stores/edit")).Render(templ.WithChildren(ctx, templ_7745c5c3_Var33), templ_7745c5c3_Buffer)
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -807,7 +808,7 @@ func tabsStory() templ.Component {
 				}
 				return nil
 			})
-			templ_7745c5c3_Err = components.Tab("/stores/1").Current(true).Render(templ.WithChildren(ctx, templ_7745c5c3_Var37), templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = components.Tab(ui.URL("/stores/1")).Current(true).Render(templ.WithChildren(ctx, templ_7745c5c3_Var37), templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -851,7 +852,7 @@ func tabsStory() templ.Component {
 				}
 				return nil
 			})
-			templ_7745c5c3_Err = components.Tab("/stores/1/orders").Render(templ.WithChildren(ctx, templ_7745c5c3_Var38), templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = components.Tab(ui.URL("/stores/1/orders")).Render(templ.WithChildren(ctx, templ_7745c5c3_Var38), templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -873,7 +874,7 @@ func tabsStory() templ.Component {
 				}
 				return nil
 			})
-			templ_7745c5c3_Err = components.Tab("/stores/1/stock").Render(templ.WithChildren(ctx, templ_7745c5c3_Var40), templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = components.Tab(ui.URL("/stores/1/stock")).Render(templ.WithChildren(ctx, templ_7745c5c3_Var40), templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

@@ -1,6 +1,7 @@
 package stories
 
 import (
+	"github.com/epistemer/ui"
 	"github.com/epistemer/i18n"
 	"github.com/epistemer/ui/elements"
 	"github.com/epistemer/ui/icons"
@@ -48,10 +49,10 @@ templ buttonStates() {
 		@elements.Button().Disabled(true) {
 			Disabled
 		}
-		@elements.Button().Href("/orders") {
+		@elements.Button().Href(ui.URL("/orders")) {
 			A link
 		}
-		@elements.Button().Href("/orders").Disabled(true) {
+		@elements.Button().Href(ui.URL("/orders")).Disabled(true) {
 			A disabled link
 		}
 		@elements.Button().Variant(elements.Outline).Label(i18n.Static("Add an item")).Attrs(templ.Attributes{"class": "story-extra"}) {
@@ -169,7 +170,7 @@ templ avatars() {
 		@elements.Avatar(i18n.Static("Nour Hassan")).Size(elements.Small)
 		@elements.Avatar(i18n.Static("Nour Hassan"))
 		@elements.Avatar(i18n.Static("Omar")).Size(elements.Large)
-		@elements.Avatar(i18n.Static("Layla Adel")).Src("/static/layla.png")
+		@elements.Avatar(i18n.Static("Layla Adel")).Src(ui.URL("/static/layla.png"))
 		<span class="catalog-row">
 			@elements.Avatar(i18n.Static("Karim Fathy")).Decorative()
 			Karim Fathy

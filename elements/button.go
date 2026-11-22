@@ -8,6 +8,9 @@ import (
 
 	"github.com/a-h/templ"
 	"github.com/epistemer/i18n"
+
+	"github.com/epistemer/ui"
+	"github.com/epistemer/ui/internal/links"
 )
 
 // ButtonSpec is a button being described (§5.1). Every method returns a
@@ -44,8 +47,9 @@ func (b ButtonSpec) Size(s Size) ButtonSpec { b.size = s; return b }
 // Cancel beside a brand action.
 func (b ButtonSpec) Tone(t Tone) ButtonSpec { b.tone = t; return b }
 
-// Href makes the button a link.
-func (b ButtonSpec) Href(u templ.SafeURL) ButtonSpec { b.href = u; return b }
+// Href makes the button a link to l. No address (a nil link, an empty
+// one, or one templ.URL refuses) leaves it a button.
+func (b ButtonSpec) Href(l ui.Link) ButtonSpec { b.href = links.Href(l); return b }
 
 // Submit makes it submit its form. A link can't submit; Render panics.
 func (b ButtonSpec) Submit() ButtonSpec { b.submit = true; return b }

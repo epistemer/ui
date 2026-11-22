@@ -1,6 +1,7 @@
 package stories
 
 import (
+	"github.com/epistemer/ui"
 	"github.com/epistemer/i18n"
 	"github.com/epistemer/ui/components"
 	"github.com/epistemer/ui/elements"
@@ -19,17 +20,17 @@ templ appShell(scheme layout.ColorScheme, withNav bool) {
 		}
 		if withNav {
 			@layout.AppNav {
-				@layout.NavItem("/dashboard") {
+				@layout.NavItem(ui.URL("/dashboard")) {
 					Dashboard
 				}
-				@layout.NavItem("/orders").Current(true) {
+				@layout.NavItem(ui.URL("/orders")).Current(true) {
 					Orders
 				}
 				@layout.NavSection(i18n.Static("Catalogue")) {
-					@layout.NavItem("/toys") {
+					@layout.NavItem(ui.URL("/toys")) {
 						Toys
 					}
-					@layout.NavItem("/stores") {
+					@layout.NavItem(ui.URL("/stores")) {
 						Stores
 					}
 				}
@@ -54,14 +55,14 @@ templ appShell(scheme layout.ColorScheme, withNav bool) {
 
 templ ordersHeader() {
 	@layout.PageHeader(i18n.Static("Orders")).Description(i18n.Static("Every order placed in the last 30 days.")).Breadcrumbs(
-		layout.Crumb{Href: "/", Text: i18n.Static("Home")},
-		layout.Crumb{Href: "/shop", Text: i18n.Static("Shop")},
+		layout.Crumb{Href: ui.URL("/"), Text: i18n.Static("Home")},
+		layout.Crumb{Href: ui.URL("/shop"), Text: i18n.Static("Shop")},
 		layout.Crumb{Text: i18n.Static("Orders")},
 	) {
 		@elements.Button().Variant(elements.Outline).Tone(elements.Neutral) {
 			Export
 		}
-		@elements.Button().Href("/orders/new") {
+		@elements.Button().Href(ui.URL("/orders/new")) {
 			@icons.Plus()
 			New order
 		}
