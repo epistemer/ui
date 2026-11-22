@@ -9,6 +9,70 @@ taken for epistemer, what's next, and what's waiting on epistemer.
 
 
 
+## 2026-11-22 — D7.1: the design of links, actions and tables
+
+A design session with epistemer: a reading of zp's server table and
+actions, a brainstorm, then the draft. No code.
+
+**Landed** (Claude):
+- [server-state-design.md](server-state-design.md): what the record of zp
+  asks for, links, `ui/actions`, `ui/tables`, filters as a form, the
+  pager, selection and bulk actions, transport, accessibility, the two
+  test kits, and the spike's list.
+- ADRs [0008](adr/0008-links.md) (an address is a link),
+  [0009](adr/0009-actions.md) (actions are a logic layer, gated by their
+  route) and [0010](adr/0010-tables.md) (generated columns, state in the
+  URL, one response).
+- The roadmap: D7 split into D7.1–D7.5, D8 for the second round, A5
+  before V7, and the T milestones in outline.
+- The inventory's "keep: rows streamed over SSE" is withdrawn (ADR 0010).
+
+**Decided by epistemer** (design §9): the permission comes from an
+action's route (S1); models generates each view's columns (S2), as a kind
+and plain values (S3); one handler and one response, no SSE for rows
+(S4); handlers' builders return a link and every href in ui takes
+`interface{ URL() string }` (S5); this round is tables and actions, and
+v0.2.0 is tagged after it is reviewed (S6).
+
+**Review** ([0012](reviews/0012-server-state-design.md)): Gemini 4 Argon
+(High), about 93k tokens, and about 94k more on Argon (Medium) to repeat
+three findings its answer had cut. Sixteen findings; fifteen changed the
+draft. The largest: request attributes inherit, so they sit on the
+table's controls and never on its region; a request action without
+script needs a form, so the shells get one; a search box must not sit in
+its own swap target; an answer retargets itself at a row instead of
+sending rows out of band.
+
+**Decisions taken for epistemer, on defaults** (S7–S22, design §9). The
+ones most worth a look:
+- S7: ui doesn't import handlers. It owns `Link` and the gate's type.
+- S8: `Src` and `Image` take a link too.
+- S22: a column's page options sit on `tables.Col`, not on models'
+  column. This differs from the brainstorm's sketch
+  (`c.Email.Searchable()`); the review argued it and Claude agrees.
+  Either way the table a page declares decides which columns show and
+  which are searched, sorted or filtered, which is what epistemer asked
+  for; S22 is only which package's type carries the options.
+
+**S21, decided by epistemer** later the same day: a disabled action must
+be reachable to say why. At D7.5, after the spike, the lock gains a
+second Button state that is `aria-disabled` and focusable (`Disabled`
+stays native), and menus stop on disabled items.
+
+**Amendment A5 is locked** (epistemer, the same day): the kernel's
+`Link` and `URL`, and eight signatures of the visual packages, with
+`Src` and `Image` in on S8's default. It is written into interface.md
+(§4A, §10) and visual-interface.md (§2.7, §13.4). The code still takes
+`templ.SafeURL` until the roadmap's item A5 is built, so **V7 waits for
+it**; release PR #28 is open, and its API review will not match the
+contract before then.
+
+**Waiting on epistemer:** S7, S9–S20 and S22, or their defaults.
+
+**Next**, in a coding session: build A5; then the slice spike
+(D7.2), whose findings amend the design; then the handlers and models
+amendments (D7.3, D7.4) and the contract (D7.5).
+
 ## 2026-11-22 — V6: ui/layout
 
 **Landed** (Claude):
