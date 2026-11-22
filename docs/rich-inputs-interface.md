@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | **Draft** of amendment A7, for epistemer to lock (roadmap D8.4). Its questions are R1–R28 of the design (§9 there) and L1–L7 below; epistemer answered R1, R2, R4, R7, R9, R15, R16, R23, R24, R27, L1 and L7 on 2026-11-22; the rest stand on their defaults until the lock. Once locked, it amends [interface.md](interface.md) (forms), [visual-interface.md](visual-interface.md) (inputs, components, CSS, the script) and [server-state-interface.md](server-state-interface.md) (tables) |
+| Status | **Locked by epistemer on 2026-11-22** as amendment A7: R1, R2, R4 (htmx), R7, R9, R15, R16, R23, R24, R27, L1 and L7 (no marker) answered, the rest on their defaults. It amends [interface.md](interface.md) (forms, §10 records it), [visual-interface.md](visual-interface.md) (§13.6) and [server-state-interface.md](server-state-interface.md) (§6, tables). A change that alters what an app writes or gets back is an amendment |
 | Date | 2026-11-22 |
 | Roadmap item | D8.4 |
 | Inputs | [rich-inputs-design.md](rich-inputs-design.md) (R1–R28, the spike's findings §8.1), ADRs [0011](adr/0011-remote-select.md)–[0013](adr/0013-list-fields.md), reviews [0019](reviews/0019-rich-inputs-design.md) and [0020](reviews/0020-d8-2-spike.md), the spike in `internal/spike`, handlers' ADR 0006 (a route's own body limit, drafted with this) |

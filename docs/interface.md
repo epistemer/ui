@@ -770,6 +770,7 @@ entry in status.md.
 | A4 | 2026-11-22 | §8 | uitest gains `CheckNames` and `CheckSelectors` (with `SelectorOption`, `Prefix`), as [visual-interface.md](visual-interface.md) §13.1 states them. Locked by epistemer with the visual packages |
 | A5 | 2026-11-22 | §4A (new); visual-interface.md §2.7, §5.1, §5.3, §5.4, §7.3, §7.4, §8.2, §8.4, §13.4 | An address is a link: the kernel gains `Link` and `URL`, and eight signatures of the visual packages take a `ui.Link` where they took a `templ.SafeURL` (ADR 0008). Locked by epistemer. Built by the roadmap's item A5, before v0.2.0 is tagged |
 | A6 | 2026-11-22 | visual-interface.md §5.1, §7.3, §8.2, §8.3, §13.5; [server-state-interface.md](server-state-interface.md) | Actions and tables: `ui/actions`, `ui/tables` and their test kits; `Unavailable` on Button and MenuItem, `MenuSpec.ID`, the shells' action form and dialog. Locked by epistemer with the defaults of T1–T11 |
+| A7 | 2026-11-22 | §5.3, §5.4, §5.10, §6.2 (forms); visual-interface.md §6, §7, §10, §13.6; server-state-interface.md §6; [rich-inputs-interface.md](rich-inputs-interface.md) | The remote select, uploads and list fields: `Field[T].Remote`, `Form.Upload`/`Uploads` over the new `ui/forms/files`, `Control.Remote`/`Stored`/`Lost`/`Bounds`, a new list's blank items, `rule.Files`/`MinFiles`/`MaxFiles`; §5.8's rule for items stays. Locked by epistemer with R1–R28 and L1–L7 (some answered, the rest on defaults) |
 
 **The visual packages.** Their contract is
 [visual-interface.md](visual-interface.md), locked by epistemer on

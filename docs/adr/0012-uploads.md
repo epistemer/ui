@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | Proposed |
+| Status | Accepted by epistemer on 2026-11-22, with the lock of A7 |
 | Date | 2026-11-22 |
 | Roadmap item | D8.1 |
 | Deciders | Claude proposed it (design R14–R16); epistemer decides at the lock (D8.4) |
