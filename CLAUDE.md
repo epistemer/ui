@@ -12,7 +12,10 @@ this module.
   [docs/forms-design.md](docs/forms-design.md) (forms) and
   [docs/visual-design.md](docs/visual-design.md) (the visual packages, a
   draft; its ADRs are 0004 and 0005); the contract is
-  [docs/interface.md](docs/interface.md), locked by epistemer.
+  [docs/interface.md](docs/interface.md), locked by epistemer. The
+  visual packages' contract is drafted in
+  [docs/visual-interface.md](docs/visual-interface.md) until epistemer
+  locks it (D6).
 - Claude owns this repository until v1.0.0, on the terms of
   [docs/ownership.md](docs/ownership.md) (delegated 2026-11-21). Only API
   design is epistemer's, and the lock of interface.md.

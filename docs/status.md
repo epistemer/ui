@@ -3,6 +3,51 @@
 Newest entry first. Each working session adds one: what landed, decisions
 taken for epistemer, what's next, and what's waiting on epistemer.
 
+## 2026-11-22 — Interface draft of the visual packages (D5)
+
+**Landed** (this PR):
+- docs/visual-interface.md: the interface of theme (with the nested
+  `themeschema` module), icons, elements, inputs, components, layout and
+  the catalogue, the ui script's contract and ui's i18n keys, for
+  epistemer to lock at D6. On lock it folds into interface.md;
+  interface.md itself is unchanged;
+- review 0005;
+- the roadmap's D5 ticked.
+
+**What the draft settles** (each open choice is a question, V1–V18, with a
+default):
+- builders return `…Spec` values (finding 7);
+- `theme.Config`'s getters carry the group prefix (`ThemeBrandColor()`),
+  pinned with `GoName("Theme")`, and theme exports `CheckColor`,
+  `CheckFont` and `CheckRadius` for cfgx's `.Validate`;
+- ui's keys are `ui.<package>.<component>.<name>`; the spike's keys are
+  renamed;
+- no `Action` type in this lock (Q6): confirmation is attributes, and the
+  table (D7) brings one action description with placements;
+- uitest's `CheckNames` and `CheckSelectors` are amendment A4, proposed;
+- forms' `Placeholder` fallback: no change proposed (V15).
+
+Every piece the spike didn't prove is marked, and §14 lists them: tabs,
+toasts, the detail list, layout, most elements, `themeschema` and
+`catalogtest` among them.
+
+**Review 0005** (Gemini 4 Argon (High), about 97k tokens, the milestone's
+one Argon (High) run; Gemini 3.8 Flash (Low) restated three cut findings):
+18 findings, 5 blocking. All handled, two answered rather than taken
+(file kinds are forms' file input, not D7's uploads; V15's default stays).
+The ones that changed the design:
+- the toast region is a manual popover, so it shows above a modal
+  dialog, and each toast is a `<ui-toast>` element;
+- the app shell's narrow-screen drawer is driven by the ui script through
+  `aria-expanded`, not a popover;
+- an unknown asset release is a 404 again, as spiked: serving the current
+  files would mix modules of two releases;
+- a `Neutral` tone, so a neutral Cancel button can be expressed;
+- a required slot left unfilled panics.
+
+**Waiting on epistemer:** the D6 lock of visual-interface.md, with
+answers to V1–V18 or their defaults.
+
 ## 2026-11-22 — Guidance cross-check of the spike
 
 epistemer upgraded Node to 24, so the `modern-web-guidance` tool now runs.
