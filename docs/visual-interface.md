@@ -1,8 +1,8 @@
-# ui: interface of the visual packages (draft)
+# ui: interface of the visual packages
 
 | | |
 |---|---|
-| Status | **Draft (D5), for epistemer to lock at D6.** On lock it folds into [interface.md](interface.md) as new sections after §9, and its uitest and forms parts become amendments there (§13) |
+| Status | **Locked by epistemer on 2026-11-22 (D6), with the defaults of V1–V18.** It stays a document of its own beside [interface.md](interface.md), whose §10 records the lock and amendment A4 (uitest, §13.1). A change to anything here that alters what an app writes or gets back is an amendment |
 | Date | 2026-11-22 |
 | Roadmap item | D5 |
 | Inputs | [visual-design.md](visual-design.md) §2–§11 (Q1–Q9 and the spike's findings), ADRs [0004](adr/0004-own-css.md), [0005](adr/0005-client-behaviour.md), [0006](adr/0006-goja-for-script-tests.md), reviews [0002](reviews/0002-visual-design.md)–[0004](reviews/0004-d4-part2.md), the spike in `internal/spike`, and review [0005](reviews/0005-visual-interface.md) of this draft |
@@ -1363,7 +1363,7 @@ inputs and components, which both import elements anyway; [V5] decides.
 
 ## 14. Questions for epistemer
 
-Each has a default. Taking it locks the text above as written.
+epistemer took every default on 2026-11-22, so the text above is locked as written.
 
 | # | Question | Default | Alternatives |
 |---|---|---|---|

@@ -157,8 +157,30 @@ the interface.
 | ☑ | D3 | visual-design.md: layers, tokens, conventions, behaviour, accessibility, catalogue, open questions Q1–Q9 | Reviewed by the other model family (review 0002, done), and epistemer has answered Q1–Q9 or taken the defaults |
 | ☑ | D4 | Slice spike in `internal/spike` (design §10): Button, a text input on `forms.Control`, Dialog with the shared confirmation, Menu; the run-time theme with contrast derivation; the catalogue; the CSS, names and selector checks; the ui script with the invoker-command fallback, `<ui-menu>` and the condition evaluator | The catalogue runs; `go test` covers goldens, ids, names and selectors for every story and the evaluator's conformance vectors; findings amend visual-design.md |
 | ☑ | D5 | interface.md sections for what Q9 locks, with a cross-model review (drafted in [visual-interface.md](visual-interface.md), review 0005) | The review's findings are fixed or answered |
-| ☐ | D6 | epistemer locks the visual packages' interface | Locked; milestones V1… planned in this file |
+| ☑ | D6 | epistemer locks the visual packages' interface | Locked; milestones V1… planned in this file |
 | ☐ | D7 | Design of the server-state components (table, server table, pagination, filters, remote select, uploads) over models' `listing` interfaces | Its own design and review, then an amendment to the lock |
+
+## V — Building the visual packages
+
+To [visual-interface.md](visual-interface.md), locked 2026-11-22. Each
+milestone moves its part of `internal/spike` into exported packages, with:
+- stories, goldens, `CheckIDs`, `CheckNames` and `CheckSelectors` for
+  every variant;
+- a browser check in the pane (LTR, RTL, light, dark, keyboard);
+- for the parts not spiked, the first checks the interface names.
+
+A finding that changes locked text is an amendment, brought to epistemer.
+`internal/spike` goes when V6 lands.
+
+| ✓ | ID | Item | Done when |
+|---|---|---|---|
+| ☐ | V1 | `ui/theme`: token table, `Config` and its checks, the joined stylesheet and script under one hash, the run-time stylesheet with derived contrast, `Head`, the CSS checks; `themeschema` as a nested module | §3 holds, the CSS checks and the contrast sweep pass, and themeschema's getters satisfy `theme.Config` in a test app schema |
+| ☐ | V2 | `ui/catalog` and `catalogtest`, `cmd/catalog`; uitest's `CheckNames` and `CheckSelectors` (A4) | §9 and §13.1 hold; the spike's stories run through catalogtest |
+| ☐ | V3 | `ui/icons` (the Lucide set, ADR) and `ui/elements` (Button, Badge, Alert, Card, Avatar, Spinner, Tooltip, Separator, Heading, value renderers, `Merge`) | §4 and §5 hold, every element has stories |
+| ☐ | V4 | `ui/inputs`: every kind but lists, hints above the control, errors with their level word, the password reveal; the condition evaluator in the ui script | §6 and §10's conditions hold; the vectors pass in jstest |
+| ☐ | V5 | `ui/components`: Dialog, confirmation, Menu (with the clamping fallback, tested where anchoring is missing), navigation tabs, toasts, detail list; an htmx story for the confirmation and swaps | §7 and §10 hold |
+| ☐ | V6 | `ui/layout`: document, app shell with the drawer and the colour scheme menu, auth shell, page header; `internal/spike` removed | §8 holds; a full page of the toy shop renders in the catalogue |
+| ☐ | V7 | Release v0.2.0: an API review of every exported identifier against visual-interface.md, CHANGELOG, the `ui` skill updated, the tag | `go get github.com/epistemer/ui@v0.2.0` works through the proxy |
 
 ## Backlog
 

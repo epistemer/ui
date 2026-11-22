@@ -3,6 +3,28 @@
 Newest entry first. Each working session adds one: what landed, decisions
 taken for epistemer, what's next, and what's waiting on epistemer.
 
+
+## 2026-11-22 — D6: the visual packages' interface is locked
+
+epistemer locked [visual-interface.md](visual-interface.md) with the
+defaults of V1–V18. Those include:
+- `…Spec` builders;
+- `popovertarget` menus;
+- keys `ui.<package>.<component>.<name>`;
+- no `Action` type until D7;
+- `Neutral` plus five accent tones;
+- Lucide icons;
+- the drawer for narrow screens;
+- the `ToastSwap` exception to ADR 0005, still to be written into the ADR
+  (V5).
+
+uitest's `CheckNames` and `CheckSelectors` are amendment A4. The document
+stays separate from interface.md, whose §10 points to it.
+
+The roadmap gains milestones V1–V7: theme, catalogue and checks, icons and
+elements, inputs, components, layout, release v0.2.0.
+
+**Next.** V1, `ui/theme`.
 ## 2026-11-22 — Interface draft of the visual packages (D5)
 
 **Landed** (this PR):
