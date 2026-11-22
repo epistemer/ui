@@ -29,7 +29,7 @@ function apply() {
 			params.set(input.name, input.value + (input.dataset.unit ?? ""));
 		}
 		try {
-			const response = await fetch("/tokens.json?" + params, { signal: inflight.signal });
+			const response = await fetch("tokens.json?" + params, { signal: inflight.signal });
 			current = await response.json();
 			paintAll();
 		} catch (err) {

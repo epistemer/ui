@@ -1,4 +1,4 @@
-// Command catalog serves the D4 spike's stories: go run ./internal/spike/cmd/catalog.
+// Command catalog serves ui's own stories: go run ./cmd/catalog.
 package main
 
 import (
@@ -6,8 +6,8 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/epistemer/ui/internal/spike/catalog"
-	"github.com/epistemer/ui/internal/spike/stories"
+	"github.com/epistemer/ui/catalog"
+	"github.com/epistemer/ui/internal/stories"
 	"github.com/epistemer/ui/theme"
 )
 
@@ -19,5 +19,8 @@ func main() {
 		log.Fatal(err)
 	}
 	log.Printf("ui catalogue on http://%s", *addr)
-	log.Fatal(http.ListenAndServe(*addr, catalog.New(t, stories.All()...)))
+	mux := http.NewServeMux()
+	mux.Handle("/ui/", t)
+	mux.Handle("/", catalog.New(t, stories.All()...))
+	log.Fatal(http.ListenAndServe(*addr, mux))
 }

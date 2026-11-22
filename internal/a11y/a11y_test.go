@@ -24,7 +24,7 @@ func TestSelectedResolvesNestingAndCompounds(t *testing.T) {
 :root[data-color-scheme="dark"] { color-scheme: dark; }
 /* .ui-commented { } */
 }`
-	got := Selected(css)
+	got := Selected(css, []string{"ui-"})
 	want := []string{
 		".ui-badge",
 		".ui-button",
@@ -41,7 +41,7 @@ func TestSelectedResolvesNestingAndCompounds(t *testing.T) {
 }
 
 func TestUsedPairsAttributesWithTheirClass(t *testing.T) {
-	got, err := Used(`<span class="ui-badge" data-variant="outline"><svg class="ui-icon" data-mirror data-ui-hook="x"></svg></span><button class="other" data-variant="x"></button>`)
+	got, err := Used(`<span class="ui-badge" data-variant="outline"><svg class="ui-icon" data-mirror data-ui-hook="x"></svg></span><button class="other" data-variant="x"></button>`, []string{"ui-"})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -77,6 +77,48 @@ func TestNamesEdgeCases(t *testing.T) {
 	}
 	for _, h := range good {
 		if probs, _ := Names(h); len(probs) != 0 {
+			t.Errorf("%s: %v", h, probs)
+		}
+	}
+}
+func TestNamesBasics(t *testing.T) {
+	bad := []string{
+		`<button type="button"><svg aria-hidden="true"></svg></button>`,
+		`<a href="/x"></a>`,
+		`<input type="text" name="q" placeholder="Search">`,
+		`<img src="/x.png">`,
+		`<dialog open><p>Hi</p></dialog>`,
+		`<fieldset><input type="checkbox" aria-label="x"></fieldset>`,
+		`<nav></nav><nav></nav>`,
+		`<button type="button" aria-labelledby="missing"></button>`,
+	}
+	for _, h := range bad {
+		probs, err := Names(h)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if len(probs) == 0 {
+			t.Errorf("%s passed the names check", h)
+		}
+	}
+	good := []string{
+		`<button type="button" aria-label="Close"><svg aria-hidden="true"></svg></button>`,
+		`<label for="q">Search</label><input id="q" type="search">`,
+		`<label>Email <input type="email"></label>`,
+		`<img src="/x.png" alt="">`,
+		`<input type="hidden" name="csrf">`,
+		`<dialog aria-labelledby="t"><h2 id="t">Delete?</h2></dialog>`,
+		`<fieldset><legend>Size</legend><label><input type="radio" name="s"> S</label></fieldset>`,
+		`<nav aria-label="Main"></nav><nav aria-label="Breadcrumb"></nav>`,
+		`<div hidden><button type="button"></button></div>`,
+		`<template><button type="button"></button></template>`,
+	}
+	for _, h := range good {
+		probs, err := Names(h)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if len(probs) != 0 {
 			t.Errorf("%s: %v", h, probs)
 		}
 	}

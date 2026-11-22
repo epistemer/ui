@@ -3,13 +3,14 @@ package catalog_test
 import (
 	"context"
 	"encoding/json"
+	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
 
 	"github.com/a-h/templ"
 
-	"github.com/epistemer/ui/internal/spike/catalog"
+	"github.com/epistemer/ui/catalog"
 	"github.com/epistemer/ui/theme"
 )
 
@@ -33,7 +34,7 @@ func TestPages(t *testing.T) {
 		c.ServeHTTP(w, httptest.NewRequest("GET", path, nil))
 		return w
 	}
-	if w := get("/"); w.Code != 302 || w.Header().Get("Location") != "/story?name=x%2Fhello" {
+	if w := get("/"); w.Code != 302 || w.Header().Get("Location") != "story?name=x%2Fhello" {
 		t.Errorf("index: %d %q", w.Code, w.Header().Get("Location"))
 	}
 	w := get("/story?name=x/hello")
@@ -64,5 +65,50 @@ func TestPages(t *testing.T) {
 	}
 	if tokens["--ui-color-brand"] != "#b4f601" || tokens["--ui-color-on-brand"] != "#000000" {
 		t.Errorf("tokens: %v", tokens)
+	}
+}
+
+// Mounted under a prefix, every link stays inside it.
+func TestMounted(t *testing.T) {
+	mux := http.NewServeMux()
+	mux.Handle("/catalog/", http.StripPrefix("/catalog", newCatalog(t)))
+	get := func(path string) *httptest.ResponseRecorder {
+		w := httptest.NewRecorder()
+		mux.ServeHTTP(w, httptest.NewRequest("GET", path, nil))
+		return w
+	}
+	if w := get("/catalog/"); w.Code != 302 || w.Header().Get("Location") != "story?name=x%2Fhello" {
+		t.Errorf("index: %d %q", w.Code, w.Header().Get("Location"))
+	}
+	body := get("/catalog/story?name=x%2Fhello").Body.String()
+	for _, abs := range []string{`href="/assets`, `src="/assets`, `src="/frame`, `href="/story`} {
+		if strings.Contains(body, abs) {
+			t.Errorf("story page links outside the mount: %s", abs)
+		}
+	}
+	if w := get("/catalog/assets/catalog.css"); w.Code != 200 {
+		t.Errorf("assets under the mount: %d", w.Code)
+	}
+}
+
+func TestNewPanics(t *testing.T) {
+	th, _ := theme.New("/ui", theme.Defaults{})
+	v := catalog.Variant{Name: "a", Render: func(context.Context) templ.Component { return templ.NopComponent }}
+	bad := map[string][]catalog.Story{
+		"bad name":     {{Name: "Elements/Button", Variants: []catalog.Variant{v}}},
+		"one segment":  {{Name: "button", Variants: []catalog.Variant{v}}},
+		"duplicate":    {{Name: "x/y", Variants: []catalog.Variant{v}}, {Name: "x/y", Variants: []catalog.Variant{v}}},
+		"no variants":  {{Name: "x/y"}},
+		"same variant": {{Name: "x/y", Variants: []catalog.Variant{v, v}}},
+	}
+	for name, stories := range bad {
+		func() {
+			defer func() {
+				if recover() == nil {
+					t.Errorf("%s: New accepted it", name)
+				}
+			}()
+			catalog.New(th, stories...)
+		}()
 	}
 }

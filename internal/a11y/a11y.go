@@ -1,6 +1,7 @@
-// Package a11y is the D4 spike of two uitest checks (visual-design.md §7,
-// §8): accessible names, and the selectors that tie markup to ui's CSS.
-// It is internal: adding them to uitest is an interface amendment.
+// Package a11y holds the checks behind uitest's CheckNames and
+// CheckSelectors (interface amendment A4, visual-interface.md §13.1):
+// accessible names, and the selectors that tie markup to CSS. uitest and
+// catalogtest share it. Not API.
 package a11y
 
 import (
@@ -266,7 +267,15 @@ func selector(class, key, val string) string {
 // Used lists what markup asks of ui's CSS: every ui-* class, and with
 // each, the data attributes on the same element, as compound selectors:
 // .ui-button, .ui-button[data-variant="outline"], .ui-icon[data-mirror].
-func Used(src string) ([]string, error) {
+func Used(src string, prefixes []string) ([]string, error) {
+	covered := func(class string) bool {
+		for _, p := range prefixes {
+			if strings.HasPrefix(class, p) {
+				return true
+			}
+		}
+		return false
+	}
 	nodes, err := Parse(src)
 	if err != nil {
 		return nil, err
@@ -277,7 +286,7 @@ func Used(src string) ([]string, error) {
 		if n.Type == nethtml.ElementNode {
 			cls, _ := attr(n, "class")
 			for _, c := range strings.Fields(cls) {
-				if !strings.HasPrefix(c, "ui-") {
+				if !covered(c) {
 					continue
 				}
 				out = append(out, "."+c)
@@ -301,7 +310,6 @@ func Used(src string) ([]string, error) {
 
 var (
 	cssComment = regexp.MustCompile(`(?s)/\*.*?\*/`)
-	uiClass    = regexp.MustCompile(`\.ui-[a-z0-9-]+`)
 	dataAttr   = regexp.MustCompile(`\[(data-[a-z0-9-]+)(?:\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\]\s]+)))?\s*\]`)
 )
 
@@ -309,7 +317,12 @@ var (
 // resolves nesting (& and descendant rules) and reads each compound
 // selector on its own, so .ui-button[data-variant="outline"] needs both in
 // one compound, not anywhere in the file.
-func Selected(css string) []string {
+func Selected(css string, prefixes []string) []string {
+	alts := make([]string, len(prefixes))
+	for i, p := range prefixes {
+		alts[i] = regexp.QuoteMeta(p)
+	}
+	classRE := regexp.MustCompile(`\.(?:` + strings.Join(alts, "|") + `)[A-Za-z0-9_-]+`)
 	css = cssComment.ReplaceAllString(css, " ")
 	var out []string
 	var stack [][]string // resolved selector lists; nil for at-rule blocks
@@ -354,7 +367,7 @@ func Selected(css string) []string {
 			resolved := resolve(context(), splitTop(prelude, ','))
 			stack = append(stack, resolved)
 			for _, sel := range resolved {
-				out = append(out, compounds(sel)...)
+				out = append(out, compounds(sel, classRE)...)
 			}
 		case c == ';':
 			buf.Reset()
@@ -419,11 +432,11 @@ func splitTop(s string, sep byte) []string {
 // compounds lists, for one full selector, every ui-* class with the data
 // attributes of its own compound. What's inside :not() and other
 // functions is left out: it excludes or tests, it doesn't select.
-func compounds(sel string) []string {
+func compounds(sel string, classRE *regexp.Regexp) []string {
 	var out []string
 	for _, part := range splitCompounds(sel) {
 		flat := stripFunctions(part)
-		classes := uiClass.FindAllString(flat, -1)
+		classes := classRE.FindAllString(flat, -1)
 		attrs := dataAttr.FindAllStringSubmatch(flat, -1)
 		for _, cls := range classes {
 			out = append(out, cls)
