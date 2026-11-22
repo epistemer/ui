@@ -9,14 +9,15 @@ import (
 templ menu(m MenuSpec) {
 	{{ requireItems(ctx) }}
 	@ui.Scope(menuID) {
+		{{ trigger, popover := m.ids(ctx) }}
 		<ui-menu { elements.Merge(templ.Attributes{"class": "ui-menu"}, nil, m.attrs)... }>
-			@MenuTrigger.Place(menuTriggerAttrs(ctx)) {
+			@MenuTrigger.Place(m.triggerAttrs(ctx)) {
 				@elements.Button().Variant(elements.Outline).Tone(elements.Neutral).Attrs(MenuTrigger.Value(ctx)) {
 					{ m.label.T(ctx) }
 					@icons.ChevronDown()
 				}
 			}
-			<div class="ui-menu-popover" id={ menuID.Get(ctx) } popover role="menu" aria-labelledby={ menuID.Part(ctx, "trigger") }>
+			<div class="ui-menu-popover" id={ popover } popover role="menu" aria-labelledby={ trigger }>
 				@MenuItems.Place()
 			</div>
 		</ui-menu>
@@ -33,4 +34,17 @@ templ menuLink(attrs templ.Attributes) {
 	<a { attrs... }>
 		{ children... }
 	</a>
+}
+
+// unavailableItem renders an Unavailable item, inside its id scope: named
+// by its label, described by its reason.
+templ unavailableItem(m MenuItemSpec) {
+	@ui.Scope(menuItemID) {
+		<button { m.unavailableAttrs(ctx)... }>
+			<span class="ui-menu-item-label" id={ menuItemID.Part(ctx, "label") }>
+				{ children... }
+			</span>
+			<span class="ui-action-reason" id={ menuItemID.Part(ctx, "reason") }>{ m.reason.T(ctx) }</span>
+		</button>
+	}
 }

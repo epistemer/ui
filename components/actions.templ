@@ -1,0 +1,80 @@
+package components
+
+import (
+	"github.com/epistemer/i18n"
+
+	"github.com/epistemer/ui/actions"
+	"github.com/epistemer/ui/elements"
+	"github.com/epistemer/ui/icons"
+)
+
+templ actionButtons(b ActionButtonsSpec) {
+	<div { elements.Merge(templ.Attributes{"class": "ui-action-buttons"}, nil, b.attrs)... }>
+		for _, it := range b.items {
+			@button(ctx, it) {
+				@itemContent(it)
+			}
+		}
+	</div>
+}
+
+templ itemContent(it actions.Item) {
+	if it.Icon != nil {
+		@it.Icon
+	}
+	{ it.Label.T(ctx) }
+}
+
+templ actionMenu(m ActionMenuSpec) {
+	@m.menu() {
+		@MenuTrigger {
+			@elements.Button().Variant(elements.Ghost).Tone(elements.Neutral).Size(elements.Small).Attrs(m.triggerAttrs(MenuTrigger.Value(ctx))) {
+				@icons.More()
+				<span class="ui-visually-hidden">{ m.label.T(ctx) }</span>
+			}
+		}
+		@MenuItems {
+			{{ plain, danger := split(m.items) }}
+			for _, it := range plain {
+				@menuItem(ctx, it) {
+					@itemContent(it)
+				}
+			}
+			if len(danger) > 0 && len(plain) > 0 {
+				@elements.Separator()
+			}
+			for _, it := range danger {
+				@menuItem(ctx, it) {
+					@itemContent(it)
+				}
+			}
+		}
+	}
+}
+
+// ActionForm is the page's one empty form that Request controls post
+// through, by their form attribute, so nothing nests (§4.3). The shells
+// render it.
+templ ActionForm() {
+	<form id="ui-action-form" method="post" hidden></form>
+}
+
+// ActionDialog is the page's one dialog that Open actions load into. Its
+// name is the loaded content's ActionTitle, which the ui script points
+// aria-labelledby at; until then, its aria-label. The shells render it.
+templ ActionDialog() {
+	<dialog id="ui-action-dialog" class="ui-dialog ui-action-dialog" aria-label={ actionDialogLabel.T(ctx) }>
+		<div class="ui-action-dialog-close">
+			@elements.Button().Variant(elements.Ghost).Tone(elements.Neutral).Size(elements.Small).Label(dialogClose).Attrs(templ.Attributes{"commandfor": "ui-action-dialog", "command": "close", "value": ""}) {
+				@icons.X()
+			}
+		</div>
+		<div id="ui-action-dialog-body" class="ui-action-dialog-body"></div>
+	</dialog>
+}
+
+// ActionTitle is the title of what an Open action loads, which names the
+// action dialog.
+templ ActionTitle(t i18n.Ter) {
+	<h2 class="ui-dialog-title" id="ui-action-dialog-title">{ t.T(ctx) }</h2>
+}

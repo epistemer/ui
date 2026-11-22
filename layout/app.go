@@ -25,7 +25,8 @@ var (
 
 // AppSpec is the app shell being described: a bar with the brand, the
 // navigation toggle and the bar's end; the navigation; and #ui-main. The
-// confirmation dialog and the toast region follow, outside #ui-main.
+// confirmation dialog, the toast region, and the action form and dialog
+// (amendment A6) follow, outside #ui-main.
 //
 // On narrow screens the navigation is a drawer from the start edge, a
 // non-modal disclosure the ui script opens through the toggle's

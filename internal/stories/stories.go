@@ -7,6 +7,7 @@ import (
 
 	"github.com/a-h/templ"
 
+	"github.com/epistemer/ui/actions"
 	"github.com/epistemer/ui/catalog"
 	"github.com/epistemer/ui/elements"
 	"github.com/epistemer/ui/layout"
@@ -58,6 +59,12 @@ func All() []catalog.Story {
 		}},
 		{Name: "components/tabs", Variants: []catalog.Variant{variant("navigation", tabsStory())}},
 		{Name: "components/toast", Variants: []catalog.Variant{variant("levels", toastsStory())}},
+		{Name: "components/actions", Variants: []catalog.Variant{
+			variant("buttons", withItems(false, func(it []actions.Item) templ.Component { return actionButtonsStory(it) })),
+			variant("menu", withItems(false, func(it []actions.Item) templ.Component { return actionMenuStory(it) })),
+			variant("in-a-card", actionCard()),
+			variant("htmx", withItems(true, func(it []actions.Item) templ.Component { return actionsHtmx(it) })),
+		}},
 		{Name: "components/detail-list", Variants: []catalog.Variant{variant("in-a-card", detailStory())}},
 		{Name: "layout/app", Variants: []catalog.Variant{
 			variant("shell", appShell(layout.SystemScheme, true)),

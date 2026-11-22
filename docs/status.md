@@ -9,6 +9,46 @@ taken for epistemer, what's next, and what's waiting on epistemer.
 
 
 
+## 2026-11-22 — T1: actions
+
+**Landed** (Claude), to server-state-interface.md §2, §4.2–§4.4 and §5:
+- `ui/actions` and `actionstest`. Every builder call is a new identity
+  for `Is`. Panics:
+  - a blank label or question, `Dialog` with `Confirm`, `Primary` with
+    `Danger`;
+  - no gate, or a nil one;
+  - a `Dialog` action bound to a link that isn't a GET.
+
+  A `Request` or `Open` item with an address that isn't local is absent.
+- `ButtonSpec.Unavailable` (in a Tooltip, inert: its href, form, request
+  and confirmation attributes dropped). `MenuItemSpec.Unavailable` (named
+  by its label, described by its reason). `MenuSpec.ID`.
+- `ActionButtons`, `ActionMenu`, `ActionForm`, `ActionDialog`,
+  `ActionTitle`, `InActionDialog` and `Reply`, with every change's
+  headers. Panics: two changes, `Fail(nil)`, `Go` after a change or a
+  toast.
+- The shells render the action form and dialog.
+- `theme/js/actions.js`: the 422, the dialog, focus back to its opener.
+  `menu.js`: arrow keys stop on unavailable items.
+- Stories `components/actions` (buttons, menu, in a card, htmx), with demo
+  endpoints, `stories.Demo`, which `cmd/catalog` mounts.
+
+**Review** ([0016](reviews/0016-t1-actions.md)): Gemini 4 Argon (Medium),
+about 64k tokens. Four valid findings fixed:
+- unavailable controls drop htmx's `data-hx-*` aliases and commands;
+- focus is remembered for every action's request, not only the dialog's;
+- a stale opener is forgotten;
+- the dialog is emptied before focus moves.
+
+Three findings were rejected against the goldens and the pane.
+
+**Checked in the pane** (LTR light and RTL dark):
+- the Open action: the dialog named by its title, a 422 kept open, then
+  success with the dialog emptied, a toast, and focus back;
+- a confirmed request's toast, and `Fail`'s danger toast;
+- arrow keys stopping on an unavailable menu item, which is named by its
+  label, described by its reason, and inert.
+
 ## 2026-11-22 — D7.3, D7.4 released; D7.5 drafted
 
 **Released** (Claude), as epistemer accepted them with their defaults:

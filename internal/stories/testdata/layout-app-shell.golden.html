@@ -161,5 +161,17 @@
       </button>
     </footer>
   </dialog>
+  <form hidden="" id="ui-action-form" method="post"></form>
+  <dialog aria-label="Action" class="ui-dialog ui-action-dialog" id="ui-action-dialog">
+    <div class="ui-action-dialog-close">
+      <button aria-label="Close" class="ui-button" command="close" commandfor="ui-action-dialog" data-size="s" data-tone="neutral" data-variant="ghost" type="button" value="">
+        <svg aria-hidden="true" class="ui-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+          <path d="M18 6 6 18"></path>
+          <path d="m6 6 12 12"></path>
+        </svg>
+      </button>
+    </div>
+    <div class="ui-action-dialog-body" id="ui-action-dialog-body"></div>
+  </dialog>
   <ui-toasts aria-live="polite" class="ui-toasts" id="ui-toasts" popover="manual"></ui-toasts>
 </div>
