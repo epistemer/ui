@@ -54,11 +54,24 @@ func (l *countLabeler) LabelOf(_ context.Context, id string) (string, bool, erro
 	return name, ok, nil
 }
 
-// funcLabeler has a slice in its dynamic value, so reflect.TypeOf(l).Comparable() is false.
+// funcLabeler has a non-comparable static type, so reflect.ValueOf(l).Comparable() is false.
 type funcLabeler func(context.Context, string) (string, bool, error)
 
 func (f funcLabeler) LabelOf(ctx context.Context, id string) (string, bool, error) {
 	return f(ctx, id)
+}
+
+// wrapLabeler has a comparable static type (struct of interface and pointer),
+// so reflect.TypeOf(l).Comparable() is true, while reflect.ValueOf(l).Comparable()
+// is false when inner holds a non-comparable dynamic value such as a slice.
+type wrapLabeler struct {
+	inner any
+	calls *int
+}
+
+func (w wrapLabeler) LabelOf(_ context.Context, id string) (string, bool, error) {
+	*w.calls++
+	return "Wrap " + id, true, nil
 }
 
 func firstControl(f *forms.Form) forms.Control {
@@ -217,6 +230,49 @@ func TestWithLabelCache(t *testing.T) {
 	if fnCalls != 2 {
 		t.Errorf("non-comparable labeler: got %d calls, want 2", fnCalls)
 	}
+
+	// Dynamically non-comparable Labeler (comparable static type holding a slice
+	// in an interface field) is never cached, and doesn't panic.
+	wrapCalls := 0
+	dynNonComp := wrapLabeler{inner: []int{1, 2}, calls: &wrapCalls}
+	f3 := forms.New()
+	l3 := f3.List("lines", func(g *forms.Form) *forms.Field[int64] {
+		return g.Number[int64]("product_id").Label(i18n.Static("Product")).Remote(search, dynNonComp)
+	}).Label(i18n.Static("Lines"))
+	l3.Add().Set(1)
+	l3.Add().Set(1)
+	if err := Field(l3.Control()).Render(ctx, &strings.Builder{}); err != nil {
+		t.Fatal(err)
+	}
+	if wrapCalls != 2 {
+		t.Errorf("dynamically non-comparable labeler: got %d calls, want 2", wrapCalls)
+	}
+
+	// Error answers are never cached: a subsequent call with the same cache retries.
+	errLbl := &countLabeler{names: map[string]string{"7": "Ann Lee"}, err: stderrors.New("transient")}
+	f4 := forms.New()
+	fld4 := f4.Number[int64]("customer_id").Label(i18n.Static("Customer")).Remote(search, errLbl)
+	fld4.Set(7)
+	errCtx := WithLabelCache(actions.Gate.With(context.Background(), actions.AllowAll))
+	errCtx = ui.WithIDs(errCtx, ui.Sequence("t"))
+	if err := Field(fld4.Control()).Render(errCtx, &strings.Builder{}); err == nil {
+		t.Fatal("expected transient error on first render")
+	}
+	errLbl.err = nil
+	var out strings.Builder
+	if err := Field(fld4.Control()).Render(errCtx, &out); err != nil {
+		t.Fatalf("second render after transient error failed: %v", err)
+	}
+	if errLbl.calls != 2 || !strings.Contains(out.String(), ">Ann Lee</span>") {
+		t.Errorf("after retry: calls=%d html=%s", errLbl.calls, out.String())
+	}
+	// Now the successful answer is cached.
+	if err := Field(fld4.Control()).Render(errCtx, &strings.Builder{}); err != nil {
+		t.Fatal(err)
+	}
+	if errLbl.calls != 2 {
+		t.Errorf("successful retry should be cached: calls=%d, want 2", errLbl.calls)
+	}
 }
 
 func TestRemoteGateRefusedAndMissing(t *testing.T) {
@@ -239,12 +295,49 @@ func TestRemoteGateRefusedAndMissing(t *testing.T) {
 	}
 
 	// No gate in context -> panics.
-	defer func() {
-		if r := recover(); r == nil || !strings.Contains(fmt.Sprint(r), "no actions.Gate") {
-			t.Errorf("expected panic for missing gate, got %v", r)
-		}
-	}()
-	Field(fld.Control()).Render(ui.WithIDs(context.Background(), ui.Sequence("t")), &strings.Builder{})
+	assertNoGatePanic := func(name string, fn func()) {
+		t.Helper()
+		defer func() {
+			if r := recover(); r == nil || !strings.Contains(fmt.Sprint(r), "no actions.Gate") {
+				t.Errorf("%s: expected panic for missing gate, got %v", name, r)
+			}
+		}()
+		fn()
+	}
+
+	noGateCtx := ui.WithIDs(context.Background(), ui.Sequence("t"))
+	assertNoGatePanic("remote valid search link", func() {
+		Field(fld.Control()).Render(noGateCtx, &strings.Builder{})
+	})
+
+	// Empty or refused-by-sanitiser search links must still ask actions.Allowed
+	// (no short-circuit hiding a missing gate).
+	for _, bad := range []ui.Link{ui.URL(""), ui.URL("javascript:alert(1)")} {
+		fBad := forms.New()
+		fldBad := fBad.Text("customer_id").Label(i18n.Static("Customer")).Remote(bad, lbl)
+		assertNoGatePanic("remote "+bad.URL(), func() {
+			Field(fldBad.Control()).Render(noGateCtx, &strings.Builder{})
+		})
+	}
+
+	// Stored files with non-nil Href must ask actions.Allowed even when Href
+	// sanitises to "", while a nil Href does not need a gate.
+	for _, bad := range []ui.Link{ui.URL(""), ui.URL("javascript:alert(1)")} {
+		fBad := forms.New()
+		upBad := fBad.Upload("doc", []files.Stored{{Key: "k1", Name: "a.pdf", Href: bad}}).Label(i18n.Static("Doc"))
+		assertNoGatePanic("stored "+bad.URL(), func() {
+			Field(upBad.Control()).Render(noGateCtx, &strings.Builder{})
+		})
+	}
+	fNilHref := forms.New()
+	upNilHref := fNilHref.Upload("doc", []files.Stored{{Key: "k1", Name: "a.pdf"}}).Label(i18n.Static("Doc"))
+	var nilOut strings.Builder
+	if err := Field(upNilHref.Control()).Render(noGateCtx, &nilOut); err != nil {
+		t.Fatalf("stored file with nil Href failed without gate: %v", err)
+	}
+	if !strings.Contains(nilOut.String(), `data-ui-name="a.pdf"`) {
+		t.Errorf("stored file with nil Href missing data-ui-name: %s", nilOut.String())
+	}
 }
 
 func TestUploadLostPreviewsAndGate(t *testing.T) {
@@ -282,6 +375,9 @@ func TestUploadLostPreviewsAndGate(t *testing.T) {
 	if !strings.Contains(htmlDoc, `%s is larger than 2 MB`) {
 		t.Errorf("tooLarge size not filled: %s", htmlDoc)
 	}
+	if !strings.Contains(htmlDoc, `<li class="ui-upload-file" data-ui-name="receipt.pdf">`) {
+		t.Errorf("stored file missing data-ui-name: %s", htmlDoc)
+	}
 
 	htmlFile := render(t, Field(fl.Control()).Previews())
 	checkAll(t, htmlFile)
@@ -289,7 +385,7 @@ func TestUploadLostPreviewsAndGate(t *testing.T) {
 		t.Errorf("file lost note or unexpected stored list: %s", htmlFile)
 	}
 
-	// Refused gate on stored files -> no thumbnail and no link, keep checkbox and label remain.
+	// Refused gate on stored files -> no thumbnail and no link, keep checkbox, label and data-ui-name remain.
 	htmlRefused := uitest.Render(t, Field(ups.Control()), uitest.Context(func(ctx context.Context) context.Context {
 		return actions.Gate.With(ctx, func(ui.Link) bool { return false })
 	}))
@@ -299,6 +395,9 @@ func TestUploadLostPreviewsAndGate(t *testing.T) {
 	}
 	if !strings.Contains(htmlRefused, ">Keep receipt.pdf</label>") || !strings.Contains(htmlRefused, ">Keep photo.png</label>") {
 		t.Errorf("refused gate missing keep labels: %s", htmlRefused)
+	}
+	if !strings.Contains(htmlRefused, `data-ui-name="receipt.pdf"`) || !strings.Contains(htmlRefused, `data-ui-name="photo.png"`) {
+		t.Errorf("refused gate missing data-ui-name: %s", htmlRefused)
 	}
 }
 

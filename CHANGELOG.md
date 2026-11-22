@@ -51,6 +51,15 @@ All notable changes to this module. The format follows
   drop-zone shape.
 - `Form.List` builds its template row when declared, not on first use, so a mistake in an item's build function (such as `Upload` in a list) panics at declaration (I10). A build function runs once more, at declaration, and must not read the list's own handle.
 
+### Fixed
+- `ui/inputs`: `WithLabelCache` now checks cacheability dynamically with `reflect.ValueOf(l).Comparable()` (avoiding panics on comparable static types holding non-comparable dynamic values) and never caches failed `LabelOf` calls.
+- `ui/inputs`: `Field` now checks `actions.Allowed` before `links.Href` for a remote field's search link and a stored file's non-nil `Href`, so an empty or sanitised URL cannot hide a missing `actions.Gate`.
+- `ui/inputs` and `theme/js/upload.js`: stored upload items carry `data-ui-name`, which the keep-card button reads for `"Remove %s"` even when a file has no link.
+- `ui/forms`: single-file `Upload` now keeps the last posted file, matching `File`, and clearing an inactive conditional upload field resets its keep map so every stored file re-renders kept.
+- `theme/js/upload.js`: the submit guard inspects `form.elements` and ignores `:disabled` file inputs; keep cards sync on checkbox `change` and form `reset` (dispatched from the toggle button); `fitsAccept` strips MIME parameters and defers untyped files unless every accept entry is an extension; htmx progress, 413 and bar-hiding listeners resolve `form`, ignore `<ui-combobox>` and GET requests, skip `:disabled` file inputs, clear `bodyTooLarge` errors on `htmx:beforeSend` and file input `change`, scope drag highlights to `.ui-upload-input`, and set up a swapped root matching `.ui-upload`.
+- `theme/js/combobox.js`: `htmx:beforeSwap` refuses stale or debounced answers silently, while `htmx:responseError` and `htmx:sendError` stop propagation, ignore non-pending requests and avoid announcing a response `beforeSwap` already refused; `#restore()` restores the hidden input, syncs the clear button and fires `input`+`change` when its value changed; ArrowDown/ArrowUp wait on an in-flight search instead of opening stale options and Escape cancels pending searches; the form `reset` listener is removed in `disconnectedCallback` via `AbortController`.
+- `theme/js/repeat.js`: `add()` falls back to dispatching `input` on the enclosing form's first named control when a cloned row has no non-file named control, before focusing.
+
 
 ## [v0.3.0] - 2026-11-22
 

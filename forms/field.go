@@ -372,7 +372,7 @@ func (fd *field) bind(src Source) bool {
 		}
 		fd.postedFiles = len(in.files) > 0
 		if !fd.base.multi && len(in.files) > 1 {
-			in.files = in.files[:1]
+			in.files = in.files[len(in.files)-1:]
 		}
 		rawKeep := src.Values(name + ".keep")
 		if len(rawKeep) > 0 {
@@ -454,7 +454,7 @@ func (fd *field) bind(src Source) bool {
 
 // clear drops an inactive field's value, text and error.
 func (fd *field) clear() {
-	fd.vals, fd.text, fd.present, fd.postedFiles, fd.convAt, fd.convErr, fd.err = nil, nil, false, false, -1, nil, nil
+	fd.vals, fd.text, fd.present, fd.postedFiles, fd.keep, fd.convAt, fd.convErr, fd.err = nil, nil, false, false, nil, -1, nil, nil
 }
 
 // validate decides the field's error (interface §5.1, §9.2) and returns it.

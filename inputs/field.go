@@ -76,7 +76,6 @@ type labelKey struct {
 type labelVal struct {
 	name  string
 	found bool
-	err   error
 }
 
 type labelCache struct {
@@ -99,7 +98,7 @@ func WithLabelCache(ctx context.Context) context.Context {
 
 func labelOf(ctx context.Context, l listing.Labeler, id string) (string, bool, error) {
 	c := labelCaches.Value(ctx)
-	if c == nil || l == nil || !reflect.TypeOf(l).Comparable() {
+	if c == nil || l == nil || !reflect.ValueOf(l).Comparable() {
 		return l.LabelOf(ctx, id)
 	}
 	k := labelKey{l, id}
@@ -107,13 +106,16 @@ func labelOf(ctx context.Context, l listing.Labeler, id string) (string, bool, e
 	v, ok := c.m[k]
 	c.mu.Unlock()
 	if ok {
-		return v.name, v.found, v.err
+		return v.name, v.found, nil
 	}
 	name, found, err := l.LabelOf(ctx, id)
+	if err != nil {
+		return name, found, err
+	}
 	c.mu.Lock()
-	c.m[k] = labelVal{name, found, err}
+	c.m[k] = labelVal{name, found}
 	c.mu.Unlock()
-	return name, found, err
+	return name, found, nil
 }
 
 // FieldSpec is a form field being described: a widget for its control.
@@ -398,16 +400,18 @@ func (f FieldSpec) comboboxAttrs(ctx context.Context) templ.Attributes {
 		}),
 	}
 	search, _, _, _ := f.c.Remote()
-	if u := links.Href(search); u != "" && actions.Allowed(ctx, search) {
-		s := string(u)
-		a["data-ui-search"] = s
-		a["hx-get"] = s
-		a["hx-trigger"] = "ui-search"
-		a["hx-params"] = "none"
-		a["hx-target"] = "find .ui-combobox-options"
-		a["hx-select"] = "[data-ui-suggestions] > li"
-		a["hx-swap"] = "innerHTML"
-		a["hx-sync"] = "this:replace"
+	if actions.Allowed(ctx, search) {
+		if u := links.Href(search); u != "" {
+			s := string(u)
+			a["data-ui-search"] = s
+			a["hx-get"] = s
+			a["hx-trigger"] = "ui-search"
+			a["hx-params"] = "none"
+			a["hx-target"] = "find .ui-combobox-options"
+			a["hx-select"] = "[data-ui-suggestions] > li"
+			a["hx-swap"] = "innerHTML"
+			a["hx-sync"] = "this:replace"
+		}
 	}
 	return a
 }
@@ -422,8 +426,8 @@ func (f FieldSpec) storedFiles(ctx context.Context) []storedFile {
 	var out []storedFile
 	for s, kept := range f.c.Stored() {
 		sf := storedFile{file: s, kept: kept}
-		if u := links.Href(s.Href); u != "" && actions.Allowed(ctx, s.Href) {
-			sf.href = u
+		if s.Href != nil && actions.Allowed(ctx, s.Href) {
+			sf.href = links.Href(s.Href)
 		}
 		out = append(out, sf)
 	}

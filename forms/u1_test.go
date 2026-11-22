@@ -267,7 +267,7 @@ func TestUploadAndUploads(t *testing.T) {
 		}
 	})
 
-	t.Run("Upload single-file takes first posted file and empties Kept while Control.Stored reports posted keep", func(t *testing.T) {
+	t.Run("Upload single-file takes last posted file and empties Kept while Control.Stored reports posted keep", func(t *testing.T) {
 		f := forms.New()
 		up := f.Upload("receipt", []files.Stored{s1}).Required()
 		other := f.Text("other").Required() // will fail so we inspect redisplay state
@@ -289,8 +289,8 @@ func TestUploadAndUploads(t *testing.T) {
 		if len(val.Kept) != 0 {
 			t.Errorf("Added file must empty Kept in value, got %+v", val.Kept)
 		}
-		if len(val.Added) != 1 || val.Added[0].Filename != "first.txt" {
-			t.Errorf("Upload must take the first posted file, got %+v", val.Added)
+		if len(val.Added) != 1 || val.Added[0].Filename != "second.txt" {
+			t.Errorf("Upload must take the last posted file, got %+v", val.Added)
 		}
 		// Control.Stored still reports the posted keep state (true for k1).
 		var states []bool
@@ -299,6 +299,32 @@ func TestUploadAndUploads(t *testing.T) {
 		}
 		if !slices.Equal(states, []bool{true}) {
 			t.Errorf("Control.Stored() keep states = %v, want [true]", states)
+		}
+	})
+
+	t.Run("inactive conditional upload resets keep state so all stored files re-render kept", func(t *testing.T) {
+		f := forms.New()
+		gate := f.Checkbox("gate")
+		other := f.Text("other").Required()
+		ups := f.Uploads("docs", []files.Stored{s1, s2}).When(gate.Filled())
+		_ = other
+
+		// gate is unticked, so docs is inactive and posts no docs.keep; other fails so the form re-renders.
+		if formstest.Submit(t, bg, f, "") {
+			t.Fatal("expected other field to fail")
+		}
+		if _, ok := ups.Get(); ok {
+			t.Error("inactive upload must have no value")
+		}
+		if ups.Control().Lost() {
+			t.Error("inactive upload must not report Lost")
+		}
+		var states []bool
+		for _, kept := range ups.Control().Stored() {
+			states = append(states, kept)
+		}
+		if !slices.Equal(states, []bool{true, true}) {
+			t.Errorf("inactive upload Control.Stored() keep states = %v, want [true true]", states)
 		}
 	})
 
