@@ -15,8 +15,18 @@ All notable changes to this module. The format follows
   `Control.Children` on a new list yields `MinItems` blank items.
 - `ui/forms/rule` (U1, amendment A7): `Files`, `MinFiles` (`ErrMinFiles`),
   `MaxFiles` (`ErrMaxFiles`), and `MaxSize`'s `data-ui-max-size` attribute.
+- `ui/inputs` (U2, amendment A7): `WithLabelCache`, `FieldSpec.Previews`,
+  and `Field` rendering for `KindRemote` (`<ui-combobox>` with htmx search
+  attributes and `LabelOf` lookup), `KindUpload`/`KindUploads` (and the
+  upload shape for `KindFile`/`KindFiles`), and `KindList` (`<ui-repeat>`
+  with its item groups and `<template>` row).
+- `ui/components` (U2, amendment A7): `Suggestion`, `SuggestionLimit` and
+  `Suggestions`, with CSS for comboboxes, uploads and list fields.
 
 ### Changed
+- `inputs.Field` renders `KindList` with `<ui-repeat>` instead of returning
+  an error, and renders `KindFile` and `KindFiles` in the `.ui-upload`
+  drop-zone shape.
 - `Form.List` builds its template row when declared, not on first use, so a mistake in an item's build function (such as `Upload` in a list) panics at declaration (I10). A build function runs once more, at declaration, and must not read the list's own handle.
 
 

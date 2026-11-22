@@ -41,11 +41,14 @@
       </textarea>
     </div>
   </fieldset>
-  <div class="ui-field">
+  <div class="ui-field ui-upload" data-ui-texts="{&#34;bodyTooLarge&#34;:&#34;These files are too large to send together. Send fewer at a time.&#34;,&#34;chosen&#34;:&#34;%s chosen&#34;,&#34;remove&#34;:&#34;Remove %s&#34;,&#34;tooLarge&#34;:&#34;%s is larger than &#34;,&#34;undo&#34;:&#34;Undo&#34;,&#34;wrongType&#34;:&#34;%s isn&#39;t a type this field takes&#34;}">
     <label class="ui-field-label" for="field--t-5">
       Photos of the toy
     </label>
-    <input class="ui-input" id="field--t-5" multiple="" name="photos" type="file">
+    <input class="ui-input ui-upload-input" id="field--t-5" multiple="" name="photos" type="file">
+    <ul class="ui-upload-chosen"></ul>
+    <progress class="ui-upload-progress" hidden="" max="100"></progress>
+    <p class="ui-visually-hidden" role="status"></p>
   </div>
   <button class="ui-button" type="submit">
     Save

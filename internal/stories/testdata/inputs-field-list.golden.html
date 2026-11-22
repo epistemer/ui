@@ -1,0 +1,79 @@
+<form action="/catalog/none" class="catalog-form" method="post" novalidate="">
+  <fieldset class="ui-list">
+    <legend class="ui-group-legend">
+      Order lines
+      <span aria-hidden="true" class="ui-field-required">
+        *
+      </span>
+    </legend>
+    <ui-repeat data-ui-max="5" data-ui-min="1" data-ui-next="1" data-ui-path="lines" data-ui-texts="{&#34;added&#34;:&#34;Item %d added&#34;,&#34;atLeast&#34;:&#34;Minimum: %d&#34;,&#34;atMost&#34;:&#34;Maximum: %d&#34;,&#34;item&#34;:&#34;Item %d&#34;,&#34;remove&#34;:&#34;Remove item %d&#34;,&#34;removed&#34;:&#34;Item %d removed&#34;}">
+      <ol class="ui-list-items">
+        <li class="ui-list-item">
+          <fieldset class="ui-group">
+            <legend class="ui-group-legend">
+              Item 1
+            </legend>
+            <div class="ui-field">
+              <label class="ui-field-label" for="field--t-2">
+                SKU
+                <span aria-hidden="true" class="ui-field-required">
+                  *
+                </span>
+              </label>
+              <input class="ui-input" id="field--t-2" name="lines[0].sku" required="" type="text">
+            </div>
+            <div class="ui-field">
+              <label class="ui-field-label" for="field--t-3">
+                Quantity
+                <span aria-hidden="true" class="ui-field-required">
+                  *
+                </span>
+              </label>
+              <input class="ui-input" id="field--t-3" min="1" name="lines[0].qty" required="" type="number">
+            </div>
+            <button class="ui-button ui-list-remove" data-ui-remove="" hidden="" type="button">
+              Remove item 1
+            </button>
+          </fieldset>
+        </li>
+      </ol>
+      <template>
+        <li class="ui-list-item">
+          <fieldset class="ui-group">
+            <legend class="ui-group-legend">
+              Item 1
+            </legend>
+            <div class="ui-field">
+              <label class="ui-field-label" for="field--t-4">
+                SKU
+                <span aria-hidden="true" class="ui-field-required">
+                  *
+                </span>
+              </label>
+              <input class="ui-input" id="field--t-4" name="lines[__i__].sku" required="" type="text">
+            </div>
+            <div class="ui-field">
+              <label class="ui-field-label" for="field--t-5">
+                Quantity
+                <span aria-hidden="true" class="ui-field-required">
+                  *
+                </span>
+              </label>
+              <input class="ui-input" id="field--t-5" min="1" name="lines[__i__].qty" required="" type="number">
+            </div>
+            <button class="ui-button ui-list-remove" data-ui-remove="" hidden="" type="button">
+              Remove item 1
+            </button>
+          </fieldset>
+        </li>
+      </template>
+      <button class="ui-button ui-list-add" data-ui-add="" hidden="" type="button">
+        Add to Order lines
+      </button>
+      <p class="ui-visually-hidden" role="status"></p>
+    </ui-repeat>
+  </fieldset>
+  <button class="ui-button" type="submit">
+    Save
+  </button>
+</form>

@@ -204,7 +204,7 @@ when U3 lands.
 | ✓ | ID | Item | Done when |
 |---|---|---|---|
 | ☑ | U1 | forms: `ui/forms/files`, `Upload`/`Uploads`, `Remote`, `Control.Remote`/`Stored`/`Lost`/`Bounds`, a new list's blank items, `rule.Files`/`MinFiles`/`MaxFiles`, `MaxSize`'s attribute, the 413 pattern; formstest | Contract §2 holds, in tests |
-| ☐ | U2 | inputs and components: the shapes of §3.1 (remote, upload for all four file kinds, list), `WithLabelCache`, `Previews`, `Suggestion(s)`; CSS; keys | §3, §4 and §7 hold, with goldens; ids, names, selectors |
+| ☑ | U2 | inputs and components: the shapes of §3.1 (remote, upload for all four file kinds, list), `WithLabelCache`, `Previews`, `Suggestion(s)`; CSS; keys | §3, §4 and §7 hold, with goldens; ids, names, selectors |
 | ☐ | U3 | The script: `<ui-combobox>` through htmx, `<ui-repeat>`, the upload behaviours; the actions script's `isAction` guard; `internal/spike` removed | §6 holds in the pane with real keys, LTR and RTL, light and dark, with htmx and without |
 | ☐ | U4 | tables: `Column.Remote` and its chip; the toy shop's order form and a link filter | §5 holds; the toy shop runs end to end |
 | ☐ | U5 | Release v0.4.0 | As V7 |

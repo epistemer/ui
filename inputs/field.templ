@@ -2,6 +2,7 @@ package inputs
 
 import (
 	"context"
+	"strconv"
 
 	"github.com/epistemer/errors"
 	"github.com/epistemer/ui"
@@ -116,4 +117,98 @@ templ hidden(f FieldSpec, wrapper templ.Attributes) {
 	} else {
 		<input { f.hiddenAttrs()... }/>
 	}
+}
+
+templ remoteField(f FieldSpec, wrapper templ.Attributes, chosen string) {
+	@ui.Scope(fieldID) {
+		<div { wrapper... }>
+			@label(f)
+			@help(f)
+			<ui-combobox { f.comboboxAttrs(ctx)... }>
+				<input { f.controlAttrs(ctx)... }/>
+				<span class="ui-combobox-chosen" id={ fieldID.Part(ctx, "chosen") }>{ chosen }</span>
+				<div class="ui-combobox-popup" popover="manual">
+					<ul class="ui-combobox-options" role="listbox" id={ fieldID.Part(ctx, "options") } aria-label={ f.labelText(ctx) }></ul>
+					<p class="ui-combobox-status"></p>
+				</div>
+				<p class="ui-visually-hidden" role="status"></p>
+			</ui-combobox>
+			@fieldError(f)
+		</div>
+	}
+}
+
+templ uploadField(f FieldSpec, wrapper templ.Attributes, stored []storedFile) {
+	@ui.Scope(fieldID) {
+		<div { wrapper... }>
+			@label(f)
+			@help(f)
+			if f.c.Lost() {
+				<p class="ui-field-help ui-upload-lost" id={ fieldID.Part(ctx, "lost") }>{ uploadAgain.T(ctx) }</p>
+			}
+			if f.c.Kind() == forms.KindUpload || f.c.Kind() == forms.KindUploads {
+				<ul class="ui-upload-files">
+					for i, s := range stored {
+						<li class="ui-upload-file">
+							if s.file.Image && s.href != "" {
+								<img class="ui-upload-thumb" src={ string(s.href) } alt=""/>
+							}
+							<input type="checkbox" name={ f.c.Path() + ".keep" } value={ s.file.Key } checked?={ s.kept } id={ fieldID.Part(ctx, "keep", strconv.Itoa(i)) }/>
+							<label for={ fieldID.Part(ctx, "keep", strconv.Itoa(i)) }>{ uploadKeep.T(ctx, s.file.Name) }</label>
+							if s.href != "" {
+								<a href={ s.href }>{ s.file.Name }</a>
+							}
+						</li>
+					}
+				</ul>
+			}
+			<input { f.controlAttrs(ctx)... }/>
+			<ul class="ui-upload-chosen"></ul>
+			<progress class="ui-upload-progress" max="100" hidden></progress>
+			<p class="ui-visually-hidden" role="status"></p>
+			@fieldError(f)
+		</div>
+	}
+}
+
+templ list(f FieldSpec, items []listItemData, tpl []FieldSpec, attrs func(context.Context) templ.Attributes) {
+	{{ minB, maxB := f.c.Bounds() }}
+	@ui.Scope(fieldID) {
+		<fieldset { attrs(ctx)... }>
+			<legend class="ui-group-legend">
+				{ f.labelText(ctx) }
+				if f.c.Required() {
+					<span class="ui-field-required" aria-hidden="true">*</span>
+				}
+			</legend>
+			@help(f)
+			<ui-repeat data-ui-path={ f.c.Path() } data-ui-next={ strconv.Itoa(len(items)) } data-ui-min={ strconv.Itoa(minB) } data-ui-max={ strconv.Itoa(maxB) } data-ui-texts={ f.listTexts(ctx) }>
+				<ol class="ui-list-items">
+					for _, it := range items {
+						@listItemRow(it.n, it.children)
+					}
+				</ol>
+				if tpl != nil {
+					<template>
+						@listItemRow(1, tpl)
+					</template>
+				}
+				<button type="button" class="ui-button ui-list-add" data-ui-add hidden>{ listAdd.T(ctx, f.labelText(ctx)) }</button>
+				<p class="ui-visually-hidden" role="status"></p>
+			</ui-repeat>
+			@fieldError(f)
+		</fieldset>
+	}
+}
+
+templ listItemRow(n int, children []FieldSpec) {
+	<li class="ui-list-item">
+		<fieldset class="ui-group">
+			<legend class="ui-group-legend">{ listItem.T(ctx, n) }</legend>
+			for _, c := range children {
+				@c
+			}
+			<button type="button" class="ui-button ui-list-remove" data-ui-remove hidden>{ listRemove.T(ctx, n) }</button>
+		</fieldset>
+	</li>
 }
