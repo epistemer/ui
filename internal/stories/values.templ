@@ -1,0 +1,77 @@
+package stories
+
+import (
+	"time"
+
+	"github.com/epistemer/i18n"
+	"github.com/epistemer/ui/elements"
+)
+
+var shipped = time.Date(2026, 11, 22, 14, 30, 0, 0, time.UTC)
+
+templ valueList() {
+	<dl class="catalog-values">
+		<dt>Text</dt>
+		<dd>
+			@elements.Text(i18n.Static("Bricks & Co"))
+		</dd>
+		<dt>Bool</dt>
+		<dd>
+			@elements.Bool(true)
+			@elements.Bool(false)
+		</dd>
+		<dt>Date</dt>
+		<dd>
+			@elements.Date(shipped)
+		</dd>
+		<dt>Date and time</dt>
+		<dd>
+			@elements.DateTime(shipped)
+		</dd>
+		<dt>Enum</dt>
+		<dd>
+			@elements.Enum(fixedChoice)
+		</dd>
+		<dt>Link</dt>
+		<dd>
+			@elements.Link("/stores/1", i18n.Static("Store 1"))
+		</dd>
+		<dt>Image</dt>
+		<dd>
+			@elements.Image("/static/logo.png", i18n.Static("The store's logo"))
+		</dd>
+		<dt>Amount</dt>
+		<dd>
+			@elements.Amount(i18n.Static("EGP 1,250.00"))
+		</dd>
+	</dl>
+}
+
+templ valueEmpties() {
+	<dl class="catalog-values">
+		<dt>Empty</dt>
+		<dd>
+			@elements.Empty()
+		</dd>
+		<dt>A blank text</dt>
+		<dd>
+			@elements.Text(i18n.Static("  "))
+		</dd>
+		<dt>A zero date</dt>
+		<dd>
+			@elements.Date(time.Time{})
+		</dd>
+		<dt>No option</dt>
+		<dd>
+			@elements.Enum(nil)
+		</dd>
+		<dt>No href</dt>
+		<dd>
+			@elements.Link("", i18n.Static("Nowhere"))
+		</dd>
+		<dt>A decorative image</dt>
+		<dd>
+			@elements.Image("/static/pattern.png", nil)
+		</dd>
+	</dl>
+}

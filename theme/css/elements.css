@@ -1,5 +1,5 @@
 /* Icons take the text colour and the font's size; directional ones mirror
-   in RTL. */
+   in RTL. A labelled icon is the one carrying meaning. */
 .ui-icon {
 	inline-size: 1.25em;
 	block-size: 1.25em;
@@ -86,6 +86,22 @@
 		font-size: var(--ui-text-m);
 	}
 
+	/* Neutral: the text, surface and border tokens, no accent of its own. */
+	&[data-tone="neutral"] {
+		--_fill: var(--ui-color-surface-raised);
+		--_on: var(--ui-color-text);
+		--_hover: var(--ui-color-surface);
+		--_active: var(--ui-color-border);
+		--_text: var(--ui-color-text);
+		--_subtle: var(--ui-color-border); /* visible on the page and on cards */
+
+		border-color: var(--ui-color-border-strong);
+
+		&[data-variant="ghost"] {
+			border-color: transparent;
+		}
+	}
+
 	&[data-tone="danger"] {
 		--_fill: var(--ui-color-danger);
 		--_on: var(--ui-color-on-danger);
@@ -121,4 +137,250 @@
 		--_text: var(--ui-color-info-text);
 		--_subtle: var(--ui-color-info-subtle);
 	}
+}
+
+.ui-icon-labelled {
+	display: inline-flex;
+}
+
+/* Badge (§5.2): a short label in its tone's subtle colours. */
+.ui-badge {
+	--_bg: var(--ui-color-surface);
+	--_fg: var(--ui-color-text);
+
+	display: inline-flex;
+	align-items: center;
+	gap: var(--ui-space-1);
+	padding-block: 0;
+	padding-inline: var(--ui-space-2);
+	border: 1px solid var(--ui-color-border);
+	border-radius: var(--ui-radius-full);
+	font-size: var(--ui-text-xs);
+	font-weight: 600;
+	line-height: 1.6;
+	color: var(--_fg);
+	background-color: var(--_bg);
+
+	&[data-tone="brand"] { --_bg: var(--ui-color-brand-subtle); --_fg: var(--ui-color-brand-text); }
+	&[data-tone="danger"] { --_bg: var(--ui-color-danger-subtle); --_fg: var(--ui-color-danger-text); }
+	&[data-tone="warning"] { --_bg: var(--ui-color-warning-subtle); --_fg: var(--ui-color-warning-text); }
+	&[data-tone="success"] { --_bg: var(--ui-color-success-subtle); --_fg: var(--ui-color-success-text); }
+	&[data-tone="info"] { --_bg: var(--ui-color-info-subtle); --_fg: var(--ui-color-info-text); }
+}
+
+/* Alert (§5.2): icon, hidden level word, title and body. */
+.ui-alert {
+	--_bg: var(--ui-color-info-subtle);
+	--_fg: var(--ui-color-info-text);
+
+	display: flex;
+	gap: var(--ui-space-3);
+	padding-block: var(--ui-space-3);
+	padding-inline: var(--ui-space-4);
+	border: 1px solid currentColor;
+	border-radius: var(--ui-radius-m);
+	color: var(--_fg);
+	background-color: var(--_bg);
+
+	&[data-tone="success"] { --_bg: var(--ui-color-success-subtle); --_fg: var(--ui-color-success-text); }
+	&[data-tone="warning"] { --_bg: var(--ui-color-warning-subtle); --_fg: var(--ui-color-warning-text); }
+	&[data-tone="danger"] { --_bg: var(--ui-color-danger-subtle); --_fg: var(--ui-color-danger-text); }
+
+	& > .ui-icon {
+		margin-block-start: var(--ui-space-1);
+	}
+}
+
+.ui-alert-content {
+	min-inline-size: 0;
+}
+
+.ui-alert-title {
+	margin: 0;
+	font-weight: 600;
+}
+
+.ui-alert-body {
+	color: var(--ui-color-text);
+
+	& > :first-child { margin-block-start: 0; }
+	& > :last-child { margin-block-end: 0; }
+}
+
+/* Card (§5.2). */
+.ui-card {
+	border: 1px solid var(--ui-color-border);
+	border-radius: var(--ui-radius-l);
+	background-color: var(--ui-color-surface-raised);
+	box-shadow: var(--ui-shadow-1);
+}
+
+.ui-card-body {
+	& > :first-child { margin-block-start: 0; }
+	& > :last-child { margin-block-end: 0; }
+}
+
+.ui-card-header,
+.ui-card-body,
+.ui-card-footer {
+	padding-block: var(--ui-space-4);
+	padding-inline: var(--ui-space-5);
+}
+
+.ui-card-header {
+	border-block-end: 1px solid var(--ui-color-border);
+
+	& > :is(h1, h2, h3, h4, h5, h6) { margin: 0; }
+}
+
+.ui-card-footer {
+	display: flex;
+	justify-content: flex-end;
+	gap: var(--ui-space-2);
+	border-block-start: 1px solid var(--ui-color-border);
+}
+
+/* Avatar (§5.3). */
+.ui-avatar {
+	display: inline-grid;
+	place-items: center;
+	inline-size: 2.5em;
+	block-size: 2.5em;
+	flex: none;
+	border-radius: var(--ui-radius-full);
+	font-size: var(--ui-text-s);
+	font-weight: 600;
+	color: var(--ui-color-brand-text);
+	background-color: var(--ui-color-brand-subtle);
+	object-fit: cover;
+
+	&[data-size="s"] { inline-size: 2em; block-size: 2em; font-size: var(--ui-text-xs); }
+	&[data-size="l"] { inline-size: 3.5em; block-size: 3.5em; font-size: var(--ui-text-m); }
+}
+
+/* Spinner (§5.3): stops under reduced motion, whose duration tokens are 0. */
+.ui-spinner {
+	display: inline-flex;
+	vertical-align: middle;
+
+	&[data-size="s"] .ui-spinner-ring { inline-size: 1em; block-size: 1em; }
+	&[data-size="l"] .ui-spinner-ring { inline-size: 2em; block-size: 2em; }
+}
+
+.ui-spinner-ring {
+	inline-size: 1.25em;
+	block-size: 1.25em;
+	border: 0.15em solid var(--ui-color-border);
+	border-block-start-color: var(--ui-color-brand);
+	border-radius: var(--ui-radius-full);
+	animation: ui-spin calc(var(--ui-duration-m) * 4) linear infinite;
+}
+
+@keyframes ui-spin {
+	to { rotate: 1turn; }
+}
+
+/* Tooltip (§5.3): on hover and focus within, hidden by Esc (the script
+   sets hidden). Aligned to the trigger's start edge, so it reads the same
+   way in RTL. */
+.ui-tooltip {
+	position: relative;
+	display: inline-flex;
+}
+
+.ui-tooltip-text {
+	position: absolute;
+	inset-block-end: calc(100% + var(--ui-space-1));
+	inset-inline-start: 0;
+	z-index: 1;
+	inline-size: max-content;
+	max-inline-size: 24em;
+	padding-block: var(--ui-space-1);
+	padding-inline: var(--ui-space-2);
+	border-radius: var(--ui-radius-s);
+	font-size: var(--ui-text-xs);
+	color: var(--ui-color-surface-raised);
+	background-color: var(--ui-color-text);
+	box-shadow: var(--ui-shadow-2);
+	visibility: hidden;
+	opacity: 0;
+	transition:
+		opacity var(--ui-duration-s) var(--ui-ease),
+		visibility var(--ui-duration-s) var(--ui-ease);
+
+	/* Bridges the gap to the trigger, so the pointer can move onto the
+	   text without the tooltip closing (WCAG 1.4.13, hoverable). */
+	&::before {
+		content: "";
+		position: absolute;
+		inset-block-start: 100%;
+		inset-inline: 0;
+		block-size: var(--ui-space-1);
+	}
+
+	/* On hover, and on keyboard focus: a click or a dialog's first focus
+	   doesn't pop it up. */
+	.ui-tooltip:is(:hover, :has(:focus-visible)) > & {
+		visibility: visible;
+		opacity: 1;
+	}
+}
+
+/* Separator (§5.3). */
+.ui-separator {
+	margin-block: var(--ui-space-4);
+	margin-inline: 0;
+	border: 0;
+	border-block-start: 1px solid var(--ui-color-border);
+
+	&[aria-orientation="vertical"] {
+		align-self: stretch;
+		margin-block: 0;
+		margin-inline: var(--ui-space-2);
+		border-block-start: 0;
+		border-inline-start: 1px solid var(--ui-color-border);
+	}
+}
+
+/* Heading (§5.3): the size apart from the level. */
+.ui-heading {
+	margin-block: 0 var(--ui-space-3);
+	font-size: var(--ui-text-l);
+	line-height: 1.25;
+
+	&[data-size="s"] { font-size: var(--ui-text-m); }
+	&[data-size="l"] { font-size: var(--ui-text-xl); }
+}
+
+/* Value renderers (§5.4). */
+.ui-text,
+.ui-date {
+	overflow-wrap: anywhere;
+}
+
+.ui-bool {
+	display: inline-flex;
+
+	&[data-value="true"] { color: var(--ui-color-success-text); }
+	&[data-value="false"] { color: var(--ui-color-text-muted); }
+}
+
+.ui-link {
+	color: var(--ui-color-brand-text);
+	text-underline-offset: 0.2em;
+}
+
+.ui-image {
+	max-inline-size: 100%;
+	block-size: auto;
+	border-radius: var(--ui-radius-s);
+}
+
+.ui-amount {
+	font-variant-numeric: tabular-nums;
+	white-space: nowrap;
+}
+
+.ui-empty {
+	color: var(--ui-color-text-muted);
 }

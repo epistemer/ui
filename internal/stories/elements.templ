@@ -1,8 +1,9 @@
 package stories
 
 import (
-	"github.com/epistemer/ui/internal/spike/elements"
-	"github.com/epistemer/ui/internal/spike/icons"
+	"github.com/epistemer/i18n"
+	"github.com/epistemer/ui/elements"
+	"github.com/epistemer/ui/icons"
 )
 
 templ buttonTones(v elements.Variant) {
@@ -21,6 +22,9 @@ templ buttonTones(v elements.Variant) {
 		}
 		@elements.Button().Variant(v).Tone(elements.Info) {
 			Details
+		}
+		@elements.Button().Variant(v).Tone(elements.Neutral) {
+			Cancel
 		}
 	</div>
 }
@@ -50,7 +54,7 @@ templ buttonStates() {
 		@elements.Button().Href("/orders").Disabled(true) {
 			A disabled link
 		}
-		@elements.Button().Variant(elements.Outline).Attrs(templ.Attributes{"aria-label": "Add an item", "class": "story-extra"}) {
+		@elements.Button().Variant(elements.Outline).Label(i18n.Static("Add an item")).Attrs(templ.Attributes{"class": "story-extra"}) {
 			@icons.Plus()
 		}
 		@elements.Button().Variant(elements.Ghost) {
@@ -62,4 +66,155 @@ templ buttonStates() {
 			Add an item
 		}
 	</div>
+}
+
+templ allIcons() {
+	<div class="catalog-row">
+		@icons.X()
+		@icons.Plus()
+		@icons.Minus()
+		@icons.Check()
+		@icons.ChevronDown()
+		@icons.ChevronUp()
+		@icons.ChevronStart()
+		@icons.ChevronEnd()
+		@icons.ArrowStart()
+		@icons.ArrowEnd()
+		@icons.More()
+		@icons.Menu()
+		@icons.Search()
+		@icons.Info()
+		@icons.Warning()
+		@icons.CircleCheck()
+		@icons.CircleX()
+		@icons.Eye()
+		@icons.EyeOff()
+		@icons.Sun()
+		@icons.Moon()
+		@icons.User()
+		@icons.Labelled(icons.Warning(), i18n.Static("Overdue"))
+	</div>
+}
+
+templ badges() {
+	<div class="catalog-row">
+		@elements.Badge() {
+			Draft
+		}
+		@elements.Badge().Tone(elements.Brand) {
+			New
+		}
+		@elements.Badge().Tone(elements.Info) {
+			Shipped
+		}
+		@elements.Badge().Tone(elements.Success) {
+			Paid
+		}
+		@elements.Badge().Tone(elements.Warning) {
+			Late
+		}
+		@elements.Badge().Tone(elements.Danger) {
+			Refunded
+		}
+	</div>
+}
+
+templ alerts() {
+	@elements.Alert() {
+		Orders placed after 6 pm ship the next day.
+	}
+	<br/>
+	@elements.Alert().Tone(elements.Success).Title(i18n.Static("Saved")) {
+		The store's address was updated.
+	}
+	<br/>
+	@elements.Alert().Tone(elements.Warning) {
+		Three toys are almost out of stock.
+	}
+	<br/>
+	@elements.Alert().Tone(elements.Danger).Title(i18n.Static("Payment failed")) {
+		The card was declined. Try another one.
+	}
+}
+
+templ cards() {
+	@elements.Card() {
+		@elements.CardHeader {
+			@elements.Heading(2).Size(elements.Small) {
+				Bricks & Co
+			}
+		}
+		@elements.CardBody {
+			<p>A toy shop on the Corniche, open every day.</p>
+		}
+		@elements.CardFooter {
+			@elements.Button().Variant(elements.Ghost).Tone(elements.Neutral) {
+				Close
+			}
+			@elements.Button() {
+				Edit
+			}
+		}
+	}
+	<br/>
+	@elements.Card() {
+		@elements.CardBody {
+			<p>A card with a body only.</p>
+		}
+	}
+}
+
+templ avatars() {
+	<div class="catalog-row">
+		@elements.Avatar(i18n.Static("Nour Hassan")).Size(elements.Small)
+		@elements.Avatar(i18n.Static("Nour Hassan"))
+		@elements.Avatar(i18n.Static("Omar")).Size(elements.Large)
+		@elements.Avatar(i18n.Static("Layla Adel")).Src("/static/layla.png")
+		<span class="catalog-row">
+			@elements.Avatar(i18n.Static("Karim Fathy")).Decorative()
+			Karim Fathy
+		</span>
+	</div>
+}
+
+templ spinners() {
+	<div class="catalog-row">
+		@elements.Spinner().Size(elements.Small)
+		@elements.Spinner()
+		@elements.Spinner().Size(elements.Large).Label(i18n.Static("Loading orders"))
+	</div>
+}
+
+templ tooltips() {
+	<div class="catalog-row">
+		@elements.Tooltip(i18n.Static("Shown on every receipt")) {
+			@elements.TooltipTrigger {
+				@elements.Button().Variant(elements.Ghost).Tone(elements.Neutral).Label(i18n.Static("About the store name")).Attrs(elements.TooltipTrigger.Value(ctx)) {
+					@icons.Info()
+				}
+			}
+		}
+	</div>
+}
+
+templ separators() {
+	<p>Above the line.</p>
+	@elements.Separator()
+	<div class="catalog-row">
+		Left
+		@elements.VerticalSeparator()
+		Right
+	</div>
+}
+
+templ headings() {
+	@elements.Heading(1).Size(elements.Large) {
+		Large, level 1
+	}
+	@elements.Heading(2) {
+		Medium, level 2
+	}
+	@elements.Heading(3).Size(elements.Small) {
+		Small, level 3
+	}
 }

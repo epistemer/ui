@@ -16,8 +16,8 @@ import (
 
 	"github.com/epistemer/i18n"
 	"github.com/epistemer/ui"
+	"github.com/epistemer/ui/elements"
 	"github.com/epistemer/ui/forms"
-	"github.com/epistemer/ui/internal/spike/elements"
 )
 
 var fieldID = ui.NewID("field")

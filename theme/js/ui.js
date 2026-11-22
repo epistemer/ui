@@ -153,3 +153,43 @@ if (document.readyState === "loading") {
 } else {
 	refreshAll(document);
 }
+
+// Tooltips (§5.3, WCAG 1.4.13): Esc hides a tooltip showing for the
+// hovered or keyboard-focused trigger. The key stops here, so a dialog or
+// popover around the trigger stays open; but an open menu or popover that
+// doesn't hold the trigger gets the key, since Esc is meant for it. The
+// tooltip comes back when its trigger is entered or focused again.
+const showing = (tip) => tip.matches(":hover, :has(:focus-visible)");
+
+document.addEventListener(
+	"keydown",
+	(event) => {
+		if (event.key !== "Escape") return;
+		const open = [...document.querySelectorAll(":popover-open, dialog:modal")];
+		let hid = false;
+		for (const tip of document.querySelectorAll(".ui-tooltip")) {
+			const text = tip.querySelector(":scope > .ui-tooltip-text");
+			if (!text || text.hidden || !showing(tip)) continue;
+			if (open.length && !open.some((layer) => layer.contains(tip))) continue;
+			text.hidden = true;
+			hid = true;
+			const back = () => {
+				text.hidden = false;
+				tip.removeEventListener("pointerenter", back);
+				tip.removeEventListener("focusin", back);
+			};
+			// Leaving and coming back, or focus arriving again (a dialog
+			// reopened), shows it again.
+			tip.addEventListener("pointerleave", () => tip.addEventListener("pointerenter", back), { once: true });
+			tip.addEventListener("focusout", () => tip.addEventListener("focusin", back), { once: true });
+		}
+		if (hid) {
+			event.preventDefault();
+			event.stopImmediatePropagation();
+		}
+	},
+	true,
+);
+
+// The script has run (§10.1): CSS shows what needs it.
+document.documentElement.dataset.uiReady = "";

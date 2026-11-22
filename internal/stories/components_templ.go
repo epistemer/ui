@@ -11,8 +11,8 @@ import templruntime "github.com/a-h/templ/runtime"
 
 import (
 	"github.com/epistemer/i18n"
+	"github.com/epistemer/ui/elements"
 	"github.com/epistemer/ui/internal/spike/components"
-	"github.com/epistemer/ui/internal/spike/elements"
 )
 
 func dialogBasic() templ.Component {

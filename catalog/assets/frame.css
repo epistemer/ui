@@ -25,3 +25,12 @@
 .catalog-form {
 	max-inline-size: 28em;
 }
+
+.catalog-values {
+	display: grid;
+	grid-template-columns: max-content 1fr;
+	gap: var(--ui-space-2) var(--ui-space-4);
+
+	& dt { font-weight: 600; }
+	& dd { margin: 0; display: flex; gap: var(--ui-space-2); align-items: center; }
+}
