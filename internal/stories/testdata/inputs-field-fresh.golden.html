@@ -25,10 +25,10 @@
         *
       </span>
     </label>
-    <input aria-describedby="field--t-2-help" class="ui-input" data-ui-when-off="" disabled="" id="field--t-2" name="amount" required="" type="text">
     <p class="ui-field-help" id="field--t-2-help">
       In the store&#39;s currency.
     </p>
+    <input aria-describedby="field--t-2-help" class="ui-input" data-ui-when-off="" disabled="" id="field--t-2" name="amount" required="" type="text">
   </div>
   <div class="ui-field" data-ui-when="{&#34;typ&#34;:&#34;c&#34;,&#34;k&#34;:&#34;type&#34;,&#34;op&#34;:&#34;eq&#34;,&#34;v&#34;:&#34;percentage&#34;}" hidden="">
     <label class="ui-field-label" for="field--t-3">
@@ -46,13 +46,15 @@
     <input class="ui-input" dir="ltr" id="field--t-4" name="email" type="email">
   </div>
   <div class="ui-field">
-    <input class="ui-input" id="field--t-5" name="agree" required="" type="checkbox" value="true">
-    <label class="ui-field-label" for="field--t-5">
-      The terms are agreed
-      <span aria-hidden="true" class="ui-field-required">
-        *
-      </span>
-    </label>
+    <div class="ui-field-row">
+      <input class="ui-input" id="field--t-5" name="agree" required="" type="checkbox" value="true">
+      <label class="ui-field-label" for="field--t-5">
+        The terms are agreed
+        <span aria-hidden="true" class="ui-field-required">
+          *
+        </span>
+      </label>
+    </div>
   </div>
   <button class="ui-button" type="submit">
     Save

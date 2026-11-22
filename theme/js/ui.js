@@ -147,6 +147,8 @@ document.addEventListener("input", (e) => e.target.form && refresh(e.target.form
 document.addEventListener("change", (e) => e.target.form && refresh(e.target.form));
 // reset fires before the values are reset.
 document.addEventListener("reset", (e) => setTimeout(() => refresh(e.target), 0));
+// A page restored from the back-forward cache keeps its values.
+window.addEventListener("pageshow", (e) => e.persisted && refreshAll(document));
 document.addEventListener("htmx:afterSwap", (e) => refreshAll(e.target));
 if (document.readyState === "loading") {
 	document.addEventListener("DOMContentLoaded", () => refreshAll(document));
@@ -190,6 +192,32 @@ document.addEventListener(
 	},
 	true,
 );
+
+// The password reveal (§6.3): switches the input named by aria-controls
+// between password and text, with aria-pressed; the form's reset puts both
+// back.
+document.addEventListener("click", (event) => {
+	const button = event.target instanceof Element ? event.target.closest("[data-ui-reveal]") : null;
+	if (!button) return;
+	const input = document.getElementById(button.getAttribute("aria-controls"));
+	if (!(input instanceof HTMLInputElement) || input.disabled || button.matches(":disabled")) return;
+	const show = button.getAttribute("aria-pressed") !== "true";
+	input.type = show ? "text" : "password";
+	button.setAttribute("aria-pressed", String(show));
+});
+
+function hidePasswords(root) {
+	for (const button of root.querySelectorAll?.("[data-ui-reveal]") ?? []) {
+		const input = document.getElementById(button.getAttribute("aria-controls"));
+		if (input instanceof HTMLInputElement) input.type = "password";
+		button.setAttribute("aria-pressed", "false");
+	}
+}
+
+document.addEventListener("reset", (event) => hidePasswords(event.target));
+// Before the page goes into the back-forward cache, so a revealed password
+// isn't shown when someone comes back to it.
+window.addEventListener("pagehide", () => hidePasswords(document));
 
 // The script has run (§10.1): CSS shows what needs it.
 document.documentElement.dataset.uiReady = "";

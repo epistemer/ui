@@ -31,6 +31,16 @@ All notable changes to this module. The format follows
   `Amount`, `Empty`), `Merge`, and the `Variant`, `Size` and `Tone` types
   (§2.2, §2.3, §5).
 - The ui script hides a tooltip on Esc and sets `<html data-ui-ready>`.
+- `ui/inputs`: `Field(c forms.Control)` renders a field for every kind
+  but lists (§6):
+  - help above the control, and errors led by an icon and a hidden
+    "Error:";
+  - checkbox and password rows;
+  - the password reveal;
+  - groups as fieldsets that carry their condition, help and error.
+
+  The ui script reveals passwords, and refreshes conditions when a page
+  is restored from the back-forward cache.
 ## [v0.1.0] - 2026-11-21
 
 The first release: the kernel and forms, the whole of the interface locked

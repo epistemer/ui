@@ -12,7 +12,7 @@ import templruntime "github.com/a-h/templ/runtime"
 import (
 	"github.com/epistemer/ui/elements"
 	"github.com/epistemer/ui/forms"
-	"github.com/epistemer/ui/internal/spike/inputs"
+	"github.com/epistemer/ui/inputs"
 )
 
 func promotionForm(f *forms.Form) templ.Component {

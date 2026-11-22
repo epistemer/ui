@@ -1,6 +1,11 @@
-// Package inputs is the D4 spike of ui/inputs: widgets rendered from a
-// forms.Control (design §10), with label, help and error wired by
-// generated ids, and conditions handed to the ui script.
+// Package inputs renders forms' controls as fields (visual-interface.md
+// §6): one widget per kind, with its label, help and error wired by
+// generated ids, and its condition handed to the ui script, which shows,
+// hides and disables it as the server would.
+//
+//	for c := range f.Controls() {
+//		@inputs.Field(c)
+//	}
 package inputs
 
 import (
@@ -22,14 +27,16 @@ import (
 
 var fieldID = ui.NewID("field")
 
-// ui's own text (Q5).
+// ui's own text (§2.5, §11).
 var (
-	// ChooseText is a select's empty first option. Without one, a browser
-	// shows the first option chosen when nothing is, and the page and the
-	// server disagree about the value (spike finding 11).
-	ChooseText = i18n.Key("ui.inputs.choose", "Choose…")
-	YesText    = i18n.Key("ui.inputs.yes", "Yes")
-	NoText     = i18n.Key("ui.inputs.no", "No")
+	// choose is a select's empty first option. Without one, a browser shows
+	// the first option chosen when nothing is, and the page and the server
+	// disagree about the value (design finding 11).
+	choose       = i18n.Key("ui.inputs.field.choose", "Choose…")
+	yes          = i18n.Key("ui.inputs.field.yes", "Yes")
+	no           = i18n.Key("ui.inputs.field.no", "No")
+	errorWord    = i18n.Key("ui.inputs.field.error", "Error:")
+	showPassword = i18n.Key("ui.inputs.field.show_password", "Show password")
 )
 
 // FieldSpec is a form field being described: a widget for its control.
@@ -222,8 +229,8 @@ func (f FieldSpec) choices(ctx context.Context) (opts []forms.Choice, empty bool
 			b, set = true, true
 		}
 		opts = []forms.Choice{
-			{Value: "true", Label: YesText, Selected: set && b},
-			{Value: "false", Label: NoText, Selected: set && !b},
+			{Value: "true", Label: yes, Selected: set && b},
+			{Value: "false", Label: no, Selected: set && !b},
 		}
 		return opts, true
 	}
@@ -235,6 +242,21 @@ func (f FieldSpec) choices(ctx context.Context) (opts []forms.Choice, empty bool
 	// ask for another.
 	empty = f.c.Kind() == forms.KindSelect && !slices.ContainsFunc(opts, func(o forms.Choice) bool { return o.Value == "" })
 	return opts, empty
+}
+
+// hiddenAttrs are a hidden field's: its value, its state, then the
+// control's own attributes and the caller's, which can't change them.
+func (f FieldSpec) hiddenAttrs() templ.Attributes {
+	own := templ.Attributes{"type": "hidden", "name": f.c.Path(), "value": f.value()}
+	if f.hiddenWrapper() {
+		own["disabled"] = true
+		own["data-ui-when-off"] = ""
+	}
+	fromControl := templ.Attributes{}
+	for k, v := range f.c.Attrs() {
+		fromControl[k] = v
+	}
+	return elements.Merge(elements.Merge(own, fieldOwned, fromControl), fieldOwned, f.attrs)
 }
 
 // textareaValue keeps a value's leading newline: the HTML parser drops the
@@ -259,7 +281,22 @@ func (f FieldSpec) Render(ctx context.Context, w io.Writer) error {
 		for c := range f.c.Children() {
 			children = append(children, FieldSpec{c: c, nested: true})
 		}
-		return group(f, wrapper, children).Render(ctx, w)
+		// Attrs go to the group's fieldset, after its own; it keeps what
+		// carries its state.
+		return group(f, children, func(ctx context.Context) templ.Attributes {
+			own := wrapper
+			var described []string
+			if f.c.Help() != nil {
+				described = append(described, fieldID.Part(ctx, "help"))
+			}
+			if f.c.Err() != nil {
+				described = append(described, fieldID.Part(ctx, "error"))
+			}
+			if len(described) > 0 {
+				own = elements.Merge(own, nil, templ.Attributes{"aria-describedby": strings.Join(described, " ")})
+			}
+			return elements.Merge(own, []string{"disabled", "hidden", "data-ui-when", "data-ui-when-off"}, f.attrs)
+		}).Render(ctx, w)
 	case forms.KindHidden:
 		wrapper, err := f.wrapperAttrs("")
 		if err != nil {
