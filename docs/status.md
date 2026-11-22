@@ -22,9 +22,15 @@ taken for epistemer, what's next, and what's waiting on epistemer.
     §4A.
 - CHANGELOG `[v0.2.0]`, with A5; a README section on building a page; the
   `ui` skill covers the visual packages and links.
-- The release, in the roadmap's order: tag ui `v0.2.0`, point
-  `theme/themeschema` at it and drop its `replace`, then tag
-  `theme/themeschema/v0.2.0`. Then `go get` both through the proxy.
+- Released, in the roadmap's order:
+  - ui `v0.2.0` was tagged on #28's merge;
+  - #31 pointed `theme/themeschema` at it and dropped its `replace`;
+  - `theme/themeschema/v0.2.0` was tagged on #31's merge.
+- Checked through proxy.golang.org from a new module: `go get` of both
+  works, a Button renders with a `ui.URL` link, and themeschema pulls ui
+  v0.2.0.
+- Merged on the way: #29 (D7.1's design, from another session) and #30
+  (A5), both before the tag.
 
 **Defaults taken** (epistemer's rule: an unanswered question takes its
 default):
