@@ -1,0 +1,124 @@
+package shop
+
+import (
+	"fmt"
+	"strconv"
+
+	"github.com/epistemer/i18n"
+
+	"github.com/epistemer/ui"
+	"github.com/epistemer/ui/components"
+	"github.com/epistemer/ui/elements"
+	"github.com/epistemer/ui/forms"
+	"github.com/epistemer/ui/inputs"
+	"github.com/epistemer/ui/internal/spike/actions"
+	"github.com/epistemer/ui/internal/spike/tableui"
+	"github.com/epistemer/ui/layout"
+	"github.com/epistemer/ui/theme"
+)
+
+templ spikeHead(withHTMX bool) {
+	<meta name="htmx-config" content='{"includeIndicatorStyles":false,"historyCacheSize":0}'/>
+	<link rel="stylesheet" href="/spike/spike.css"/>
+	if withHTMX {
+		<script src="/spike/htmx.min.js"></script>
+	}
+	<script type="module" src="/spike/spike.js"></script>
+}
+
+templ pageTmpl(th *theme.Theme, title i18n.Ter, withHTMX bool, body templ.Component) {
+	@layout.Document(title).Head(th.Head(), spikeHead(withHTMX)) {
+		@layout.App() {
+			@layout.AppBrand {
+				Bricks & Co
+			}
+			@layout.AppNav {
+				@layout.NavItem(ui.URL("/orders")) {
+					Orders
+				}
+			}
+			@layout.AppBar {
+				if withHTMX {
+					<a href="/plain">Without htmx</a>
+				} else {
+					<a href="/htmx">With htmx</a>
+				}
+			}
+			@layout.AppMain {
+				@body
+			}
+		}
+		@tableui.ActionForm()
+		@tableui.ActionDialog()
+	}
+}
+
+templ ordersPage(orders, toys templ.Component) {
+	@layout.PageHeader(ordersTitle) {
+	}
+	<section class="spike-section">
+		@orders
+	</section>
+	<section class="spike-section">
+		<h2>Toys</h2>
+		@toys
+	</section>
+}
+
+templ orderPage(o OrderListView, items []actions.Item) {
+	@layout.PageHeader(i18n.Static(o.Email)).Breadcrumbs(layout.Crumb{Href: OrdersRoute(), Text: ordersTitle}, layout.Crumb{Text: i18n.Static(fmt.Sprintf("#%d", o.ID))}) {
+	}
+	@elements.Card() {
+		@elements.CardBody {
+			@components.DetailList() {
+				@components.DetailRow(i18n.Static("Customer")) {
+					@elements.Link(CustomerRoute(o.CustomerID), i18n.Static(o.Customer))
+				}
+				@components.DetailRow(i18n.Static("Status")) {
+					@statusCell(o)
+				}
+				@components.DetailRow(i18n.Static("Total")) {
+					@elements.Amount(money(o))
+				}
+			}
+		}
+		@elements.CardFooter {
+			@tableui.ActionButtons(items)
+		}
+	}
+}
+
+templ customerPage(id string) {
+	@layout.PageHeader(i18n.Static("Customer " + id)) {
+	}
+	<p>A customer's page, reached from a link in a cell.</p>
+}
+
+templ reassignBody(o OrderListView, f *forms.Form) {
+	{{ action := OrderReassignPost(o.ID).URL() }}
+	<h2 class="ui-dialog-title" id={ tableui.ActionDialogTitle }>Reassign order #{ strconv.FormatInt(o.ID, 10) }</h2>
+	<form class="spike-form" method="post" action={ templ.SafeURL(action) } hx-post={ action } hx-target={ "#" + tableui.ActionDialogBodyID } hx-swap="innerHTML" novalidate>
+		for c := range f.Controls() {
+			@inputs.Field(c)
+		}
+		@elements.Button().Submit() {
+			Save
+		}
+	</form>
+}
+
+templ tagBody(chosen []int64, f *forms.Form) {
+	{{ action := OrdersTagPost().URL() }}
+	<h2 class="ui-dialog-title" id={ tableui.ActionDialogTitle }>Tag { strconv.Itoa(len(chosen)) } orders</h2>
+	<form class="spike-form" method="post" action={ templ.SafeURL(action) } hx-post={ action } hx-target={ "#" + tableui.ActionDialogBodyID } hx-swap="innerHTML" novalidate>
+		for _, n := range chosen {
+			<input type="hidden" name="id" value={ strconv.FormatInt(n, 10) }/>
+		}
+		for c := range f.Controls() {
+			@inputs.Field(c)
+		}
+		@elements.Button().Submit() {
+			Save
+		}
+	</form>
+}

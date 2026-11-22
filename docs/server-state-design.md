@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | Draft. epistemer decided S1–S6 in the brainstorm of 2026-11-22, and S21 the same day; S7–S20 and S22 stand on their defaults, open to change until the lock (D7.5) |
+| Status | Draft. epistemer decided S1–S6 in the brainstorm of 2026-11-22, and S21 the same day; S7–S20 and S22 stand on their defaults, open to change until the lock (D7.5). Amended by the D7.2 spike's findings (§12.1) |
 | Date | 2026-11-22 |
 | Roadmap item | D7.1 |
 | Review | [0012](reviews/0012-server-state-design.md): 16 findings, 15 of which changed this text |
@@ -869,6 +869,128 @@ first. The toy shop's orders:
   kits.
 
 Its findings amend this draft, as the D4 spike amended visual-design.md.
+
+### 12.1 What the spike found
+
+The spike is in `internal/spike` (its package doc lists the parts). It
+runs the toy shop with `go run ./internal/spike/cmd/shop`. Every item
+above was exercised in the browser pane, with htmx and without
+(`/plain`). Its tests cover goldens, `CheckIDs`, `CheckNames` and
+`CheckSelectors` on seven table states and an order's card, both test
+kits, and every answer over HTTP.
+
+**Confirmed as designed:**
+- The state form, the results and the sort input that joins the form by
+  `form`.
+- Search without touching the box; a 422 that swaps the whole table with
+  the error beside its field; Back; two tables, `Prefixed()`.
+- Rows retargeted as `<tr>` with a toast out of band in the same answer
+  (htmx 2.0.11 parses it); `delete` for a removal; a refresh by event.
+- The action form for a menu item and a card; the bulk bar by `:has()`.
+- The selection posted by `hx-include` and by the `form` attribute.
+- A bulk `Open` by `formmethod="get"`.
+- The 422 kept in the dialog; `InActionDialog`.
+
+These change the draft:
+
+1. **The rest of the query goes stale under htmx.** A table's state form
+   carries the page's other parameters as they were when it rendered, and
+   its sort and page links were built then too. A second table that
+   changed the address since is lost on the next search. So each table
+   names the parameters it owns (`data-ui-own` on `<ui-table>`), and the
+   script builds every state request from the control's own parameters
+   plus every other parameter of the *live* address. It drops empty ones,
+   which a GET form always sends. Without script every change loads a
+   page, so the rendered values are current. §6.4 holds for no script
+   only.
+2. **Only the table's state controls take part.** An action's GET inside
+   the table (a bulk `Open` with the selection) keeps what it sends. The
+   script tells them apart by target: the table or its results.
+3. **An outerHTML swap settles on the detached element.** Events from a
+   swap of the results never reach `<ui-table>`. Its status and focus
+   work listen on the document and compare their results element. htmx 2
+   already puts focus back on an element with the same id. `<ui-table>`
+   only covers what htmx can't, below.
+4. **`Reply`'s events fire after settling** (`HX-Trigger-After-Settle`,
+   not `HX-Trigger`). Otherwise the swap step, which fires `afterSwap` on
+   the dialog's body even for `none`, reopens the dialog the answer just
+   closed. The script also closes the dialog a task later: htmx fires an
+   answer's other events (the refresh) on the element that asked, and
+   emptying the dialog first would detach it.
+5. **Focus after the action dialog needs keyed ids.** A refresh replaces
+   the dialog's opener: a menu item, or a bulk button in the results. A
+   menu's trigger has a generated id, so nothing finds it again. The
+   spike remembers the opener's row and focuses that row's trigger.
+   D7.5 should give `ActionMenu`'s trigger and each bulk button a keyed
+   id (`orders-row-1042-actions`, `orders-bulk-tag`). That asks `Menu`
+   for an id of the caller's, since its popover is named by its trigger's
+   id.
+6. **`Reply` needs a failure ending.** The handler's own state rule
+   (`CanRefund`) or a bulk all-or-nothing refusal answers 422 with a
+   danger toast and no change; without htmx, a redirect to `Else`. The
+   spike wrote it by hand. Proposed: `Reply(w, r).Fail(err)`, its text
+   from `errors.T`.
+7. **The action dialog is its own markup.** The locked Dialog has a fixed
+   title and renders a trigger. The action dialog's name comes from the
+   content loaded: the script points `aria-labelledby` at the loaded
+   `#ui-action-dialog-title`, and a generic `aria-label` names the empty
+   dialog (`CheckNames` fails without one). It shares Dialog's classes.
+   It is emptied, and loses the loaded title, however it closes; that is
+   watched through its `open` attribute, as V5 found for `close`.
+8. **S21's two shapes work.**
+   - A Button that is `aria-disabled`, focusable and inert, described by
+     its reason in a Tooltip. The spike wrote its markup by hand, because
+     Button owns `aria-disabled`.
+   - Arrow keys over a menu's disabled items: a capturing key handler in
+     the spike.
+   - The reason as a second line inside a menu item joins the item's
+     *name* as well as its description. The contract should name the
+     item by its label alone (`aria-labelledby`).
+9. **Two pagers need two names.** A pager is named after its table
+   ("Pages of Orders"): `CheckNames` refused two navigation landmarks
+   both called "Pages".
+10. **The selection's checkboxes are named `id`, which shadows `form.id`**
+    on the selection form (named controls shadow a form's properties).
+    The spike reads `getAttribute("id")`. A name that shadows nothing,
+    such as `row`, is safer for every script that will touch that form.
+    D7.5 decides.
+11. **Filters on enums are strings.** A column carries options, not its
+    Go enum type, so a filter is a Text field with `Options`, which makes
+    it a select and refuses a value not offered (A3). The value reaches
+    models as the option's string, not the Go type. §6.5's "an enum as its
+    Go type" doesn't hold; the driver takes the string.
+12. **A range group needs its column's label**, or its legend shows the
+    SQL name.
+13. **No value renderer for numbers.** Integers and numbers went through
+    `Text`, aligned by the cell's `data-kind`. D7.5 decides between a
+    `Number` renderer and leaving it to the cell.
+14. **The catalogue can't run a table.** Its frames have no handlers to
+    post to and no address to keep state in. T3's page of the toy shop
+    needs demo endpoints, as `cmd/catalog` has for toasts, or the shop's
+    server.
+15. **Two bugs outside the spike, fixed in this change:**
+    - forms' `FromRequest` bound a body that something had already parsed
+      as a blank form. It now reads `r.PostForm` or `r.MultipartForm`.
+    - `toast.js` lost a toast that arrived as its modal closed. It
+      reached a dialog region already removed; it now goes to the page's
+      region.
+16. **A templ trap.** `attr?={cond} attr={v}` renders a bare attribute
+    that wins over the second. Conditional attributes go through
+    attribute maps.
+17. **Styling to finish.** The filter row: a select sits taller than the
+    date fieldset beside it.
+18. **A rejection takes the whole table**, whatever asked. A search while
+    a filter's value is invalid targets the results, but the error sits in
+    the state form. A 422 answers with `HX-Retarget` and `HX-Reselect` on
+    the table (review 0014). `tables.Targeted` should say which part a
+    request may get.
+19. **htmx's history cache is off.** The spike sets
+    `historyCacheSize: 0`, so Back fetches the page. A cached snapshot
+    restores whatever the page was when it was left: an open action
+    dialog, a stale selection, `aria-busy`. The shells' htmx config is
+    D7.5's.
+20. **Chips show the bound value, formatted:** a bool's label, a date as
+    `Date` renders it. The spike shows the raw query value.
 
 ## 13. Out of this round
 

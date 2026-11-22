@@ -7,6 +7,13 @@ All notable changes to this module. The format follows
 
 ## Unreleased
 
+### Fixed
+- `forms.FromRequest` (and so `Submit`) bound a body that something had
+  already parsed (`r.ParseForm`, a middleware) as a blank form. It reads
+  `r.PostForm` or `r.MultipartForm` then.
+- The ui script lost a toast that arrived as the modal dialog it was
+  going into closed. It goes to the page's region instead.
+
 ## [v0.2.0] - 2026-11-22
 
 The visual packages, to the contract locked on 2026-11-22
