@@ -7,7 +7,8 @@ import (
 	"testing"
 
 	"github.com/epistemer/ui/internal/spike/a11y"
-	"github.com/epistemer/ui/internal/spike/theme"
+	"github.com/epistemer/ui/internal/themehook"
+	_ "github.com/epistemer/ui/theme" // sets the hook
 	"github.com/epistemer/ui/uitest"
 )
 
@@ -16,11 +17,7 @@ import (
 // exist in ui's CSS. Then it checks the other way: every component rule in
 // ui's CSS is used by some story.
 func TestStories(t *testing.T) {
-	b, err := theme.NewBundle()
-	if err != nil {
-		t.Fatal(err)
-	}
-	selected := a11y.Selected(string(b.Files["ui.css"]))
+	selected := a11y.Selected(string(themehook.Stylesheet()))
 	used := map[string]bool{}
 	for _, s := range All() {
 		for _, v := range s.Variants {

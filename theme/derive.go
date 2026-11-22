@@ -2,66 +2,66 @@ package theme
 
 import "math"
 
-// Scheme is light or dark.
-type Scheme int
+// scheme is light or dark.
+type scheme int
 
 const (
-	Light Scheme = iota
-	Dark
+	schemeLight scheme = iota
+	schemeDark
 )
 
-func (s Scheme) String() string {
-	if s == Dark {
+func (s scheme) String() string {
+	if s == schemeDark {
 		return "dark"
 	}
 	return "light"
 }
 
-// TextContrast is what derived text must reach: WCAG's 4.5:1 with a margin
+// textContrast is what derived text must reach: WCAG's 4.5:1 with a margin
 // for the browser's own rounding of the colours we emit.
-const TextContrast = 4.55
+const textContrast = 4.55
 
-// SubtleShare is the fill's share of a subtle background, mixed with the
+// subtleShare is the fill's share of a subtle background, mixed with the
 // raised surface in OKLab.
-const SubtleShare = 0.14
+const subtleShare = 0.14
 
 var (
-	black = RGB{0, 0, 0}
-	white = RGB{1, 1, 1}
+	black = rgb{0, 0, 0}
+	white = rgb{1, 1, 1}
 )
 
-// Partners are an accent's colours in one scheme, with the contrast each
+// partners are an accent's colours in one scheme, with the contrast each
 // derived colour reached.
-type Partners struct {
-	Fill, On, Hover, Active, Text, Subtle RGB
+type partners struct {
+	Fill, On, Hover, Active, Text, Subtle rgb
 	OnMin                                 float64 // the on-colour's worst contrast over the fill, hover and active
 	TextMin                               float64 // the text colour's worst contrast over the surfaces and the subtle background
 }
 
-func surface(name string, s Scheme) RGB {
-	for _, t := range Surfaces {
+func surface(name string, s scheme) rgb {
+	for _, t := range surfaces {
 		if t.Name == name {
-			if s == Dark && t.Dark != "" {
-				return MustHex(t.Dark)
+			if s == schemeDark && t.dark != "" {
+				return mustHex(t.dark)
 			}
-			return MustHex(t.Light)
+			return mustHex(t.light)
 		}
 	}
 	panic("theme: no surface " + name)
 }
 
-// Derive computes an accent's partners in scheme s from its fill
+// derive computes an accent's partners in scheme s from its fill
 // (visual-design.md §4).
-func Derive(fill RGB, s Scheme) Partners {
+func derive(fill rgb, s scheme) partners {
 	raised := surface("color-surface-raised", s)
-	grounds := []RGB{surface("color-surface", s), raised}
+	grounds := []rgb{surface("color-surface", s), raised}
 
-	fill = MustHex(fill.Hex()) // measure what the page will get
-	p := Partners{Fill: fill}
-	worst := func(c RGB, against []RGB) float64 {
+	fill = mustHex(fill.hex()) // measure what the page will get
+	p := partners{Fill: fill}
+	worst := func(c rgb, against []rgb) float64 {
 		w := math.Inf(1)
 		for _, a := range against {
-			w = math.Min(w, Contrast(c, a))
+			w = math.Min(w, contrast(c, a))
 		}
 		return w
 	}
@@ -69,37 +69,37 @@ func Derive(fill RGB, s Scheme) Partners {
 	// On: black or white, whichever contrasts more with the fill; one of
 	// them always reaches 4.58:1. Hover and active move away from it.
 	away := white
-	if Contrast(black, fill) >= Contrast(white, fill) {
+	if contrast(black, fill) >= contrast(white, fill) {
 		p.On = black
 	} else {
 		p.On, away = white, black
 	}
-	p.Hover = MustHex(MixOKLab(fill, HoverShare, away).Hex())
-	p.Active = MustHex(MixOKLab(fill, ActiveShare, away).Hex())
-	p.OnMin = worst(p.On, []RGB{fill, p.Hover, p.Active})
+	p.Hover = mustHex(mixOKLab(fill, hoverShare, away).hex())
+	p.Active = mustHex(mixOKLab(fill, activeShare, away).hex())
+	p.OnMin = worst(p.On, []rgb{fill, p.Hover, p.Active})
 
 	// Subtle: a tint of the raised surface.
-	p.Subtle = MustHex(MixOKLab(fill, SubtleShare, raised).Hex())
+	p.Subtle = mustHex(mixOKLab(fill, subtleShare, raised).hex())
 	grounds = append(grounds, p.Subtle)
 
 	// Text: the fill itself if it already reads on every ground; otherwise
 	// the colour nearest to it in OKLCh lightness that does, darker in the
 	// light scheme and lighter in the dark one, with chroma reduced to stay
 	// in sRGB.
-	if c := worst(fill, grounds); c >= TextContrast {
+	if c := worst(fill, grounds); c >= textContrast {
 		p.Text, p.TextMin = fill, c
 		return p
 	}
-	base := fill.Lab().LCh()
+	base := fill.lab().lch()
 	target := 0.0
-	if s == Dark {
+	if s == schemeDark {
 		target = 1
 	}
-	at := func(l float64) RGB { return LCh{L: l, C: base.C, H: base.H}.RGB() }
+	at := func(l float64) rgb { return lch{L: l, C: base.C, H: base.H}.rgb() }
 	near, far := base.L, target // near fails, far passes (black or white always does)
 	for range 50 {
 		mid := (near + far) / 2
-		if worst(at(mid), grounds) >= TextContrast {
+		if worst(at(mid), grounds) >= textContrast {
 			far = mid
 		} else {
 			near = mid
@@ -107,15 +107,15 @@ func Derive(fill RGB, s Scheme) Partners {
 	}
 	// Emitting hex rounds each channel, which can cost a little contrast:
 	// measure the rounded colour, and step on towards black or white until
-	// it holds. It always does at the end, so Derive never fails on what
+	// it holds. It always does at the end, so derive never fails on what
 	// an admin picks.
 	l := far
 	for {
-		p.Text = MustHex(at(l).Hex())
+		p.Text = mustHex(at(l).hex())
 		if p.TextMin = worst(p.Text, grounds); p.TextMin >= 4.5 || l == target {
 			return p
 		}
-		if s == Dark {
+		if s == schemeDark {
 			l = math.Min(1, l+0.005)
 		} else {
 			l = math.Max(0, l-0.005)

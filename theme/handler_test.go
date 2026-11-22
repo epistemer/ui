@@ -15,13 +15,13 @@ type cfg struct {
 	brand, font, radius string
 }
 
-func (c *cfg) BrandColor() string { return c.brand }
-func (c *cfg) FontSans() string   { return c.font }
-func (c *cfg) Radius() string     { return c.radius }
+func (c *cfg) ThemeBrandColor() string { return c.brand }
+func (c *cfg) ThemeFontSans() string   { return c.font }
+func (c *cfg) ThemeRadius() string     { return c.radius }
 
 func newCfg() *cfg {
 	d := Defaults{}
-	return &cfg{brand: d.BrandColor(), font: d.FontSans(), radius: d.Radius()}
+	return &cfg{brand: d.ThemeBrandColor(), font: d.ThemeFontSans(), radius: d.ThemeRadius()}
 }
 
 func get(t *testing.T, h http.Handler, path string) *httptest.ResponseRecorder {
@@ -32,7 +32,7 @@ func get(t *testing.T, h http.Handler, path string) *httptest.ResponseRecorder {
 }
 
 func TestBundle(t *testing.T) {
-	b, err := NewBundle()
+	b, err := newBundle()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -48,7 +48,7 @@ func TestBundle(t *testing.T) {
 	if _, ok := b.Files["ui.js"]; !ok {
 		t.Error("no ui.js")
 	}
-	again, _ := NewBundle()
+	again, _ := newBundle()
 	if again.Hash != b.Hash {
 		t.Errorf("hash not stable: %s, %s", b.Hash, again.Hash)
 	}
@@ -60,7 +60,7 @@ func TestHandler(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	hash := th.Bundle().Hash
+	hash := th.bundle.Hash
 
 	w := get(t, th, "/ui/"+hash+"/ui.css")
 	if w.Code != 200 || w.Header().Get("Cache-Control") != immutable || !strings.HasPrefix(w.Header().Get("Content-Type"), "text/css") {
@@ -73,7 +73,7 @@ func TestHandler(t *testing.T) {
 		t.Errorf("another release's hash: %d, want 404", w.Code)
 	}
 
-	_, h1 := th.runtime.Current()
+	_, h1 := th.runtime.current()
 	w = get(t, th, "/ui/theme/"+h1+".css")
 	if w.Code != 200 || w.Header().Get("Cache-Control") != immutable {
 		t.Errorf("current theme: %d %q", w.Code, w.Header().Get("Cache-Control"))
@@ -82,7 +82,7 @@ func TestHandler(t *testing.T) {
 	// An admin changes the brand: the hash changes, the old URL still
 	// answers, with the new theme and no caching.
 	c.brand = "#b4f601"
-	_, h2 := th.runtime.Current()
+	_, h2 := th.runtime.current()
 	if h2 == h1 {
 		t.Fatal("hash unchanged after a change")
 	}
@@ -107,7 +107,7 @@ func TestRuntimeRejectsInjection(t *testing.T) {
 	c.brand = "#fff; } body { display: none"
 	c.font = `x; } @import "https://evil.example/x.css`
 	c.radius = "1rem; } *{"
-	css, _ := NewRuntime(c).Current()
+	css, _ := newRuntime(c).current()
 	s := string(css)
 	for _, bad := range []string{"display: none", "@import", "evil", "*{"} {
 		if strings.Contains(s, bad) {
@@ -115,7 +115,7 @@ func TestRuntimeRejectsInjection(t *testing.T) {
 		}
 	}
 	d := Defaults{}
-	for _, want := range []string{"--ui-color-brand: " + d.BrandColor() + ";", "--ui-font-sans: " + d.FontSans() + ";", "--ui-radius: " + d.Radius() + ";"} {
+	for _, want := range []string{"--ui-color-brand: " + d.ThemeBrandColor() + ";", "--ui-font-sans: " + d.ThemeFontSans() + ";", "--ui-radius: " + d.ThemeRadius() + ";"} {
 		if !strings.Contains(s, want) {
 			t.Errorf("invalid value didn't fall back: want %q in\n%s", want, s)
 		}
@@ -127,48 +127,51 @@ func TestRuntimeRejectsInjection(t *testing.T) {
 
 func TestValidators(t *testing.T) {
 	for _, s := range []string{"#abc", "#A1B2C3"} {
-		if !ValidColor(s) {
+		if !isColor(s) {
 			t.Errorf("ValidColor(%q) = false", s)
 		}
 	}
 	for _, s := range []string{"abc", "#abcd", "red", "#fff;", "rgb(0 0 0)"} {
-		if ValidColor(s) {
+		if isColor(s) {
 			t.Errorf("ValidColor(%q) = true", s)
 		}
 	}
 	for _, s := range []string{"0", "4px", "0.5rem", "2rem", "32px"} {
-		if !ValidLength(s) {
+		if !isRadius(s) {
 			t.Errorf("ValidLength(%q) = false", s)
 		}
 	}
 	for _, s := range []string{"33px", "3rem", "-1px", "1", "1vw", "calc(1px)"} {
-		if ValidLength(s) {
+		if isRadius(s) {
 			t.Errorf("ValidLength(%q) = true", s)
 		}
 	}
 	for _, s := range []string{`system-ui, sans-serif`, `"Noto Sans Arabic", "Segoe UI", sans-serif`, `Inter, 'Segoe UI', sans-serif`} {
-		if !ValidFont(s) {
+		if !isFont(s) {
 			t.Errorf("ValidFont(%q) = false", s)
 		}
 	}
 	for _, s := range []string{`Comic Sans`, `"a\"b"`, `x; }`, `url(x)`, `"x"; color: red`, `Inter,`, `'x"`} {
-		if ValidFont(s) {
+		if isFont(s) {
 			t.Errorf("ValidFont(%q) = true", s)
 		}
 	}
 }
 
 func TestPrefix(t *testing.T) {
-	for _, p := range []string{"", "ui", "//evil.example", "/ui?x", `/ui"`} {
+	for _, p := range []string{"", "ui", "//evil.example", "/ui//x", "/ui?x", `/ui"`, "/ui\tx", "/u i"} {
 		if _, err := New(p, Defaults{}); err == nil {
 			t.Errorf("New(%q) accepted", p)
 		}
+	}
+	if _, err := New("/ui", nil); err == nil {
+		t.Error("New with a nil Config accepted")
 	}
 }
 
 func TestRuntimeConcurrent(t *testing.T) {
 	c := &lockedCfg{cfg: *newCfg()}
-	r := NewRuntime(c)
+	r := newRuntime(c)
 	done := make(chan bool)
 	for i := range 8 {
 		go func() {
@@ -176,7 +179,7 @@ func TestRuntimeConcurrent(t *testing.T) {
 				if i == 0 && j%10 == 0 {
 					c.set(fmt.Sprintf("#%06x", j*0x10203))
 				}
-				css, hash := r.Current()
+				css, hash := r.current()
 				if len(css) == 0 || len(hash) != 12 {
 					t.Error("empty theme")
 				}
@@ -195,15 +198,15 @@ type lockedCfg struct {
 }
 
 func (c *lockedCfg) set(brand string) { c.mu.Lock(); c.cfg.brand = brand; c.mu.Unlock() }
-func (c *lockedCfg) BrandColor() string {
+func (c *lockedCfg) ThemeBrandColor() string {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	return c.cfg.brand
 }
-func (c *lockedCfg) DangerColor() string  { return c.cfg.DangerColor() }
-func (c *lockedCfg) WarningColor() string { return c.cfg.WarningColor() }
-func (c *lockedCfg) SuccessColor() string { return c.cfg.SuccessColor() }
-func (c *lockedCfg) InfoColor() string    { return c.cfg.InfoColor() }
-func (c *lockedCfg) FontSans() string     { return c.cfg.FontSans() }
-func (c *lockedCfg) FontMono() string     { return c.cfg.FontMono() }
-func (c *lockedCfg) Radius() string       { return c.cfg.Radius() }
+func (c *lockedCfg) ThemeDangerColor() string  { return c.cfg.ThemeDangerColor() }
+func (c *lockedCfg) ThemeWarningColor() string { return c.cfg.ThemeWarningColor() }
+func (c *lockedCfg) ThemeSuccessColor() string { return c.cfg.ThemeSuccessColor() }
+func (c *lockedCfg) ThemeInfoColor() string    { return c.cfg.ThemeInfoColor() }
+func (c *lockedCfg) ThemeFontSans() string     { return c.cfg.ThemeFontSans() }
+func (c *lockedCfg) ThemeFontMono() string     { return c.cfg.ThemeFontMono() }
+func (c *lockedCfg) ThemeRadius() string       { return c.cfg.ThemeRadius() }

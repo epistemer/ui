@@ -8,7 +8,7 @@ import (
 
 	"github.com/epistemer/ui/internal/spike/catalog"
 	"github.com/epistemer/ui/internal/spike/stories"
-	"github.com/epistemer/ui/internal/spike/theme"
+	"github.com/epistemer/ui/theme"
 )
 
 func main() {

@@ -10,7 +10,7 @@ import (
 	"github.com/a-h/templ"
 
 	"github.com/epistemer/ui/internal/spike/catalog"
-	"github.com/epistemer/ui/internal/spike/theme"
+	"github.com/epistemer/ui/theme"
 )
 
 func newCatalog(t *testing.T) *catalog.Catalog {
@@ -57,7 +57,7 @@ func TestPages(t *testing.T) {
 			t.Errorf("%s: %d, want 404", bad, w.Code)
 		}
 	}
-	w = get("/tokens.json?brand=%23b4f601")
+	w = get("/tokens.json?brand_color=%23b4f601")
 	var tokens map[string]string
 	if err := json.Unmarshal(w.Body.Bytes(), &tokens); err != nil {
 		t.Fatal(err)
