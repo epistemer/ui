@@ -24,6 +24,7 @@ type View[R any] struct {
 	URL       string   // the current address, which a refresh reloads
 	Own       []string // the query parameters the table owns
 	Rejected  bool
+	Err       error // non-nil when a remote filter's Labeler failed; TableView.Page returns it
 	Columns   []Head
 	Rows      []Row[R]
 	Search    Search
@@ -142,7 +143,28 @@ func (p pagerLabel) T(ctx context.Context, _ ...any) string { return pagesLabel.
 func (t *Table[R]) sortID(c string) string { return t.name + "-sort-" + escape(c) }
 func (t *Table[R]) pageID(p string) string { return t.name + "-page-" + p }
 
-func (st *State[R]) base() View[R] {
+func (st *State[R]) resolvedChips() ([]chip, error) {
+	if !st.valid {
+		return nil, nil
+	}
+	if !st.chipsDone {
+		st.chipsDone = true
+		for _, f := range st.filters {
+			cs, err := chips(st.ctx, f, st.t)
+			if err != nil {
+				st.chipErr = err
+				return nil, err
+			}
+			for _, ch := range cs {
+				ch.Remove = templ.SafeURL(st.with(map[string]string{ch.param: ""}))
+				st.chips = append(st.chips, ch)
+			}
+		}
+	}
+	return st.chips, st.chipErr
+}
+
+func (st *State[R]) base(withChips bool) View[R] {
 	t := st.t
 	v := View[R]{
 		ID: t.ID(), StateID: t.name + "-state", ResultsID: t.resultsID(), SelectID: t.name + "-select",
@@ -194,10 +216,12 @@ func (st *State[R]) base() View[R] {
 		sizeValue = strconv.Itoa(st.size)
 	}
 	v.Size = [2]string{t.param("size"), sizeValue}
-	if st.valid {
-		for _, f := range st.filters {
-			for _, ch := range chips(st.ctx, f, t) {
-				ch.Remove = templ.SafeURL(st.with(map[string]string{ch.param: ""}))
+	if withChips && st.valid {
+		cs, err := st.resolvedChips()
+		if err != nil {
+			v.Err = err
+		} else {
+			for _, ch := range cs {
 				v.Chips = append(v.Chips, ch.Chip)
 			}
 		}
@@ -220,20 +244,44 @@ type chip struct {
 }
 
 // chips are a filter's set values as people read them, from what the
-// form bound: an option's label, a bool's word, a date as Date renders it,
-// a number; a range's end says which.
-func chips[R any](ctx context.Context, f filter[R], t *Table[R]) []chip {
+// form bound: an option's label, a remote column's LabelOf answer, a
+// bool's word, a date as Date renders it, a number; a range's end says
+// which.
+func chips[R any](ctx context.Context, f filter[R], t *Table[R]) ([]chip, error) {
 	params := f.params(t)
 	one := func(param, val string) chip { return chip{Chip{Label: f.c.c.Label, Value: val}, param} }
 	end := func(param, prefix, val string) chip { return one(param, prefix+" "+val) }
 	date := func(d time.Time) string { return i18n.StaticDate(d).T(ctx) }
 	var out []chip
 	switch {
+	case f.i64 != nil:
+		if v, ok := f.i64.Get(); ok {
+			id := strconv.FormatInt(v, 10)
+			name, found, err := f.c.labeler.LabelOf(ctx, id)
+			if err != nil {
+				return nil, err
+			}
+			if found {
+				out = append(out, one(params[0], name))
+			} else {
+				out = append(out, one(params[0], id))
+			}
+		}
 	case f.text != nil:
 		if v, ok := f.text.Get(); ok && v != "" {
-			for _, o := range f.c.c.Options {
-				if o.Value() == v {
-					v = o.Label().T(ctx)
+			if f.c.labeler != nil {
+				name, found, err := f.c.labeler.LabelOf(ctx, v)
+				if err != nil {
+					return nil, err
+				}
+				if found {
+					v = name
+				}
+			} else {
+				for _, o := range f.c.c.Options {
+					if o.Value() == v {
+						v = o.Label().T(ctx)
+					}
 				}
 			}
 			out = append(out, one(params[0], v))
@@ -268,7 +316,7 @@ func chips[R any](ctx context.Context, f filter[R], t *Table[R]) []chip {
 			out = append(out, end(params[1], "≤", date(v)))
 		}
 	}
-	return out
+	return out, nil
 }
 
 func (st *State[R]) heads() []Head {
@@ -296,7 +344,7 @@ func (st *State[R]) heads() []Head {
 // Rejected is the view of a state that isn't valid: the filters with
 // their errors, and neither rows, an empty state nor a pager (S12).
 func (st *State[R]) Rejected() View[R] {
-	v := st.base()
+	v := st.base(false)
 	v.Rejected = true
 	v.Columns = st.heads()
 	v.Status = statusNone.T(st.ctx)
@@ -306,7 +354,10 @@ func (st *State[R]) Rejected() View[R] {
 // Page is the view of rows, a page of total, as List<Type> gives them.
 func (st *State[R]) Page(rows []R, total int64) View[R] {
 	t := st.t
-	v := st.base()
+	v := st.base(true)
+	if v.Err != nil {
+		return v
+	}
 	v.Columns = st.heads()
 	for _, r := range rows {
 		v.Rows = append(v.Rows, t.row(st.ctx, r, st.search))

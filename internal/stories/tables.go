@@ -9,6 +9,7 @@ import (
 
 	"github.com/epistemer/ui/actions"
 	"github.com/epistemer/ui/components"
+	"github.com/epistemer/ui/inputs"
 	"github.com/epistemer/ui/internal/toyshop"
 )
 
@@ -19,7 +20,7 @@ var shopStore = toyshop.NewStore()
 func ordersTable(query string) templ.Component {
 	return templ.ComponentFunc(func(ctx context.Context, w io.Writer) error {
 		r := httptest.NewRequest("GET", toyshop.Prefix+"/orders?"+query, nil)
-		ctx = actions.Gate.With(ctx, toyshop.Gate)
+		ctx = inputs.WithLabelCache(actions.Gate.With(ctx, toyshop.Gate))
 		st := toyshop.Orders.Bind(r.WithContext(ctx))
 		v := st.Rejected()
 		if st.Valid() {

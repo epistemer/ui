@@ -5,17 +5,18 @@ package toyshop
 
 import (
 	"cmp"
+	"context"
 	"fmt"
 	"slices"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
 
 	"github.com/epistemer/i18n"
+	"github.com/epistemer/models/column"
 	"github.com/epistemer/models/listing"
 	"github.com/epistemer/models/option"
-
-	"github.com/epistemer/models/column"
 )
 
 // OrderStatus is an enum, as models generates them.
@@ -56,14 +57,15 @@ type OrderListView struct {
 
 // OrderListViewColumns is what models would generate for the view.
 var OrderListViewColumns = struct {
-	ID, Email, Customer, Status, Total, PlacedAt, Assignee column.Column[OrderListView]
+	ID, Email, Customer, CustomerID, Status, Total, PlacedAt, Assignee column.Column[OrderListView]
 }{
-	ID:       column.Column[OrderListView]{Name: "id", Label: i18n.Key("table.order_list_view.ID", "ID"), Kind: column.Integer, Get: func(o OrderListView) column.Value { return intOf(o.ID) }},
-	Email:    column.Column[OrderListView]{Name: "email", Label: i18n.Key("table.order_list_view.Email", "Email"), Kind: column.Text, Get: func(o OrderListView) column.Value { return textOf(o.Email) }},
-	Customer: column.Column[OrderListView]{Name: "customer", Label: i18n.Key("table.order_list_view.Customer", "Customer"), Kind: column.Text, Get: func(o OrderListView) column.Value { return textOf(o.Customer) }},
-	Status:   column.Column[OrderListView]{Name: "status", Label: i18n.Key("table.order_list_view.Status", "Status"), Kind: column.Enum, Options: AllOrderStatusOptions(), Get: func(o OrderListView) column.Value { return enumOf(o.Status) }},
-	Total:    column.Column[OrderListView]{Name: "total", Label: i18n.Key("table.order_list_view.Total", "Total"), Kind: column.Integer, Get: func(o OrderListView) column.Value { return intOf(o.Total) }},
-	PlacedAt: column.Column[OrderListView]{Name: "placed_at", Label: i18n.Key("table.order_list_view.PlacedAt", "Placed"), Kind: column.Date, Get: func(o OrderListView) column.Value { return timeOf(o.PlacedAt) }},
+	ID:         column.Column[OrderListView]{Name: "id", Label: i18n.Key("table.order_list_view.ID", "ID"), Kind: column.Integer, Get: func(o OrderListView) column.Value { return intOf(o.ID) }},
+	Email:      column.Column[OrderListView]{Name: "email", Label: i18n.Key("table.order_list_view.Email", "Email"), Kind: column.Text, Get: func(o OrderListView) column.Value { return textOf(o.Email) }},
+	Customer:   column.Column[OrderListView]{Name: "customer", Label: i18n.Key("table.order_list_view.Customer", "Customer"), Kind: column.Text, Get: func(o OrderListView) column.Value { return textOf(o.Customer) }},
+	CustomerID: column.Column[OrderListView]{Name: "customer_id", Label: i18n.Key("table.order_list_view.CustomerID", "Customer"), Kind: column.Integer, Get: func(o OrderListView) column.Value { return intOf(o.CustomerID) }},
+	Status:     column.Column[OrderListView]{Name: "status", Label: i18n.Key("table.order_list_view.Status", "Status"), Kind: column.Enum, Options: AllOrderStatusOptions(), Get: func(o OrderListView) column.Value { return enumOf(o.Status) }},
+	Total:      column.Column[OrderListView]{Name: "total", Label: i18n.Key("table.order_list_view.Total", "Total"), Kind: column.Integer, Get: func(o OrderListView) column.Value { return intOf(o.Total) }},
+	PlacedAt:   column.Column[OrderListView]{Name: "placed_at", Label: i18n.Key("table.order_list_view.PlacedAt", "Placed"), Kind: column.Date, Get: func(o OrderListView) column.Value { return timeOf(o.PlacedAt) }},
 	Assignee: column.Column[OrderListView]{Name: "assignee", Label: i18n.Key("table.order_list_view.Assignee", "Assignee"), Kind: column.Text, Get: func(o OrderListView) column.Value {
 		if o.Assignee == "" {
 			return column.Value{Null: true}
@@ -98,15 +100,32 @@ func enumOf(o option.SelectOption) column.Value {
 	return column.Value{Enum: o, Null: o == nil}
 }
 
+// Customer is a customer record in the shop.
+type Customer struct {
+	ID    int64
+	Name  string
+	Email string
+}
+
 // Store holds the shop's rows.
 type Store struct {
-	mu     sync.Mutex
-	orders []OrderListView
-	toys   []ToyListView
+	mu        sync.Mutex
+	orders    []OrderListView
+	toys      []ToyListView
+	customers []Customer
 }
 
 var (
-	names    = []string{"Layla Adel", "Omar Nabil", "Mona Saeed", "Karim Fawzy", "Nour Hassan", "Youssef Ali", "Salma Tarek", "Hana Mostafa"}
+	names = []string{"Layla Adel", "Omar Nabil", "Mona Saeed", "Karim Fawzy", "Nour Hassan", "Youssef Ali", "Salma Tarek", "Hana Mostafa"}
+	// extraNames fill out the customer directory past SuggestionLimit so
+	// search answers can exercise the "more" sentinel without shifting the
+	// seeded orders above.
+	extraNames = []string{
+		"Bassem Aziz", "Carla Ruiz", "Dina Farouk", "Elias Berg",
+		"Fatma Nour", "Gus Holm", "Ann Lee", "Ilse Vos",
+		"Jamal Odeh", "Kira Novak", "Laila Haddad", "Nils Lund",
+		"Petra Kos", "Rana Adel",
+	}
 	toyNames = []string{"Bear", "Train", "Kite", "Robot", "Puzzle", "Drum", "Yo-yo", "Blocks", "Car", "Doll", "Rocket", "Boat"}
 )
 
@@ -124,11 +143,21 @@ func NewStore() *Store {
 			Total: int64(2500 + (i*7919)%40000), PlacedAt: day.AddDate(0, 0, i%21),
 		})
 	}
+	for i, n := range append(slices.Clone(names), extraNames...) {
+		first := strings.ToLower(strings.Fields(n)[0])
+		s.customers = append(s.customers, Customer{
+			ID:    int64(1 + i),
+			Name:  n,
+			Email: fmt.Sprintf("%s@example.com", first),
+		})
+	}
 	for i, n := range toyNames {
 		s.toys = append(s.toys, ToyListView{ID: int64(1 + i), Name: n, Stock: int64((i * 37) % 60), Electric: i%3 == 1})
 	}
 	return s
 }
+
+var defaultStore = NewStore()
 
 // apply runs a listing query over rows in Go, as models would in SQL.
 func apply[R any](rows []R, cols map[string]column.Column[R], q listing.Query) ([]R, int64) {
@@ -199,7 +228,14 @@ func match[R any](c column.Column[R], r R, f listing.Filter) bool {
 	var d int
 	switch c.Kind {
 	case column.Integer:
-		d = cmp.Compare(v.Int, int64(f.Value.(int)))
+		var want int64
+		switch x := f.Value.(type) {
+		case int:
+			want = int64(x)
+		case int64:
+			want = x
+		}
+		d = cmp.Compare(v.Int, want)
 	case column.Date, column.Time:
 		d = v.Time.Compare(f.Value.(time.Time))
 	case column.Bool:
@@ -235,7 +271,7 @@ func columns[R any](cs ...column.Column[R]) map[string]column.Column[R] {
 var (
 	oc        = OrderListViewColumns
 	tc        = ToyListViewColumns
-	orderCols = columns(oc.ID, oc.Email, oc.Customer, oc.Status, oc.Total, oc.PlacedAt, oc.Assignee)
+	orderCols = columns(oc.ID, oc.Email, oc.Customer, oc.CustomerID, oc.Status, oc.Total, oc.PlacedAt, oc.Assignee)
 	toyCols   = columns(tc.ID, tc.Name, tc.Stock, tc.Electric)
 )
 
@@ -283,3 +319,103 @@ func (s *Store) Delete(id int64) bool {
 	s.orders = slices.DeleteFunc(s.orders, func(o OrderListView) bool { return o.ID == id })
 	return len(s.orders) < n
 }
+
+// CustomerName returns a customer's display name by id.
+func (s *Store) CustomerName(id int64) (string, bool) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	for _, c := range s.customers {
+		if c.ID == id {
+			return c.Name, true
+		}
+	}
+	return "", false
+}
+
+// SearchCustomers finds customers matching q in name or email, sorted by
+// name then id, returning at most limit rows.
+func (s *Store) SearchCustomers(q string, limit int) []Customer {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	q = strings.ToLower(strings.TrimSpace(q))
+	var out []Customer
+	for _, c := range s.customers {
+		if q == "" || strings.Contains(strings.ToLower(c.Name), q) || strings.Contains(strings.ToLower(c.Email), q) {
+			out = append(out, c)
+		}
+	}
+	slices.SortFunc(out, func(a, b Customer) int {
+		if d := cmp.Compare(strings.ToLower(a.Name), strings.ToLower(b.Name)); d != 0 {
+			return d
+		}
+		return cmp.Compare(a.ID, b.ID)
+	})
+	if limit > 0 && len(out) > limit {
+		out = out[:limit]
+	}
+	return out
+}
+
+// ProductName returns a toy product's name by id.
+func (s *Store) ProductName(id int64) (string, bool) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	for _, t := range s.toys {
+		if t.ID == id {
+			return t.Name, true
+		}
+	}
+	return "", false
+}
+
+// SearchProducts finds products matching q in name, sorted by name then
+// id, returning at most limit rows.
+func (s *Store) SearchProducts(q string, limit int) []ToyListView {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	q = strings.ToLower(strings.TrimSpace(q))
+	var out []ToyListView
+	for _, t := range s.toys {
+		if q == "" || strings.Contains(strings.ToLower(t.Name), q) {
+			out = append(out, t)
+		}
+	}
+	slices.SortFunc(out, func(a, b ToyListView) int {
+		if d := cmp.Compare(strings.ToLower(a.Name), strings.ToLower(b.Name)); d != 0 {
+			return d
+		}
+		return cmp.Compare(a.ID, b.ID)
+	})
+	if limit > 0 && len(out) > limit {
+		out = out[:limit]
+	}
+	return out
+}
+
+type customerLabeler struct{ store *Store }
+
+func (l customerLabeler) LabelOf(_ context.Context, id string) (string, bool, error) {
+	n, err := strconv.ParseInt(id, 10, 64)
+	if err != nil {
+		return "", false, nil
+	}
+	name, ok := l.store.CustomerName(n)
+	return name, ok, nil
+}
+
+// Customers returns a comparable listing.Labeler over the store's customers.
+func (s *Store) Customers() listing.Labeler { return customerLabeler{store: s} }
+
+type productLabeler struct{ store *Store }
+
+func (l productLabeler) LabelOf(_ context.Context, id string) (string, bool, error) {
+	n, err := strconv.ParseInt(id, 10, 64)
+	if err != nil {
+		return "", false, nil
+	}
+	name, ok := l.store.ProductName(n)
+	return name, ok, nil
+}
+
+// Products returns a comparable listing.Labeler over the store's products.
+func (s *Store) Products() listing.Labeler { return productLabeler{store: s} }

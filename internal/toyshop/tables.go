@@ -32,6 +32,8 @@ func post(f string, a ...any) route { return route{Prefix + fmt.Sprintf(f, a...)
 
 // Routes, as handlers would generate their builders.
 func OrderRoute(id int64) route        { return get("/orders/%d", id) }
+func OrderNewRoute() route             { return get("/orders/new") }
+func OrderNewPost() route              { return post("/orders/new") }
 func OrderRefund(id int64) route       { return post("/orders/%d/refund", id) }
 func OrderReassign(id int64) route     { return get("/orders/%d/reassign", id) }
 func OrderReassignPost(id int64) route { return post("/orders/%d/reassign", id) }
@@ -41,6 +43,9 @@ func OrdersShip() route                { return post("/orders/ship") }
 func OrdersTag() route                 { return get("/orders/tag") }
 func OrdersTagPost() route             { return post("/orders/tag") }
 func CustomerRoute(id int64) route     { return get("/customers/%d", id) }
+func CustomerSearchRoute() route       { return get("/customers/search") }
+func ProductSearchRoute() route        { return get("/products/search") }
+func FileRoute(key string) route       { return get("/files/%s", key) }
 func OrdersRoute() route               { return get("/orders") }
 
 // Gate stands in for a guard: it refuses archiving, as a guard without
@@ -89,6 +94,7 @@ func money(o OrderListView) i18n.Ter {
 var Orders = tables.New("orders", oc.ID,
 	tables.Col(oc.Email).Searchable().Sortable(),
 	tables.Col(oc.Customer).Searchable().Link(func(o OrderListView) ui.Link { return CustomerRoute(o.CustomerID) }),
+	tables.Col(oc.CustomerID).Hidden().Filter().Remote(CustomerSearchRoute(), defaultStore.Customers()),
 	tables.Col(oc.Status).Filter(),
 	tables.Col(oc.Total).Sortable().Amount(money),
 	tables.Col(oc.PlacedAt).Sortable().Filter(),
