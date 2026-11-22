@@ -7,6 +7,13 @@ All notable changes to this module. The format follows
 
 ## Unreleased
 
+## [v0.2.0] - 2026-11-22
+
+The visual packages, to the contract locked on 2026-11-22
+(visual-interface.md), with the kernel's amendment A4. ui ships its own
+CSS and script (ADRs 0004 and 0005); a nested module,
+`theme/themeschema/v0.2.0`, carries the cfgx group.
+
 ### Added
 - `ui/theme`: the token table, `Config` with `Defaults` and the checks
   `CheckColor`, `CheckFont` and `CheckRadius` (errors `errors.theme.*`),
@@ -96,4 +103,5 @@ on 2026-11-21 with amendments A1–A3.
 - Examples in `examples/shop`: slotted components with goldens, and the
   store and promotion forms.
 
+[v0.2.0]: https://github.com/epistemer/ui/releases/tag/v0.2.0
 [v0.1.0]: https://github.com/epistemer/ui/releases/tag/v0.1.0

@@ -9,6 +9,30 @@ taken for epistemer, what's next, and what's waiting on epistemer.
 
 
 
+## 2026-11-22 — V7: v0.2.0
+
+**Landed** (Claude):
+- An API review of every exported identifier in the visual packages,
+  checked both ways against visual-interface.md. Every function, type and
+  method in theme, icons, elements, inputs, components, layout, catalog and
+  catalogtest is in the contract, and every function the contract names is
+  in the code. The one exception, `Group`, is themeschema's, in its own
+  module.
+- CHANGELOG `[v0.2.0]`; a README section on building a page; the `ui`
+  skill now covers the visual packages.
+- The release, in the roadmap's order: tag ui `v0.2.0`, point
+  `theme/themeschema` at it and drop its `replace`, then tag
+  `theme/themeschema/v0.2.0`. Then `go get` both through the proxy.
+
+**Still open for epistemer** (defaults hold until answered):
+- §5.2/§6.2's wording says the level words carry their own space; §11 and
+  the code render the space. Default: fix the wording to §11.
+- V15, forms' `Placeholder`. Default: no change.
+
+**Next.** D7: the design of the server-state components (table, server
+table, pagination, filters, remote select, uploads) over models'
+`listing` interfaces.
+
 ## 2026-11-22 — V6: ui/layout
 
 **Landed** (Claude):
