@@ -9,6 +9,22 @@ taken for epistemer, what's next, and what's waiting on epistemer.
 
 
 
+## 2026-11-22 — T4: v0.3.0
+
+**Landed** (Claude):
+- The API review. Every exported identifier of `actions`, `tables`, their
+  test kits, `components`, `elements` and `layout` is checked both ways
+  against server-state-interface.md and visual-interface.md. One gap was
+  found: `tables.ErrRange`, now named in the contract's §8 as a
+  clarification. `Unavailable` and `Menu.ID` are in the contract's §5 as
+  prose.
+- CHANGELOG `[v0.3.0]`, the README, the `ui` skill.
+- The release: ui `v0.3.0`, checked through the proxy. `theme/themeschema`
+  is unchanged at v0.2.0.
+
+**Next.** D8, the second round: the remote select, uploads and list
+fields (design §13).
+
 ## 2026-11-22 — T3: the table's rendering
 
 **Landed** (Claude), to server-state-interface.md §4.1, §6 and §7:

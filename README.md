@@ -270,13 +270,20 @@ templ ordersPage(r *http.Request, th *theme.Theme) {
 }
 ```
 
+Tables and record actions (`ui/tables`, `ui/actions`, `components.TableOf`,
+`components.Reply`) are declared once from models' generated columns and
+bound per request: a GET form and links without script, swapped by htmx
+with it. `go run ./cmd/catalog` serves a toy shop's orders at
+`/shop/orders`; [docs/server-state-interface.md](docs/server-state-interface.md)
+is their contract.
+
 An address is a `ui.Link`: a route link from handlers' generated
 builders, or `ui.URL("…")` for a literal one. The brand colours, fonts and
 radius change at run time through cfgx
 (`theme/themeschema`). `go run ./cmd/catalog` shows every component in its
 states, in LTR and RTL and in light and dark.
 
-Status: v0.2.0. The designs are [docs/brief.md](docs/brief.md),
+Status: v0.3.0. The designs are [docs/brief.md](docs/brief.md),
 [docs/forms-design.md](docs/forms-design.md) and
 [docs/visual-design.md](docs/visual-design.md); the contracts are
 [docs/interface.md](docs/interface.md) and
