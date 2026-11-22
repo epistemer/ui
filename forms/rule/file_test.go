@@ -4,9 +4,11 @@ import (
 	"bytes"
 	"context"
 	"mime/multipart"
+	"slices"
 	"testing"
 
 	"github.com/epistemer/errors"
+	"github.com/epistemer/ui/forms/files"
 	"github.com/epistemer/ui/forms/rule"
 )
 
@@ -103,6 +105,13 @@ func TestMinSizeAndMaxSize(t *testing.T) {
 		if err := rule.Check(ctx, nil, rMax); !errors.Is(err, rule.ErrMaxSize) {
 			t.Errorf("nil file should fail MaxSize, got %v", err)
 		}
+		attrs := map[string]string{}
+		for k, v := range rMax.Attrs() {
+			attrs[k] = v
+		}
+		if attrs["data-ui-max-size"] != "1024" {
+			t.Errorf("data-ui-max-size = %q, want 1024", attrs["data-ui-max-size"])
+		}
 	})
 }
 
@@ -175,4 +184,52 @@ func TestContentTypeAnything(t *testing.T) {
 	if err := rule.Check(context.Background(), fh, rule.ContentType("*/*")); err != nil {
 		t.Errorf("*/* must match any file: %v", err)
 	}
+}
+
+func TestUploadRules(t *testing.T) {
+	ctx := context.Background()
+	pngData := []byte("\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01\x08\x06\x00\x00\x00\x1f\x15c4")
+	pngFile := newFileHeader(t, "sample.png", pngData)
+	bigFile := newFileHeader(t, "big.png", make([]byte, 2048))
+	stored := []files.Stored{{Key: "k1", Name: "one.png"}, {Key: "k2", Name: "two.png"}}
+
+	t.Run("Files checks each added file and forwards attrs", func(t *testing.T) {
+		r := rule.Files(rule.MaxSize(512), rule.ContentType("image/png"), rule.MaxSize(1024))
+		var gotAttrs []string
+		for k, v := range r.Attrs() {
+			gotAttrs = append(gotAttrs, k+"="+v)
+		}
+		if !slices.Equal(gotAttrs, []string{"data-ui-max-size=1024", "accept=image/png"}) {
+			t.Errorf("Attrs() = %v, want [data-ui-max-size=1024 accept=image/png]", gotAttrs)
+		}
+
+		// Kept files are not checked by Files; only Added files are.
+		if err := rule.Check(ctx, files.Upload{Kept: stored, Added: []*multipart.FileHeader{pngFile}}, r); err != nil {
+			t.Errorf("valid added file failed: %v", err)
+		}
+		err := rule.Check(ctx, files.Upload{Kept: stored, Added: []*multipart.FileHeader{pngFile, bigFile}}, r)
+		if !errors.Is(err, rule.ErrMaxSize) {
+			t.Errorf("oversized second added file: got %v, want ErrMaxSize", err)
+		}
+	})
+
+	t.Run("MinFiles and MaxFiles count kept plus added", func(t *testing.T) {
+		min2 := rule.MinFiles(2)
+		max2 := rule.MaxFiles(2)
+
+		// 1 kept + 0 added = 1 (< 2)
+		if err := rule.Check(ctx, files.Upload{Kept: stored[:1]}, min2); !errors.Is(err, rule.ErrMinFiles) {
+			t.Errorf("1 kept: got %v, want ErrMinFiles", err)
+		}
+		// 1 kept + 1 added = 2 (== 2)
+		two := files.Upload{Kept: stored[:1], Added: []*multipart.FileHeader{pngFile}}
+		if err := rule.Check(ctx, two, min2, max2); err != nil {
+			t.Errorf("1 kept + 1 added: %v", err)
+		}
+		// 2 kept + 1 added = 3 (> 2)
+		three := files.Upload{Kept: stored, Added: []*multipart.FileHeader{pngFile}}
+		if err := rule.Check(ctx, three, max2); !errors.Is(err, rule.ErrMaxFiles) {
+			t.Errorf("2 kept + 1 added: got %v, want ErrMaxFiles", err)
+		}
+	})
 }

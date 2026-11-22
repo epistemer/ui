@@ -1,6 +1,7 @@
 package forms_test
 
 import (
+	"context"
 	"testing"
 
 	"github.com/epistemer/errors"
@@ -8,6 +9,14 @@ import (
 	"github.com/epistemer/ui/forms"
 	"github.com/epistemer/ui/forms/rule"
 )
+
+type testLink string
+
+func (l testLink) URL() string { return string(l) }
+
+type testLabeler struct{}
+
+func (testLabeler) LabelOf(context.Context, string) (string, bool, error) { return "", false, nil }
 
 // TestDefaultKinds pins interface §5.10's table of default kinds.
 func TestDefaultKinds(t *testing.T) {
@@ -34,6 +43,9 @@ func TestDefaultKinds(t *testing.T) {
 		{f.File("file").Control(), forms.KindFile},
 		{f.Files("files").Control(), forms.KindFiles},
 		{f.List("list", func(g *forms.Form) int { return 0 }).Control(), forms.KindList},
+		{f.Text("rem").Remote(testLink("/s"), testLabeler{}).Control(), forms.KindRemote},
+		{f.Upload("up", nil).Control(), forms.KindUpload},
+		{f.Uploads("ups", nil).Control(), forms.KindUploads},
 	} {
 		if got := tc.c.Kind(); got != tc.want {
 			t.Errorf("%s: %v, want %v", tc.c.Path(), got, tc.want)
@@ -43,11 +55,14 @@ func TestDefaultKinds(t *testing.T) {
 	if g.Control().Kind() != forms.KindGroup {
 		t.Error("a group is KindGroup")
 	}
-	want := []string{"", "text", "multiline", "password", "hidden", "number", "checkbox", "toggle", "date", "datetime", "select", "multiselect", "file", "files", "group", "list"}
+	want := []string{"", "text", "multiline", "password", "hidden", "number", "checkbox", "toggle", "date", "datetime", "select", "multiselect", "file", "files", "group", "list", "remote", "upload", "uploads"}
 	for k := forms.Kind(0); int(k) < len(want); k++ {
 		if k.String() != want[k] {
 			t.Errorf("Kind(%d).String() = %q, want %q", k, k.String(), want[k])
 		}
+	}
+	if forms.KindList != 15 || forms.KindRemote != 16 || forms.KindUpload != 17 || forms.KindUploads != 18 {
+		t.Errorf("kind numbers: list=%d remote=%d upload=%d uploads=%d", forms.KindList, forms.KindRemote, forms.KindUpload, forms.KindUploads)
 	}
 }
 

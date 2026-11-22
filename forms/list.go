@@ -35,6 +35,12 @@ func (f *Form) Group[G any](name string, build func(g *Form) G) G {
 // List declares a repeatable nested form under name; build declares one
 // item's fields on its sub-form. An item's fields post as
 // name[<index>].<field>.
+//
+// A row whose controls all post nothing when empty (unchecked checkboxes,
+// a multi-select with nothing chosen, controls a condition disabled) is
+// dropped on bind before its rules run. Text inputs, selects (Bool, Enum, a
+// single Options), and file inputs always post; a list whose rows could
+// hold only the first kind adds a field of the second.
 func (f *Form) List[G any](name string, build func(g *Form) G) *List[G] {
 	if build == nil {
 		panic(fmt.Sprintf("forms: List %q with a nil build", name))
@@ -43,6 +49,7 @@ func (f *Form) List[G any](name string, build func(g *Form) G) *List[G] {
 	l := &list{form: f, name: name, label: i18n.Static(name), max: DefaultMaxItems,
 		build: func(g *Form) any { return build(g) }}
 	f.nodes = append(f.nodes, l)
+	l.templateRow()
 	return &List[G]{l}
 }
 
@@ -59,8 +66,10 @@ type list struct {
 	maxSet   bool
 	build    func(*Form) any
 
+	bound    bool
 	items    []item
-	template *item // built on demand at IndexPlaceholder
+	blanks   []item // MinItems blank rows for Control.Children before Bind or Add
+	template *item  // built on demand at IndexPlaceholder
 	err      error
 }
 
@@ -101,7 +110,7 @@ func (h *List[G]) MinItems(n int) *List[G] {
 	if n < 0 || h.l.maxSet && n > h.l.max {
 		panic(fmt.Sprintf("forms: MinItems(%d) on list %q: at least 0 and at most MaxItems (%d)", n, h.l.name, h.l.max))
 	}
-	h.l.min = n
+	h.l.min, h.l.blanks = n, nil
 	if !h.l.maxSet && n > h.l.max {
 		h.l.max = n // the default limit rises to the minimum
 	}
@@ -132,6 +141,7 @@ func (h *List[G]) Items() []G {
 // It panics after Bind.
 func (h *List[G]) Add() G {
 	h.l.builder("Add")
+	h.l.blanks = nil
 	it := h.l.newItem(len(h.l.items))
 	h.l.items = append(h.l.items, it)
 	v, _ := it.value.(G)
@@ -146,6 +156,22 @@ func (l *list) newItem(index int) item {
 	v := l.build(g)
 	g.building = false
 	return item{form: g, value: v}
+}
+
+// displayItems returns the items Control.Children yields: l.items when the
+// list was bound or given items by Add, else MinItems blank items built at
+// indices 0..MinItems-1.
+func (l *list) displayItems() []item {
+	if l.bound || len(l.items) > 0 || l.min == 0 {
+		return l.items
+	}
+	if len(l.blanks) != l.min {
+		l.blanks = make([]item, l.min)
+		for i := range l.min {
+			l.blanks[i] = l.newItem(i)
+		}
+	}
+	return l.blanks
 }
 
 // template returns the list's template row, built once.
@@ -202,7 +228,7 @@ func (f *Form) declares(path string) bool {
 // bind builds and binds one item per submitted index (interface §5.8,
 // §9.2) and reports whether any of them saw input.
 func (l *list) bind(src Source, names []string) bool {
-	l.items, l.err = nil, nil
+	l.bound, l.items, l.blanks, l.err = true, nil, nil, nil
 	prefix := l.path() + "["
 	tpl := l.templateRow().form
 	seenIdx := map[int]bool{}

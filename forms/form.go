@@ -66,6 +66,15 @@ func (f *Form) isBound() bool {
 	return f.root().bound
 }
 
+func (f *Form) inListItem() bool {
+	for g := f; g != nil; g = g.parent {
+		if g.item != nil {
+			return true
+		}
+	}
+	return false
+}
+
 func (f *Form) path() string {
 	switch {
 	case f.parent == nil:

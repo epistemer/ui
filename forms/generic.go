@@ -23,12 +23,14 @@ func (f *Form) Number[T Integer | Float](name string) *Field[T] {
 	var c codec
 	switch t.Kind() {
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		c.integer = true
 		c.parse = func(in input) (any, error) {
 			n, err := strconv.ParseInt(in.texts[0], 10, bits)
 			return T(n), err
 		}
 		c.format = func(v any) []string { return []string{strconv.FormatInt(int64(v.(T)), 10)} }
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		c.integer = true
 		c.parse = func(in input) (any, error) {
 			n, err := strconv.ParseUint(in.texts[0], 10, bits)
 			return T(n), err

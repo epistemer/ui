@@ -18,11 +18,12 @@ and §9. They are locked with the rest.
 | | |
 |---|---|
 | Module | `github.com/epistemer/ui`, Go 1.27 |
-| Packages | `ui` (kernel), `ui/uitest`, `ui/forms`, `ui/forms/rule`, `ui/forms/formstest` |
+| Packages | `ui` (kernel), `ui/uitest`, `ui/forms`, `ui/forms/files` *(A7)*, `ui/forms/rule`, `ui/forms/formstest` |
 | Kernel imports | `github.com/a-h/templ` (v0.3.1118) and the standard library |
 | uitest imports | the kernel, templ, `golang.org/x/net/html` (ADR 0003, M3.2) |
-| forms imports | the standard library, `github.com/epistemer/errors`, `github.com/epistemer/i18n`, `github.com/epistemer/models/option`, `ui/forms/rule` |
-| rule imports | the standard library, `github.com/epistemer/errors`, `github.com/epistemer/i18n` |
+| forms imports | the standard library, `github.com/epistemer/errors`, `github.com/epistemer/i18n`, `github.com/epistemer/models/listing` *(A7)*, `github.com/epistemer/models/option`, `ui/forms/files` *(A7)*, `ui/forms/rule` |
+| files imports | the standard library *(A7)* |
+| rule imports | the standard library, `github.com/epistemer/errors`, `github.com/epistemer/i18n`, `ui/forms/files` *(A7)* |
 | formstest imports | forms, its internal hook, `github.com/epistemer/errors`, the standard library |
 | Never imported | by forms: templ, any web framework, any decimal library. By the kernel: i18n, errors, forms |
 
@@ -254,6 +255,8 @@ func (f *Form) Time(name, layout string) *Field[time.Time]
 func (f *Form) Date(name string) *Field[time.Time]
 func (f *Form) File(name string) *Field[*multipart.FileHeader]
 func (f *Form) Files(name string) *Field[[]*multipart.FileHeader]
+func (f *Form) Upload(name string, stored []files.Stored) *Field[files.Upload]  // amendment A7
+func (f *Form) Uploads(name string, stored []files.Stored) *Field[files.Upload] // amendment A7
 
 func (f *Form) Number[T Integer | Float](name string) *Field[T]
 func (f *Form) Enum[E EnumValue](name string, values []E) *Field[E]
@@ -284,6 +287,41 @@ type EnumValue interface {
 - A bound's type is not inferred from the field: `f.Int("n").Is(rule.Min(0))`
   compiles, but a `Field[int32]` needs `rule.Min[int32](1)` or
   `rule.Min(int32(1))`.
+- **Uploads** *(amendment A7, [rich-inputs-interface.md](rich-inputs-interface.md) §2.2)*:
+  `ui/forms/files` (standard library only) declares:
+
+  ```go
+  package files // ui/forms/files
+
+  // Stored is a file the record already has.
+  type Stored struct {
+  	Key   string                    // the app's key, posted back to keep it
+  	Name  string                    // shown
+  	Href  interface{ URL() string } // where it opens; nil for none
+  	Image bool                      // Href is an image: shown as a thumbnail
+  }
+
+  // Upload is an upload field's value.
+  type Upload struct {
+  	Kept  []Stored                // stored files still kept, in the order given
+  	Added []*multipart.FileHeader // files chosen now
+  }
+  ```
+
+  Before `Bind`, an upload field's value is `files.Upload{Kept: stored}` (a
+  copy), present when `stored` isn't empty. Kept files post as
+  `<path>.keep=<key>`; new files under `<path>`. A posted key not among
+  `stored` is dropped; a repeated key counts once; `Kept` keeps `stored`'s
+  order. `Upload` (`KindUpload`) holds one file in all: with
+  `len(stored) > 1` it panics at declaration; of several files posted it
+  takes the first; an added file empties the value's `Kept`, while the
+  control still reports the posted keep state. `Uploads` is `KindUploads`.
+  `Required` holds with one kept or added file. `Set`, `SetPtr`, `Options`
+  and `Hint` on an upload field panic; `Options` on `File` or `Files`
+  panics too. `Upload` or `Uploads` declared in a list's item panics;
+  `File` and `Files` are legal there. `stored` with an empty or repeated
+  `Key`, or an empty `Name`, panics. An oversized body in `Submit` is
+  reported as `ErrUnreadable` wrapping `*http.MaxBytesError`.
 
 **Presence after Bind.**
 
@@ -294,6 +332,7 @@ type EnumValue interface {
 | `Int`, `Float`, `Number`, `Time`, `Date`, `Enum`, `Parsed`, `Bool` | the name is missing or the value is empty |
 | `Checkbox` | never: a missing name is false; `Required` means it must be ticked |
 | `File` | no file was uploaded under the name |
+| `Upload`, `Uploads` *(A7)* | `Kept` and `Added` hold no file between them |
 
 ### 5.4 Builders
 
@@ -313,6 +352,7 @@ func (f *Field[T]) Is(rules ...rule.Rule[T]) *Field[T]
 func (f *Field[T]) When(c Cond) *Field[T]
 func (f *Field[T]) Options(opts ...option.SelectOption) *Field[T]
 func (f *Field[T]) Hint(k Kind) *Field[T]
+func (f *Field[T]) Remote(search interface{ URL() string }, l listing.Labeler) *Field[T] // amendment A7
 
 func (f *Field[T]) As[U any](c Conv[T, U]) *Field[U]
 ```
@@ -321,6 +361,15 @@ func (f *Field[T]) As[U any](c Conv[T, U]) *Field[U]
 - `Options` validates membership by comparing the submitted text with each
   option's `Value()` (error `ErrNotAnOption`), and supplies the choices.
 - `Raw` on a non-`Text` field panics.
+- `Remote` *(amendment A7, [rich-inputs-interface.md](rich-inputs-interface.md) §2.1)*
+  makes the field a remote select (`KindRemote`): its value is a record's
+  id, searched at `search` and named by `l`. forms never calls `l`. Legal
+  on a field whose kind is `KindText` or an integer `KindNumber` (`Text`,
+  `Int`, `Number[T]` of an integer type, a `Parsed` id type); it panics on
+  any other field, with a nil link or `Labeler`, combined with `Options`
+  or `Hint` in either order, and after `Bind`. `Hint` with `KindRemote`,
+  `KindUpload` or `KindUploads` panics. Every `Labeler` an app passes
+  answers `false`, not an error, for an id that can't name a row.
 
 ### 5.5 State
 
@@ -422,6 +471,17 @@ const IndexPlaceholder = "__i__"
   More than `MaxItems` (or `DefaultMaxItems`) is `ErrMaxItems` on the list,
   and the extra items are not built.
 - The list's control exposes a template row built at `IndexPlaceholder`.
+- **A new form's list** *(amendment A7)*: `Control().Children()` of a list
+  that was neither bound nor given items by `Add` yields `MinItems` blank
+  items, built at indices `0..MinItems-1` as the template row is. The list
+  itself isn't changed: `Items()` stays empty and `Add` appends as before.
+- **An item that posts nothing** *(amendment A7)*: an index counts only
+  through a member's name. A row whose controls all post nothing when
+  empty (unchecked checkboxes, a multi-select with nothing chosen,
+  controls a condition disabled) is dropped on bind, before its rules run.
+  Text inputs, selects (`Bool`, `Enum`, a single `Options`), and file
+  inputs always post; a list whose rows could hold only the first kind
+  adds a field of the second.
 
 ### 5.9 Errors
 
@@ -470,6 +530,10 @@ func (c Control) Attrs() iter.Seq2[string, string]
 func (c Control) Err() error
 func (c Control) Children() iter.Seq[Control]
 func (c Control) Template() (Control, bool)
+func (c Control) Remote() (search interface{ URL() string }, l listing.Labeler, id string, ok bool) // amendment A7
+func (c Control) Stored() iter.Seq2[files.Stored, bool]                                             // amendment A7
+func (c Control) Lost() bool                                                                        // amendment A7
+func (c Control) Bounds() (min, max int)                                                            // amendment A7
 
 type Choice struct {
 	Value    string
@@ -495,6 +559,9 @@ const (
 	KindFiles
 	KindGroup
 	KindList
+	KindRemote  // amendment A7
+	KindUpload  // amendment A7
+	KindUploads // amendment A7
 )
 
 func (k Kind) String() string
@@ -504,10 +571,27 @@ Defaults: `Text`, `Parsed` → `KindText`; `Int`, `Float`, `Number` →
 `KindNumber`; `Checkbox` → `KindCheckbox`; `Bool` → `KindToggle`; `Date` →
 `KindDate`; `Time` → `KindDateTime`; `Enum` or any field with options →
 `KindSelect` (`Texts` with options → `KindMultiSelect`); `File`, `Files` →
-`KindFile`, `KindFiles`; groups and lists → `KindGroup`, `KindList`. `Hint`
-overrides. `Text()` is the submitted text if bound, else the formatted
-value. `Attrs` come from the field's rules (`maxlength`, `minlength`, `min`,
-`max`, `pattern`, `accept`, `type`).
+`KindFile`, `KindFiles`; `Upload`, `Uploads` → `KindUpload`, `KindUploads`
+*(A7)*; `Remote` → `KindRemote` *(A7)*; groups and lists → `KindGroup`,
+`KindList`. `Hint` overrides. `Text()` is the submitted text if bound,
+else the formatted value (`nil` for file and upload fields). `Attrs` come
+from the field's rules (`maxlength`, `minlength`, `min`, `max`, `pattern`,
+`accept`, `type`, `data-ui-max-size`), plus `inputmode="numeric"` for an
+integer `KindRemote` field *(A7)*.
+
+- `Remote()` *(amendment A7)* gives a remote field's search link and
+  `Labeler`, and `id`: the value formatted, or `""` when the field is
+  absent or its text didn't convert. `ok` is false for any other field.
+- `Stored()` *(amendment A7)* yields each stored file with its keep state:
+  posted, after `Bind`; `true` before. For any other control, or one with
+  no stored files, it is an empty iterator, never nil.
+- `Lost()` *(amendment A7)* is evaluated when called: true for an active
+  file field (`KindFile`, `KindFiles`, `KindUpload`, `KindUploads`) that
+  was posted at least one file, has no error of its own, and whose root
+  form has an error (`Form.Err() != nil`).
+- `Bounds()` *(amendment A7)* gives a list's effective bounds (`max` is
+  `DefaultMaxItems` when `MaxItems` wasn't set), and zeros for any other
+  control.
 
 ## 6. Rules (`ui/forms/rule`)
 
@@ -537,9 +621,12 @@ failure. `Check` runs rules in order and returns the first failure.
 | `T interface{ Cmp(T) int }` | `AtLeast(v T)`, `AtMost(v T)` | |
 | `T comparable` | `OneOf(vs ...T)` | |
 | `time.Time` | `NotBefore(t time.Time)`, `NotAfter(t time.Time)` | `min`, `max` as dates |
-| `*multipart.FileHeader` | `MinSize(bytes int64)`, `MaxSize(bytes int64)`, `ContentType(types ...string)` | `accept` |
+| `*multipart.FileHeader` | `MinSize(bytes int64)`, `MaxSize(bytes int64)`, `ContentType(types ...string)` | `data-ui-max-size` *(A7)*, `accept` |
+| `files.Upload` *(A7)* | `Files(rules ...Rule[*multipart.FileHeader])`, `MinFiles(n int)`, `MaxFiles(n int)` | inner rules' attributes (`Files`) |
 | `[]T` | `MinItems(n int)`, `MaxItems(n int)`, `Each(rules ...Rule[T])` | |
 
+`Files` checks each added file and passes its inner rules' attributes on;
+`MinFiles` and `MaxFiles` count kept plus added files *(amendment A7)*.
 `Each` reports the first failing item's error. `MinItems`, `MaxItems` and
 `Each` take `T` from no argument, so Go cannot infer it: write
 `rule.MinItems[string](1)` (checked on Go 1.27.4).
@@ -570,6 +657,8 @@ the request's locale.
 | `ErrMinSize` (`Key1[string]`) | `errors.forms.rule.min_size` | `must be at least %s` |
 | `ErrMaxSize` (`Key1[string]`) | `errors.forms.rule.max_size` | `must be at most %s` |
 | `ErrContentType` (`Key1[string]`) | `errors.forms.rule.content_type` | `must be one of these file types: %s` |
+| `ErrMinFiles` (`Key1[int]`, A7) | `errors.forms.rule.min_files` | `choose at least %d` |
+| `ErrMaxFiles` (`Key1[int]`, A7) | `errors.forms.rule.max_files` | `choose at most %d` |
 | `ErrMinItems` (`Key1[int]`) | `errors.forms.rule.min_items` | `choose at least %d` |
 | `ErrMaxItems` (`Key1[int]`) | `errors.forms.rule.max_items` | `choose at most %d` |
 

@@ -8,7 +8,9 @@ import (
 
 	"github.com/epistemer/errors"
 	"github.com/epistemer/i18n"
+	"github.com/epistemer/models/listing"
 	"github.com/epistemer/models/option"
+	"github.com/epistemer/ui/forms/files"
 	"github.com/epistemer/ui/forms/internal/hook"
 	"github.com/epistemer/ui/forms/rule"
 )
@@ -35,32 +37,40 @@ type field struct {
 	dateOnly                 bool // Date: time rules compare dates
 	options                  []option.SelectOption
 	optionsSet               bool // Options or Enum: the text must be one of options
+	optionsCalled            bool // Options was called explicitly
 	when                     *condNode
 	hinted                   bool // Hint was called: Options keeps the kind
 	set                      bool // Set was called: As would lose the value
+	search                   interface{ URL() string }
+	labeler                  listing.Labeler
+	stored                   []files.Stored
+	keep                     map[string]bool // posted keep keys after Bind; nil before
 
 	base   codec
 	stages []*stage // stages[0] holds the base type's rules
 	live   int      // the stage of the only handle still usable
 
 	// State.
-	present bool
-	text    []string
-	vals    []any // per stage, up to the stage that failed to convert
-	convAt  int   // the stage whose conversion failed; -1 for none
-	convErr error
-	err     error // the field's error: conversion, required, rule or Fail
+	present     bool
+	postedFiles bool // at least one file was posted to this field in Bind
+	text        []string
+	vals        []any // per stage, up to the stage that failed to convert
+	convAt      int   // the stage whose conversion failed; -1 for none
+	convErr     error
+	err         error // the field's error: conversion, required, rule or Fail
 }
 
 // codec reads the base type from submitted input and writes it back.
 type codec struct {
-	text   bool // Text: the only constructor Raw applies to
-	multi  bool // Texts, Files: every item, not the last
-	files  bool // File, Files
-	always bool // Checkbox: never absent
-	box    bool // Checkbox: conditions read its value, true or false, not its text
-	parse  func(in input) (any, error)
-	format func(v any) []string
+	text    bool // Text: the only constructor Raw applies to
+	integer bool // Int, integer Number: legal for Remote, gives inputmode="numeric"
+	multi   bool // Texts, Files, Uploads: every item, not one
+	files   bool // File, Files, Upload, Uploads
+	upload  bool // Upload, Uploads
+	always  bool // Checkbox: never absent
+	box     bool // Checkbox: conditions read its value, true or false, not its text
+	parse   func(in input) (any, error)
+	format  func(v any) []string
 }
 
 type input struct {
@@ -193,18 +203,27 @@ func (h *Field[T]) Is(rules ...rule.Rule[T]) *Field[T] {
 
 // Options gives the field's choices and makes the submitted text one of
 // their Value()s (ErrNotAnOption otherwise). On an Enum it replaces the
-// choices.
+// choices. On a file, upload or remote field it panics.
 func (h *Field[T]) Options(opts ...option.SelectOption) *Field[T] {
 	fd := h.builder("Options")
+	if fd.base.upload {
+		panic(fmt.Sprintf("forms: Options on upload field %q", fd.name))
+	}
+	if fd.base.files {
+		panic(fmt.Sprintf("forms: Options on file field %q", fd.name))
+	}
+	if fd.kind == KindRemote {
+		panic(fmt.Sprintf("forms: Options on remote field %q", fd.name))
+	}
 	for i, o := range opts {
 		if o == nil {
 			panic(fmt.Sprintf("forms: Options on field %q: option %d is nil", fd.name, i))
 		}
 	}
 	fd.options = append(make([]option.SelectOption, 0, len(opts)), opts...)
-	fd.optionsSet = true
+	fd.optionsSet, fd.optionsCalled = true, true
 	switch {
-	case fd.hinted || fd.base.files:
+	case fd.hinted:
 	case fd.base.multi:
 		fd.kind = KindMultiSelect
 	default:
@@ -213,22 +232,59 @@ func (h *Field[T]) Options(opts ...option.SelectOption) *Field[T] {
 	return h
 }
 
-// Hint overrides the field's kind, such as KindMultiline for a Text.
+// Hint overrides the field's kind, such as KindMultiline for a Text. It
+// panics on a remote or upload field, or with KindGroup, KindList,
+// KindRemote, KindUpload or KindUploads.
 func (h *Field[T]) Hint(k Kind) *Field[T] {
 	fd := h.builder("Hint")
-	if k.String() == "" || k == KindGroup || k == KindList {
-		panic(fmt.Sprintf("forms: Hint(%d) on field %q: not a field kind", k, fd.name))
+	if fd.base.upload {
+		panic(fmt.Sprintf("forms: Hint on upload field %q", fd.name))
+	}
+	if fd.kind == KindRemote {
+		panic(fmt.Sprintf("forms: Hint on remote field %q", fd.name))
+	}
+	if k.String() == "" || k == KindGroup || k == KindList || k == KindRemote || k == KindUpload || k == KindUploads {
+		panic(fmt.Sprintf("forms: Hint(%d) on field %q: not a hintable field kind", k, fd.name))
 	}
 	fd.kind, fd.hinted = k, true
 	return h
 }
 
+// Remote makes the field a remote select (KindRemote): its value is a
+// record's id, searched at search and named by l. forms never calls l.
+// It is legal on a Text, Parsed or integer Number field, and panics on any
+// other field, with a nil search link or Labeler, combined with Options or
+// Hint in either order, or after Bind.
+func (h *Field[T]) Remote(search interface{ URL() string }, l listing.Labeler) *Field[T] {
+	fd := h.builder("Remote")
+	if search == nil {
+		panic(fmt.Sprintf("forms: Remote on field %q with a nil search link", fd.name))
+	}
+	if l == nil {
+		panic(fmt.Sprintf("forms: Remote on field %q with a nil Labeler", fd.name))
+	}
+	if fd.hinted {
+		panic(fmt.Sprintf("forms: Remote on field %q after Hint", fd.name))
+	}
+	if fd.optionsCalled {
+		panic(fmt.Sprintf("forms: Remote on field %q after Options", fd.name))
+	}
+	if !((fd.kind == KindText && !fd.base.multi) || (fd.kind == KindNumber && fd.base.integer)) {
+		panic(fmt.Sprintf("forms: Remote on field %q: requires a Text, Parsed or integer Number field", fd.name))
+	}
+	fd.kind, fd.search, fd.labeler = KindRemote, search, l
+	return h
+}
+
 // Set gives the field an initial value, for an edit page, and marks it
-// present. It panics after Bind.
+// present. It panics on an upload field and after Bind.
 func (h *Field[T]) Set(v T) *Field[T] {
 	fd := h.use("Set")
 	if fd.form.isBound() {
 		panic(fmt.Sprintf("forms: Set on field %q after Bind", fd.path()))
+	}
+	if fd.base.upload {
+		panic(fmt.Sprintf("forms: Set on upload field %q; pass stored files to Upload or Uploads", fd.name))
 	}
 	vals := make([]any, h.stage+1)
 	vals[h.stage] = v
@@ -241,10 +297,15 @@ func (h *Field[T]) Set(v T) *Field[T] {
 	return h
 }
 
-// SetPtr is Set(*p) when p is not nil, for nullable columns.
+// SetPtr is Set(*p) when p is not nil, for nullable columns. It panics on
+// an upload field and after Bind.
 func (h *Field[T]) SetPtr(p *T) *Field[T] {
-	if fd := h.use("SetPtr"); fd.form.isBound() {
+	fd := h.use("SetPtr")
+	if fd.form.isBound() {
 		panic(fmt.Sprintf("forms: SetPtr on field %q after Bind", fd.path()))
+	}
+	if fd.base.upload {
+		panic(fmt.Sprintf("forms: SetPtr on upload field %q; pass stored files to Upload or Uploads", fd.name))
 	}
 	if p != nil {
 		h.Set(*p)
@@ -297,19 +358,64 @@ func (h *Field[T]) Fail(err error) {
 func (fd *field) bind(src Source) bool {
 	name := fd.path()
 	rawTexts, rawFiles := src.Values(name), src.Files(name)
-	fd.vals, fd.text, fd.present, fd.convAt, fd.convErr, fd.err = nil, nil, false, -1, nil, nil
+	fd.vals, fd.text, fd.present, fd.postedFiles, fd.convAt, fd.convErr, fd.err = nil, nil, false, false, -1, nil, nil
 	var in input
-	if fd.base.files {
+	var v any
+	var err error
+	seen := len(rawTexts) > 0 || len(rawFiles) > 0
+	switch {
+	case fd.base.upload:
 		for _, fh := range rawFiles {
 			if fh != nil && fh.Filename != "" {
 				in.files = append(in.files, fh)
 			}
 		}
+		fd.postedFiles = len(in.files) > 0
+		if !fd.base.multi && len(in.files) > 1 {
+			in.files = in.files[:1]
+		}
+		rawKeep := src.Values(name + ".keep")
+		if len(rawKeep) > 0 {
+			seen = true
+		}
+		fd.keep = make(map[string]bool, len(rawKeep))
+		for _, k := range rawKeep {
+			for _, s := range fd.stored {
+				if s.Key == k {
+					fd.keep[k] = true
+					break
+				}
+			}
+		}
+		var kept []files.Stored
+		if fd.base.multi || len(in.files) == 0 {
+			for _, s := range fd.stored {
+				if fd.keep[s.Key] {
+					kept = append(kept, s)
+				}
+			}
+		}
+		fd.present = len(kept) > 0 || len(in.files) > 0
+		if !fd.present {
+			return seen
+		}
+		v = files.Upload{Kept: kept, Added: in.files}
+	case fd.base.files:
+		for _, fh := range rawFiles {
+			if fh != nil && fh.Filename != "" {
+				in.files = append(in.files, fh)
+			}
+		}
+		fd.postedFiles = len(in.files) > 0
 		if !fd.base.multi && len(in.files) > 1 {
 			in.files = in.files[len(in.files)-1:]
 		}
 		fd.present = len(in.files) > 0
-	} else {
+		if !fd.present {
+			return seen
+		}
+		v, err = fd.base.parse(in)
+	default:
 		for _, t := range rawTexts {
 			if !fd.raw {
 				t = strings.TrimSpace(t)
@@ -323,12 +429,11 @@ func (fd *field) bind(src Source) bool {
 		}
 		fd.text = in.texts
 		fd.present = len(in.texts) > 0 || fd.base.always
+		if !fd.present {
+			return seen
+		}
+		v, err = fd.base.parse(in)
 	}
-	seen := len(rawTexts) > 0 || len(rawFiles) > 0
-	if !fd.present {
-		return seen
-	}
-	v, err := fd.base.parse(in)
 	if err != nil {
 		fd.convAt, fd.convErr = 0, err
 		fd.err = fd.conversionError()
@@ -349,7 +454,7 @@ func (fd *field) bind(src Source) bool {
 
 // clear drops an inactive field's value, text and error.
 func (fd *field) clear() {
-	fd.vals, fd.text, fd.present, fd.convAt, fd.convErr, fd.err = nil, nil, false, -1, nil, nil
+	fd.vals, fd.text, fd.present, fd.postedFiles, fd.convAt, fd.convErr, fd.err = nil, nil, false, false, -1, nil, nil
 }
 
 // validate decides the field's error (interface §5.1, §9.2) and returns it.

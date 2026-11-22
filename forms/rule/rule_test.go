@@ -117,6 +117,8 @@ func TestDefaultErrors(t *testing.T) {
 		{rule.ErrMinSize.With("1 KB"), "min_size", "must be at least 1 KB"},
 		{rule.ErrMaxSize.With("5 MB"), "max_size", "must be at most 5 MB"},
 		{rule.ErrContentType.With("image/png, image/jpeg"), "content_type", "must be one of these file types: image/png, image/jpeg"},
+		{rule.ErrMinFiles.With(1), "min_files", "choose at least 1"},
+		{rule.ErrMaxFiles.With(3), "max_files", "choose at most 3"},
 		{rule.ErrMinItems.With(1), "min_items", "choose at least 1"},
 		{rule.ErrMaxItems.With(4), "max_items", "choose at most 4"},
 	} {
@@ -151,6 +153,8 @@ func TestReleaseRuleFixes(t *testing.T) {
 		"Between NaN": func() { rule.Between(0, nan) },
 		"MinLen -1":   func() { rule.MinLen(-1) },
 		"MaxSize -1":  func() { rule.MaxSize(-1) },
+		"MinFiles -1": func() { rule.MinFiles(-1) },
+		"MaxFiles -1": func() { rule.MaxFiles(-1) },
 		"MinItems -1": func() { rule.MinItems[string](-1) },
 	} {
 		t.Run(name, func(t *testing.T) {
