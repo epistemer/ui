@@ -13,8 +13,8 @@ templ shell(head templ.Component, stories []Story, current Story) {
 			<meta name="viewport" content="width=device-width, initial-scale=1"/>
 			<title>{ current.Name } · ui catalogue</title>
 			@head
-			<link rel="stylesheet" href="/assets/catalog.css"/>
-			<script type="module" src="/assets/catalog.js"></script>
+			<link rel="stylesheet" href="assets/catalog.css"/>
+			<script type="module" src="assets/catalog.js"></script>
 		</head>
 		<body class="catalog">
 			<nav class="catalog-nav" aria-label="Stories">
@@ -73,7 +73,7 @@ templ frame(head templ.Component, title, dir, scheme string, story templ.Compone
 			<meta charset="utf-8"/>
 			<title>{ title }</title>
 			@head
-			<link rel="stylesheet" href="/assets/frame.css"/>
+			<link rel="stylesheet" href="assets/frame.css"/>
 		</head>
 		<body class="catalog-frame">
 			@story

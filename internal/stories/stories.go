@@ -7,7 +7,7 @@ import (
 
 	"github.com/a-h/templ"
 
-	"github.com/epistemer/ui/internal/spike/catalog"
+	"github.com/epistemer/ui/catalog"
 	"github.com/epistemer/ui/internal/spike/elements"
 )
 

@@ -5,6 +5,43 @@ taken for epistemer, what's next, and what's waiting on epistemer.
 
 
 
+
+## 2026-11-22 — V2: the catalogue and the checks
+
+**Landed** (Claude):
+- `ui/catalog`, moved from the spike and cut to §9:
+  - `New` panics on bad names, duplicates and empty stories.
+  - The theme is the app's to mount.
+  - URLs are relative, and the index writes its relative Location itself,
+    because `http.Redirect` would make it absolute from the path
+    `StripPrefix` left.
+- `ui/catalog/catalogtest`.
+- uitest's `CheckNames` and `CheckSelectors` (A4), on `ui/internal/a11y`,
+  which now takes class prefixes.
+- ui's stories moved to `internal/stories` and run through
+  `catalogtest.Check`, with the reverse check on ui's CSS.
+- `cmd/catalog`.
+
+Checked in the browser pane: relative links, 20 frames, and the token panel
+with themeschema's key names.
+
+**Clarification of §1 (not API):** the catalogue's token panel reads the
+derived tokens through `ui/internal/themehook`, as catalogtest reads the
+stylesheet. Review 0006 noted that §1's import table names the hook only
+for catalogtest.
+
+**Review 0007** (Gemini 4 Argon (Medium), about 42k tokens): 13 findings.
+Twelve changed the code:
+- `title` counts as a name;
+- uitest's `Prefix` replaces the default;
+- golden-safe variant names;
+- the selector parser handles comments in strings, `:is`, `:where` and
+  attribute operators;
+- a trailing-slash mount works;
+- pages are buffered;
+- catalogtest has tests of its own.
+
+**Next.** V3: `ui/icons` (Lucide, with an ADR) and `ui/elements`.
 ## 2026-11-22 — V1: `ui/theme`
 
 **Landed** (Claude):

@@ -15,6 +15,14 @@ All notable changes to this module. The format follows
   contrast. Its `Head` links both (visual-interface.md §3).
 - `github.com/epistemer/ui/theme/themeschema`, a nested module: the cfgx
   group `theme`, whose generated settings satisfy `theme.Config`.
+- `ui/catalog`: stories shown in LTR and RTL, light and dark, with a width
+  switcher and a live token panel, on relative URLs so it mounts anywhere
+  (§9).
+- `ui/catalog/catalogtest`: `Check` runs a golden, `CheckIDs`,
+  `CheckNames` and `CheckSelectors` on every variant, then the reverse
+  selector check on the app's CSS (§9.1).
+- uitest: `CheckNames` and `CheckSelectors` with `Prefix` (amendment A4).
+- `go run ./cmd/catalog` serves ui's own stories.
 ## [v0.1.0] - 2026-11-21
 
 The first release: the kernel and forms, the whole of the interface locked
