@@ -232,9 +232,55 @@ func TestToyForm(t *testing.T) {
 }
 ```
 
-Status: v0.1.0. The design is in [docs/brief.md](docs/brief.md) and
-[docs/forms-design.md](docs/forms-design.md); the contract is
-[docs/interface.md](docs/interface.md); progress is in
+## Building a page
+
+The visual packages render with ui's own CSS, in cascade layers an app's
+styles override, and a small script of ES modules. Mount the theme, then
+build pages from the shells, components and elements:
+
+```go
+th, err := theme.New("/ui/", settings) // settings: theme.Config, e.g. themeschema's
+mux.Handle("/ui/", th)
+```
+
+```templ
+templ ordersPage(r *http.Request, th *theme.Theme) {
+	@layout.Document(i18n.Static("Orders")).Head(th.Head()).ColorScheme(layout.ColorSchemeOf(r)) {
+		@layout.App() {
+			@layout.AppBrand {
+				Bricks & Co
+			}
+			@layout.AppNav {
+				@layout.NavItem(ui.URL("/orders")).Current(true) {
+					Orders
+				}
+			}
+			@layout.AppBar {
+				@layout.ColorSchemeMenu(layout.ColorSchemeOf(r))
+			}
+			@layout.AppMain {
+				@layout.PageHeader(i18n.Static("Orders")) {
+					@elements.Button().Href(ui.URL("/orders/new")) {
+						New order
+					}
+				}
+			}
+		}
+	}
+}
+```
+
+An address is a `ui.Link`: a route link from handlers' generated
+builders, or `ui.URL("…")` for a literal one. The brand colours, fonts and
+radius change at run time through cfgx
+(`theme/themeschema`). `go run ./cmd/catalog` shows every component in its
+states, in LTR and RTL and in light and dark.
+
+Status: v0.2.0. The designs are [docs/brief.md](docs/brief.md),
+[docs/forms-design.md](docs/forms-design.md) and
+[docs/visual-design.md](docs/visual-design.md); the contracts are
+[docs/interface.md](docs/interface.md) and
+[docs/visual-interface.md](docs/visual-interface.md); progress is in
 [docs/roadmap.md](docs/roadmap.md).
 
 Requires Go 1.27.

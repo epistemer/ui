@@ -9,6 +9,34 @@ taken for epistemer, what's next, and what's waiting on epistemer.
 
 
 
+## 2026-11-22 — V7: v0.2.0
+
+**Landed** (Claude):
+- An API review of every exported identifier, checked both ways against
+  the contracts:
+  - Every function, type and method in theme, icons, elements, inputs,
+    components, layout, catalog and catalogtest is in visual-interface.md.
+  - Every function the contract names is in the code. The one exception,
+    `Group`, is themeschema's, in its own module.
+  - Run again after A5: the kernel's `Link` and `URL` are in interface.md
+    §4A.
+- CHANGELOG `[v0.2.0]`, with A5; a README section on building a page; the
+  `ui` skill covers the visual packages and links.
+- The release, in the roadmap's order: tag ui `v0.2.0`, point
+  `theme/themeschema` at it and drop its `replace`, then tag
+  `theme/themeschema/v0.2.0`. Then `go get` both through the proxy.
+
+**Defaults taken** (epistemer's rule: an unanswered question takes its
+default):
+- §5.2 and §6.2 said the level words carry their own space, while §11 and
+  the code render the space. The wording now follows §11. No behaviour
+  changes.
+- V15, forms' `Placeholder`: no change.
+- D7.1's S7–S20 and S22 stand on their defaults.
+
+**Next.** D7.2: the slice spike of the orders table (server-state-design
+§12).
+
 ## 2026-11-22 — A5: links
 
 **Landed** (Claude), to interface.md §4A and visual-interface.md §2.7 and

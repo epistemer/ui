@@ -510,9 +510,9 @@ func (c CardSpec) Attrs(a templ.Attributes) CardSpec
   tone's icon (`Info`, `Warning`, `CircleCheck`, `CircleX`) and a visually
   hidden tone word (`ui.elements.alert.info`, `…warning`, `…success`,
   `…danger`), so the level isn't shown by colour alone. The word's text
-  carries its own punctuation and space ("Error: "), so a screen reader
-  doesn't run it into the message, and each locale punctuates it its own
-  way. Then an optional
+  ends with its own punctuation ("Error:"), so each locale punctuates it
+  its own way, and ui renders a space after it, so a screen reader doesn't
+  run it into the message (§11). Then an optional
   `ui-alert-title` (a `<p>`, not a heading) and the children in
   `ui-alert-body`. No live role: a message that appears later is a toast
   (§7.5). Attrs go to the outer div.
@@ -670,8 +670,9 @@ Every field but a hidden one renders, in this order:
 
 - *(not spiked)* The help sits **above** the control, so autocomplete and
   the on-screen keyboard don't cover it, and an error message starts with
-  the `CircleX` icon and the hidden word `ui.inputs.field.error` ("Error: ",
-  punctuation in the text, as Alert's), so an error isn't shown by colour
+  the `CircleX` icon and the hidden word `ui.inputs.field.error` ("Error:",
+  punctuation in the text and the space rendered by ui, as Alert's, §11),
+  so an error isn't shown by colour
   alone (the guidance check, finding 20). The spike put help below and had
   no icon: this is the first change the V milestone makes, in the goldens.
 - **The other shapes.** A checkbox puts `<input>` and `<label>` in
@@ -1379,7 +1380,7 @@ inputs and components, which both import elements anyway; [V5] decides.
 Locked by epistemer on 2026-11-22, from
 [server-state-design.md](server-state-design.md) §11 and ADR
 [0008](adr/0008-links.md). The roadmap's item A5 builds it, before
-v0.2.0 is tagged; until it lands the code still takes `templ.SafeURL`.
+v0.2.0 is tagged. Built on 2026-11-22 (review 0013).
 
 - The kernel gains `Link` and `URL` (interface.md §4A).
 - Eight signatures take a `ui.Link` where they took a `templ.SafeURL`,
