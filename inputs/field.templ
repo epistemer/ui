@@ -111,9 +111,9 @@ templ group(f FieldSpec, children []FieldSpec, attrs func(context.Context) templ
 templ hidden(f FieldSpec, wrapper templ.Attributes) {
 	if len(wrapper) > 0 {
 		<div { wrapper... }>
-			<input type="hidden" name={ f.c.Path() } value={ f.value() } disabled?={ f.hiddenWrapper() } data-ui-when-off?={ f.hiddenWrapper() }/>
+			<input { f.hiddenAttrs()... }/>
 		</div>
 	} else {
-		<input type="hidden" name={ f.c.Path() } value={ f.value() } disabled?={ f.hiddenWrapper() } data-ui-when-off?={ f.hiddenWrapper() }/>
+		<input { f.hiddenAttrs()... }/>
 	}
 }

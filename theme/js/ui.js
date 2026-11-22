@@ -200,19 +200,24 @@ document.addEventListener("click", (event) => {
 	const button = event.target instanceof Element ? event.target.closest("[data-ui-reveal]") : null;
 	if (!button) return;
 	const input = document.getElementById(button.getAttribute("aria-controls"));
-	if (!(input instanceof HTMLInputElement)) return;
+	if (!(input instanceof HTMLInputElement) || input.disabled || button.matches(":disabled")) return;
 	const show = button.getAttribute("aria-pressed") !== "true";
 	input.type = show ? "text" : "password";
 	button.setAttribute("aria-pressed", String(show));
 });
 
-document.addEventListener("reset", (event) => {
-	for (const button of event.target.querySelectorAll?.("[data-ui-reveal]") ?? []) {
+function hidePasswords(root) {
+	for (const button of root.querySelectorAll?.("[data-ui-reveal]") ?? []) {
 		const input = document.getElementById(button.getAttribute("aria-controls"));
 		if (input instanceof HTMLInputElement) input.type = "password";
 		button.setAttribute("aria-pressed", "false");
 	}
-});
+}
+
+document.addEventListener("reset", (event) => hidePasswords(event.target));
+// Before the page goes into the back-forward cache, so a revealed password
+// isn't shown when someone comes back to it.
+window.addEventListener("pagehide", () => hidePasswords(document));
 
 // The script has run (§10.1): CSS shows what needs it.
 document.documentElement.dataset.uiReady = "";

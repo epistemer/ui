@@ -244,6 +244,21 @@ func (f FieldSpec) choices(ctx context.Context) (opts []forms.Choice, empty bool
 	return opts, empty
 }
 
+// hiddenAttrs are a hidden field's: its value, its state, then the
+// control's own attributes and the caller's, which can't change them.
+func (f FieldSpec) hiddenAttrs() templ.Attributes {
+	own := templ.Attributes{"type": "hidden", "name": f.c.Path(), "value": f.value()}
+	if f.hiddenWrapper() {
+		own["disabled"] = true
+		own["data-ui-when-off"] = ""
+	}
+	fromControl := templ.Attributes{}
+	for k, v := range f.c.Attrs() {
+		fromControl[k] = v
+	}
+	return elements.Merge(elements.Merge(own, fieldOwned, fromControl), fieldOwned, f.attrs)
+}
+
 // textareaValue keeps a value's leading newline: the HTML parser drops the
 // first newline after <textarea>.
 func (f FieldSpec) textareaValue() string { return "\n" + f.value() }
@@ -270,8 +285,15 @@ func (f FieldSpec) Render(ctx context.Context, w io.Writer) error {
 		// carries its state.
 		return group(f, children, func(ctx context.Context) templ.Attributes {
 			own := wrapper
+			var described []string
 			if f.c.Help() != nil {
-				own = elements.Merge(own, nil, templ.Attributes{"aria-describedby": fieldID.Part(ctx, "help")})
+				described = append(described, fieldID.Part(ctx, "help"))
+			}
+			if f.c.Err() != nil {
+				described = append(described, fieldID.Part(ctx, "error"))
+			}
+			if len(described) > 0 {
+				own = elements.Merge(own, nil, templ.Attributes{"aria-describedby": strings.Join(described, " ")})
 			}
 			return elements.Merge(own, []string{"disabled", "hidden", "data-ui-when", "data-ui-when-off"}, f.attrs)
 		}).Render(ctx, w)

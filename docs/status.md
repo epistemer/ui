@@ -28,6 +28,17 @@ Checked in the browser pane: the reveal switches the input and
 
 The spike now holds only the components (V5).
 
+**Review 0009** (Gemini 4 Argon (Medium), about 23k tokens): 7 findings.
+Five changed the code:
+- a hidden field takes `Attrs`;
+- a group's error is described by its fieldset;
+- passwords are hidden on `pagehide`;
+- the reveal ignores a disabled input;
+- the reveal button's styles.
+
+Two were rejected: the space after "Error:" is the §6.2 versus §11 question
+already flagged, and the `context` import is used.
+
 **Next.** V5: `ui/components`.
 ## 2026-11-22 — V3: icons and elements
 
