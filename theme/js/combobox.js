@@ -53,11 +53,16 @@ const requester = (e) => e.detail?.requestConfig?.elt ?? e.detail?.elt;
 		#pending = false;
 		#refused = false;
 		#want = 0;
+		#resetAC = null;
 
 		connectedCallback() {
+			if (this.#up) {
+				this.#bindReset();
+				return;
+			}
 			// Without a search link (the gate refused it) or without htmx it
 			// stays the text input of the id (§3.3, R7).
-			if (this.#up || !this.dataset.uiSearch || !globalThis.htmx) return;
+			if (!this.dataset.uiSearch || !globalThis.htmx) return;
 			const input = this.querySelector(":scope > input.ui-input");
 			if (!input) return;
 			this.#up = true;
@@ -168,12 +173,27 @@ const requester = (e) => e.detail?.requestConfig?.elt ?? e.detail?.elt;
 				this.#commit("", "");
 				input.focus();
 			});
-			hidden.form?.addEventListener("reset", () =>
-				setTimeout(() => this.#commit(this.#initial.value, this.#initial.text), 0),
+			this.#bindReset();
+		}
+
+		#bindReset() {
+			this.#resetAC?.abort();
+			const form = this.#hidden?.form;
+			if (!form) {
+				this.#resetAC = null;
+				return;
+			}
+			this.#resetAC = new AbortController();
+			form.addEventListener(
+				"reset",
+				() => setTimeout(() => this.isConnected && this.#commit(this.#initial.value, this.#initial.text), 0),
+				{ signal: this.#resetAC.signal },
 			);
 		}
 
 		disconnectedCallback() {
+			this.#resetAC?.abort();
+			this.#resetAC = null;
 			this.#cancel();
 			if (this.#popup?.matches(":popover-open")) this.#popup.hidePopover();
 		}
@@ -271,11 +291,7 @@ const requester = (e) => e.detail?.requestConfig?.elt ?? e.detail?.elt;
 		}
 
 		#restore() {
-			this.#cancel();
-			this.#list.replaceChildren();
-			this.#input.value = this.#committed.text;
-			this.#dirty = false;
-			this.#hide();
+			this.#commit(this.#committed.value, this.#committed.text);
 		}
 
 		#syncClear() {
@@ -345,6 +361,11 @@ const requester = (e) => e.detail?.requestConfig?.elt ?? e.detail?.elt;
 				case "htmx:beforeSwap": {
 					if (requester(e) && requester(e) !== this) return;
 					e.stopPropagation();
+					if (!this.#pending || this.#timer) {
+						e.detail.shouldSwap = false;
+						this.#refused = true;
+						return;
+					}
 					const xhr = e.detail?.xhr;
 					const want = new URL(this.dataset.uiSearch, location.href);
 					let got = null;
@@ -393,6 +414,8 @@ const requester = (e) => e.detail?.requestConfig?.elt ?? e.detail?.elt;
 				case "htmx:responseError":
 				case "htmx:sendError":
 					if (requester(e) && requester(e) !== this) return;
+					e.stopPropagation();
+					if (!this.#pending || this.#timer || this.#refused) return;
 					this.#fail();
 					break;
 			}
@@ -406,6 +429,10 @@ const requester = (e) => e.detail?.requestConfig?.elt ?? e.detail?.elt;
 			switch (e.key) {
 				case "ArrowDown":
 					stop();
+					if (this.#pending && !this.#timer) {
+						this.#want = e.altKey ? 0 : 1;
+						return;
+					}
 					if (e.altKey || !this.#open) {
 						if (this.#timer || !this.#options().length) {
 							this.#want = e.altKey ? 0 : 1;
@@ -419,6 +446,10 @@ const requester = (e) => e.detail?.requestConfig?.elt ?? e.detail?.elt;
 				case "ArrowUp":
 					stop();
 					if (e.altKey) return this.#hide();
+					if (this.#pending && !this.#timer) {
+						this.#want = -1;
+						return;
+					}
 					if (!this.#open) {
 						if (this.#timer || !this.#options().length) {
 							this.#want = -1;
@@ -442,10 +473,14 @@ const requester = (e) => e.detail?.requestConfig?.elt ?? e.detail?.elt;
 				case "Escape":
 					if (this.#open) {
 						stop();
+						this.#cancel();
 						this.#hide();
 					} else if (this.#dirty) {
 						stop();
 						this.#restore();
+					} else if (this.#pending) {
+						stop();
+						this.#cancel();
 					}
 					break;
 			}

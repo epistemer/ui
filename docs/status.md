@@ -9,6 +9,14 @@ taken for epistemer, what's next, and what's waiting on epistemer.
 
 
 
+## 2026-11-23 — v0.4.0 release review
+
+Review [0023](reviews/0023-v0-4-0.md), Gemini 4 Neon (High) (Argon was
+out of quota): 17 findings, 14 valid and one valid the other way round,
+all fixed by Gemini 4 Neon (High) in a worktree; the script's fixes
+checked in the pane. `Upload` now keeps the last posted file, as `File`
+does.
+
 ## 2026-11-23 — U4: tables (`Column.Remote`) and the toy shop
 
 **Landed**, to rich-inputs-interface.md §5 and rich-inputs-design.md §3.5, §4.2 and §4.5:

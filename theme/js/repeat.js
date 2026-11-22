@@ -135,7 +135,10 @@ if (typeof HTMLElement !== "undefined") {
 			this.#sync();
 			// Conditions in the clone first (the ui script re-evaluates its form
 			// on input), so focus never lands on a control about to hide.
-			li?.querySelector('[name]:not([type="file"])')?.dispatchEvent(new Event("input", { bubbles: true }));
+			const trigger =
+				li?.querySelector('[name]:not([type="file"])') ??
+				[...(this.closest("form")?.elements ?? [])].find((el) => el.name);
+			trigger?.dispatchEvent(new Event("input", { bubbles: true }));
 			if (li) firstControl(li)?.focus();
 			say(this.#status(), fmt(this.#t.added, this.#items().length));
 		}

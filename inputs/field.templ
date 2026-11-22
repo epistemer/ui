@@ -150,7 +150,7 @@ templ uploadField(f FieldSpec, wrapper templ.Attributes, stored []storedFile) {
 			if f.c.Kind() == forms.KindUpload || f.c.Kind() == forms.KindUploads {
 				<ul class="ui-upload-files">
 					for i, s := range stored {
-						<li class="ui-upload-file">
+						<li class="ui-upload-file" data-ui-name={ s.file.Name }>
 							if s.file.Image && s.href != "" {
 								<img class="ui-upload-thumb" src={ string(s.href) } alt=""/>
 							}

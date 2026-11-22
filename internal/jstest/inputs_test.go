@@ -77,6 +77,11 @@ func TestUploadSizeAndAccept(t *testing.T) {
 			fitsAccept("scan.PDF", "application/octet-stream", "image/png, .pdf"),
 			fitsAccept("mystery.bin", "", "image/png, application/pdf"),
 			fitsAccept("mystery.bin", "", ".pdf, .png"),
+			fitsAccept("scan.PDF", "", ".pdf, .png"),
+			fitsAccept("photo.png", "", "image/png, .pdf"),
+			fitsAccept("notes.txt", "text/plain; charset=utf-8", "text/plain"),
+			fitsAccept("notes.txt", "text/plain", "text/plain; charset=utf-8"),
+			fitsAccept("photo.png", "image/png; version=1", "image/*"),
 			fitsAccept("notes.txt", "text/plain", "image/*, .pdf"),
 		]
 	`)
@@ -95,7 +100,12 @@ func TestUploadSizeAndAccept(t *testing.T) {
 		true,
 		true,
 		true,  // untyped file defers to server when accept has only MIME types
-		false, // untyped file checked by extension when accept has extensions
+		false, // untyped file checked by extension when every accept entry is an extension
+		true,  // untyped file matches extension when every accept entry is an extension
+		true,  // untyped file defers to server when accept mixes MIME types and extensions
+		true,  // MIME parameters on file type stripped
+		true,  // MIME parameters on accept entry stripped
+		true,  // MIME parameters stripped for wildcard match
 		false,
 	}
 	for i, w := range want {

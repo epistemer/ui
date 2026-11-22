@@ -21,16 +21,17 @@ export function size(n) {
 }
 
 // fitsAccept reports whether a file with name and MIME type matches an
-// input's comma-separated accept attribute. An untyped file defers to the
-// server unless accept names an extension.
+// input's comma-separated accept attribute. MIME parameters are stripped,
+// and an untyped file defers to the server unless every accept entry is an
+// extension.
 export function fitsAccept(name, type, acceptAttr) {
 	const accept = (acceptAttr || "")
 		.split(",")
-		.map((s) => s.trim().toLowerCase())
+		.map((s) => s.split(";")[0].trim().toLowerCase())
 		.filter(Boolean);
 	if (!accept.length) return true;
-	const t = (type || "").toLowerCase();
-	if (!t && !accept.some((a) => a.startsWith("."))) return true;
+	const t = (type || "").split(";")[0].trim().toLowerCase();
+	if (!t && !accept.every((a) => a.startsWith("."))) return true;
 	const n = (name || "").toLowerCase();
 	return accept.some((a) =>
 		a.endsWith("/*") ? t.startsWith(a.slice(0, -1)) : a.startsWith(".") ? n.endsWith(a) : t === a,
@@ -43,6 +44,8 @@ const say = (status, text) => {
 	setTimeout(() => (status.textContent = text), 0);
 };
 
+const keepSync = new WeakMap();
+
 function setUpUpload(field) {
 	if (field.dataset.uiUp !== undefined) return;
 	field.dataset.uiUp = "";
@@ -50,7 +53,11 @@ function setUpUpload(field) {
 	for (const li of field.querySelectorAll(".ui-upload-file")) {
 		const box = li.querySelector('input[type="checkbox"]');
 		if (!box) continue;
-		const name = li.querySelector("a")?.textContent.trim() ?? li.querySelector("label")?.textContent.trim() ?? "";
+		const name =
+			li.dataset.uiName ??
+			li.querySelector("a")?.textContent.trim() ??
+			li.querySelector("label")?.textContent.trim() ??
+			"";
 		const b = document.createElement("button");
 		b.type = "button";
 		b.className = "ui-button ui-upload-toggle";
@@ -59,9 +66,11 @@ function setUpUpload(field) {
 			li.toggleAttribute("data-ui-removed", !box.checked);
 			b.textContent = box.checked ? fmt(t.remove, name) : t.undo;
 		};
+		keepSync.set(box, sync);
+		box.addEventListener("change", sync);
 		b.addEventListener("click", () => {
 			box.checked = !box.checked;
-			sync();
+			box.dispatchEvent(new Event("change", { bubbles: true }));
 			b.focus();
 		});
 		box.classList.add("ui-visually-hidden");
@@ -75,6 +84,33 @@ function revokePreviews(list) {
 	if (!list || typeof URL === "undefined" || typeof URL.revokeObjectURL !== "function") return;
 	for (const img of list.querySelectorAll('img[src^="blob:"]')) {
 		URL.revokeObjectURL(img.src);
+	}
+}
+
+function removeCheckError(field, input, err) {
+	const tokens = (input.getAttribute("aria-describedby") ?? "").split(/\s+/).filter(Boolean);
+	const rest = tokens.filter((d) => d !== err.id);
+	if (rest.length) input.setAttribute("aria-describedby", rest.join(" "));
+	else input.removeAttribute("aria-describedby");
+	err.remove();
+	// The server's own error, if any, still stands.
+	if (!field.querySelector(".ui-field-error")) input.removeAttribute("aria-invalid");
+}
+
+function uploadInputs(form) {
+	if (!form) return [];
+	const inputs =
+		form instanceof HTMLFormElement
+			? [...form.elements].filter((el) => el instanceof HTMLInputElement && el.type === "file")
+			: [...(form.querySelectorAll?.('input[type="file"]') ?? [])];
+	return inputs.filter((input) => input.closest(".ui-upload"));
+}
+
+function clearBodyTooLarge(form) {
+	for (const input of uploadInputs(form)) {
+		const field = input.closest(".ui-upload");
+		const err = field?.querySelector(".ui-upload-check[data-ui-body-too-large]");
+		if (err) removeCheckError(field, input, err);
 	}
 }
 
@@ -100,17 +136,13 @@ function chosen(input) {
 			err.id = `${input.id}-check`;
 			input.after(err);
 		}
+		delete err.dataset.uiBodyTooLarge;
 		const cur = tokens();
 		if (!cur.includes(err.id)) input.setAttribute("aria-describedby", [...cur, err.id].join(" "));
 		err.textContent = problem;
 		input.setAttribute("aria-invalid", "true");
 	} else if (err) {
-		const rest = tokens().filter((d) => d !== err.id);
-		if (rest.length) input.setAttribute("aria-describedby", rest.join(" "));
-		else input.removeAttribute("aria-describedby");
-		err.remove();
-		// The server's own error, if any, still stands.
-		if (!field.querySelector(".ui-field-error")) input.removeAttribute("aria-invalid");
+		removeCheckError(field, input, err);
 	}
 	if (!list) return;
 	revokePreviews(list);
@@ -148,16 +180,19 @@ function chosen(input) {
 	if (names) say(field.querySelector(":scope > [role='status']"), fmt(t.chosen, names));
 }
 
+const requester = (e) => e.detail?.requestConfig?.elt ?? e.detail?.elt;
+const isCombobox = (e) => Boolean(requester(e)?.matches?.("ui-combobox"));
+const isGet = (e) => e.detail?.requestConfig?.verb?.toUpperCase() === "GET";
+const formOf = (e) => e.detail?.elt?.form ?? e.detail?.elt?.closest?.("form") ?? e.detail?.elt;
+
 // A body past the route's limit is a 413, which htmx doesn't swap: the
 // form stays as it is, chosen files included, and its upload fields say
 // why (§4.5).
 function bodyTooLarge(e) {
-	const form = e.detail.elt?.closest?.("form") ?? e.detail.elt;
-	const fields = [...(form?.querySelectorAll?.(".ui-upload") ?? [])].filter(
-		(f) => f.querySelector('input[type="file"]')?.files.length,
-	);
-	for (const field of fields) {
-		const input = field.querySelector('input[type="file"]');
+	const form = formOf(e);
+	const inputs = uploadInputs(form).filter((input) => !input.matches(":disabled") && input.files.length);
+	for (const input of inputs) {
+		const field = input.closest(".ui-upload");
 		const t = textsOf(field);
 		let err = field.querySelector(".ui-upload-check");
 		if (!err) {
@@ -168,15 +203,27 @@ function bodyTooLarge(e) {
 		}
 		const cur = (input.getAttribute("aria-describedby") ?? "").split(/\s+/).filter(Boolean);
 		if (!cur.includes(err.id)) input.setAttribute("aria-describedby", [...cur, err.id].join(" "));
+		err.dataset.uiBodyTooLarge = "";
 		err.textContent = t.bodyTooLarge ?? "";
 		input.setAttribute("aria-invalid", "true");
 	}
-	fields[0]?.querySelector('input[type="file"]')?.focus();
+	inputs[0]?.focus();
 }
 
 if (typeof document !== "undefined") {
 	document.addEventListener("change", (e) => {
-		if (e.target instanceof HTMLInputElement && e.target.type === "file") chosen(e.target);
+		if (e.target instanceof HTMLInputElement && e.target.type === "file") {
+			if (e.target.form) clearBodyTooLarge(e.target.form);
+			chosen(e.target);
+		}
+	});
+
+	document.addEventListener("reset", (e) => {
+		const form = e.target;
+		if (!(form instanceof HTMLFormElement)) return;
+		setTimeout(() => {
+			for (const el of form.elements) keepSync.get(el)?.();
+		}, 0);
 	});
 
 	// ui's forms are novalidate, so a custom validity blocks nothing by
@@ -185,8 +232,15 @@ if (typeof document !== "undefined") {
 	document.addEventListener(
 		"submit",
 		(e) => {
-			const bad = [...(e.target.querySelectorAll?.('.ui-upload input[type="file"]') ?? [])].find(
-				(i) => i.validity.customError,
+			const form = e.target;
+			if (!(form instanceof HTMLFormElement)) return;
+			const bad = [...form.elements].find(
+				(el) =>
+					el instanceof HTMLInputElement &&
+					el.type === "file" &&
+					el.closest(".ui-upload") &&
+					!el.matches(":disabled") &&
+					el.validity.customError,
 			);
 			if (!bad) return;
 			e.preventDefault();
@@ -197,23 +251,31 @@ if (typeof document !== "undefined") {
 	);
 
 	for (const ev of ["dragenter", "dragover"]) {
-		document.addEventListener(ev, (e) => e.target.closest?.(".ui-upload")?.setAttribute("data-ui-dragging", ""));
+		document.addEventListener(ev, (e) => {
+			const input = e.target instanceof Element ? e.target.closest(".ui-upload-input") : null;
+			if (input && !input.matches(":disabled")) input.closest(".ui-upload")?.setAttribute("data-ui-dragging", "");
+		});
 	}
 	document.addEventListener("dragleave", (e) => {
-		const field = e.target.closest?.(".ui-upload");
+		const input = e.target instanceof Element ? e.target.closest(".ui-upload-input") : null;
 		// Crossing into a child isn't leaving.
-		if (field && !field.contains(e.relatedTarget)) field.removeAttribute("data-ui-dragging");
+		if (input && !input.contains(e.relatedTarget)) input.closest(".ui-upload")?.removeAttribute("data-ui-dragging");
 	});
-	document.addEventListener("drop", (e) => e.target.closest?.(".ui-upload")?.removeAttribute("data-ui-dragging"));
+	document.addEventListener("drop", (e) => {
+		const input = e.target instanceof Element ? e.target.closest(".ui-upload-input") : null;
+		input?.closest(".ui-upload")?.removeAttribute("data-ui-dragging");
+	});
 
 	// Progress (R19): htmx:xhr:progress names the upload and the download
 	// alike, so the bar listens to the request's own upload, which
 	// htmx:beforeSend hands over before the body is sent.
 	document.addEventListener("htmx:beforeSend", (e) => {
-		const form = e.detail.elt?.closest?.("form") ?? e.detail.elt;
-		const bars = [...(form?.querySelectorAll?.(".ui-upload") ?? [])]
-			.filter((f) => f.querySelector('input[type="file"]')?.files.length)
-			.map((f) => f.querySelector(".ui-upload-progress"))
+		if (isCombobox(e) || isGet(e)) return;
+		const form = formOf(e);
+		clearBodyTooLarge(form);
+		const bars = uploadInputs(form)
+			.filter((input) => !input.matches(":disabled") && input.files.length)
+			.map((input) => input.closest(".ui-upload")?.querySelector(".ui-upload-progress"))
 			.filter(Boolean);
 		if (!bars.length || !e.detail.xhr?.upload) return;
 		e.detail.xhr.upload.addEventListener("progress", (p) => {
@@ -226,15 +288,26 @@ if (typeof document !== "undefined") {
 	});
 
 	// Only a 413: a send error is as likely a network gone (review 0021).
-	document.addEventListener("htmx:responseError", (e) => e.detail.xhr?.status === 413 && bodyTooLarge(e));
-
-	document.addEventListener("htmx:afterRequest", (e) => {
-		for (const bar of (e.detail.elt?.closest?.("form") ?? document).querySelectorAll(".ui-upload-progress")) {
-			bar.hidden = true;
-		}
+	document.addEventListener("htmx:responseError", (e) => {
+		if (!isCombobox(e) && e.detail.xhr?.status === 413) bodyTooLarge(e);
 	});
 
-	const setUp = (root) => root.querySelectorAll?.(".ui-upload").forEach(setUpUpload);
+	document.addEventListener("htmx:afterRequest", (e) => {
+		if (isCombobox(e) || isGet(e)) return;
+		const form = formOf(e);
+		const bars = new Set([
+			...(form?.querySelectorAll?.(".ui-upload-progress") ?? []),
+			...uploadInputs(form)
+				.map((input) => input.closest(".ui-upload")?.querySelector(".ui-upload-progress"))
+				.filter(Boolean),
+		]);
+		for (const bar of bars) bar.hidden = true;
+	});
+
+	const setUp = (root) => {
+		if (root?.matches?.(".ui-upload")) setUpUpload(root);
+		root?.querySelectorAll?.(".ui-upload").forEach(setUpUpload);
+	};
 	setUp(document);
 	document.addEventListener("htmx:afterSwap", (e) => setUp(e.target));
 }
