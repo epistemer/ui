@@ -1,0 +1,18 @@
+package layout
+
+templ document(d DocumentSpec, attrs templ.Attributes) {
+	<!DOCTYPE html>
+	<html { attrs... }>
+		<head>
+			<meta charset="utf-8"/>
+			<meta name="viewport" content="width=device-width, initial-scale=1"/>
+			<title>{ d.title.T(ctx) }</title>
+			for _, h := range d.head {
+				@h
+			}
+		</head>
+		<body { d.body... }>
+			{ children... }
+		</body>
+	</html>
+}

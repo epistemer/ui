@@ -1,0 +1,44 @@
+package layout
+
+import (
+	"github.com/epistemer/ui/elements"
+	"github.com/epistemer/ui/icons"
+)
+
+templ pageHeader(p PageHeaderSpec, actions templ.Component, hasActions bool) {
+	<header { elements.Merge(templ.Attributes{"class": "ui-page-header"}, nil, p.attrs)... }>
+		if len(p.crumbs) > 0 {
+			<nav class="ui-breadcrumbs" aria-label={ pageCrumbs.T(ctx) }>
+				<ol class="ui-breadcrumbs-list">
+					for i, c := range p.crumbs {
+						<li class="ui-breadcrumbs-item">
+							if i > 0 {
+								@icons.ChevronEnd()
+							}
+							if i == len(p.crumbs)-1 {
+								if c.Href != "" {
+									<a href={ c.Href } aria-current="page">{ c.Text.T(ctx) }</a>
+								} else {
+									<span aria-current="page">{ c.Text.T(ctx) }</span>
+								}
+							} else if c.Href != "" {
+								<a href={ c.Href }>{ c.Text.T(ctx) }</a>
+							} else {
+								<span>{ c.Text.T(ctx) }</span>
+							}
+						</li>
+					}
+				</ol>
+			</nav>
+		}
+		<h1 class="ui-page-title">{ p.title.T(ctx) }</h1>
+		if p.description != nil {
+			<p class="ui-page-description">{ p.description.T(ctx) }</p>
+		}
+		if hasActions {
+			<div class="ui-page-actions">
+				@actions
+			</div>
+		}
+	</header>
+}

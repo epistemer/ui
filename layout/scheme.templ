@@ -1,0 +1,32 @@
+package layout
+
+import (
+	"github.com/epistemer/ui/components"
+	"github.com/epistemer/ui/elements"
+	"github.com/epistemer/ui/icons"
+)
+
+templ schemeMenu(current ColorScheme) {
+	@components.Menu(schemeLabel) {
+		@components.MenuTrigger {
+			@elements.Button().Variant(elements.Ghost).Tone(elements.Neutral).Label(schemeLabel).Attrs(components.MenuTrigger.Value(ctx)) {
+				<span class="ui-scheme-icon" data-scheme="light">
+					@icons.Sun()
+				</span>
+				<span class="ui-scheme-icon" data-scheme="dark">
+					@icons.Moon()
+				</span>
+			}
+		}
+		@components.MenuItems {
+			for _, c := range schemeChoices {
+				<button { schemeItemAttrs(c, current)... }>
+					<span class="ui-scheme-check">
+						@icons.Check()
+					</span>
+					{ c.text.T(ctx) }
+				</button>
+			}
+		}
+	}
+}

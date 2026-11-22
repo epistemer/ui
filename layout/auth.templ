@@ -1,0 +1,30 @@
+package layout
+
+import (
+	"github.com/epistemer/ui/components"
+	"github.com/epistemer/ui/elements"
+)
+
+templ auth(a AuthSpec) {
+	{{ requireAuthBody(ctx) }}
+	<div { elements.Merge(templ.Attributes{"class": "ui-auth"}, nil, a.attrs)... }>
+		<main id="ui-main" class="ui-auth-card" tabindex="-1">
+			if AuthBrand.Filled(ctx) {
+				<div class="ui-auth-brand">
+					@AuthBrand.Place()
+				</div>
+			}
+			<h1 class="ui-auth-title">{ a.title.T(ctx) }</h1>
+			<div class="ui-auth-body">
+				@AuthBody.Place()
+			</div>
+			if AuthFooter.Filled(ctx) {
+				<div class="ui-auth-footer">
+					@AuthFooter.Place()
+				</div>
+			}
+		</main>
+		@components.Toasts()
+		@components.ConfirmDialog()
+	</div>
+}

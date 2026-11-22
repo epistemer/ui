@@ -9,6 +9,27 @@ taken for epistemer, what's next, and what's waiting on epistemer.
 
 
 
+## 2026-11-22 — V6: ui/layout (in progress)
+
+**Landed on `v6-layout`, not yet a PR** (Claude):
+- `ui/layout` per §8: Document (lang and dir from `i18n.Code`, `ColorSchemeOf` reading the
+  cookie), App with the drawer toggle, NavItem, NavSection, ColorSchemeMenu (menuitemradio
+  items, a Sun/Moon trigger), Auth, and PageHeader (breadcrumbs; actions only when they write
+  something).
+- `layout.css` (breakpoint 60rem, sizes in `em` because the checker rejects `rem`) and
+  `layout.js` (the drawer, and the scheme with its cookie).
+- One choice in the markup: the navigation toggle comes before the brand in the bar, at the
+  drawer's edge. The app renders the toggle and the nav only when `AppNav` is filled.
+
+**Left for V6:**
+- stories for the app, auth and page header, which the reverse check needs (TestStories fails
+  until they exist), and their goldens;
+- unit tests: panics, owned keys, lang and dir, the scheme cookie;
+- a browser check of the drawer and the scheme menu;
+- review 0011, then the PR.
+
+**Merged:** #25 (V4) and #26 (V5), after green CI and review 0010.
+
 ## 2026-11-22 — V5: components
 
 **Landed** (Claude):
