@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | Accepted in principle; its signatures are amendment A5, waiting for epistemer's lock |
+| Status | Accepted; its signatures are amendment A5, locked by epistemer on 2026-11-22 |
 | Date | 2026-11-22 |
 | Roadmap item | D7.1, A5 |
 | Deciders | epistemer decided it in the brainstorm of 2026-11-22 (S5); Claude proposed the alias, the adapter and the sanitising |
@@ -52,9 +52,11 @@ Option 3.
 
 - handlers changes its generated builders: a breaking amendment of its
   own, for its v0.2.0 (design §10).
-- Six signatures of the locked visual interface change, eight if `src`
-  follows (S8): amendment A5 (design §11). It lands before v0.2.0 is
-  tagged, so the release doesn't carry signatures already replaced.
+- Eight signatures of the locked visual interface change, the two that
+  take an image's `src` among them (S8): amendment A5, locked on
+  2026-11-22 (interface.md §4A, visual-interface.md §2.7 and §13.4). It
+  is built before v0.2.0 is tagged, so the release doesn't carry
+  signatures already replaced.
 - A page writes `Href(adminroutes.Order(o.ID))` for a route and
   `Href(ui.URL("/docs"))` for a literal. An untyped string constant no
   longer converts by itself.

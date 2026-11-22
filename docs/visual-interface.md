@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | **Locked by epistemer on 2026-11-22 (D6), with the defaults of V1–V18.** It stays a document of its own beside [interface.md](interface.md), whose §10 records the lock and amendment A4 (uitest, §13.1). A change to anything here that alters what an app writes or gets back is an amendment |
+| Status | **Locked by epistemer on 2026-11-22 (D6), with the defaults of V1–V18.** Amendment A5 (links, §2.7 and §13.4) was locked the same day. It stays a document of its own beside [interface.md](interface.md), whose §10 records the lock and amendment A4 (uitest, §13.1). A change to anything here that alters what an app writes or gets back is an amendment |
 | Date | 2026-11-22 |
 | Roadmap item | D5 |
 | Inputs | [visual-design.md](visual-design.md) §2–§11 (Q1–Q9 and the spike's findings), ADRs [0004](adr/0004-own-css.md), [0005](adr/0005-client-behaviour.md), [0006](adr/0006-goja-for-script-tests.md), reviews [0002](reviews/0002-visual-design.md)–[0004](reviews/0004-d4-part2.md), the spike in `internal/spike`, and review [0005](reviews/0005-visual-interface.md) of this draft |
@@ -220,6 +220,19 @@ Each interactive component's doc comment names the ARIA Authoring Practices
 pattern it follows and lists its keyboard behaviour (design §7). Keyboard
 and focus wait for the browser job; the names check (§13.1) and `CheckIDs`
 run on every story.
+
+### 2.7 Addresses (amendment A5)
+
+An address is a `ui.Link`, the kernel's `interface{ URL() string }`
+(interface.md §4A): a route link from handlers' generated builders, or
+`ui.URL("/docs")` for a literal or external one.
+
+- Components render an address through `templ.URL`, which lets `http`,
+  `https`, `mailto`, `tel` and relative addresses through.
+- **No address** is a nil link, one whose `URL()` is empty, or one
+  `templ.URL` refuses. It is what an empty `templ.SafeURL` was before A5:
+  no `href` on a Button or MenuItem, `Empty` from `Link` and `Image`, no
+  image in an Avatar, the current page in a `Crumb`.
 
 ## 3. Theme (`ui/theme`) (spiked)
 
@@ -442,7 +455,7 @@ func Button() ButtonSpec
 func (b ButtonSpec) Variant(v Variant) ButtonSpec
 func (b ButtonSpec) Size(s Size) ButtonSpec
 func (b ButtonSpec) Tone(t Tone) ButtonSpec
-func (b ButtonSpec) Href(u templ.SafeURL) ButtonSpec
+func (b ButtonSpec) Href(l ui.Link) ButtonSpec // A5
 func (b ButtonSpec) Submit() ButtonSpec
 func (b ButtonSpec) Disabled(d bool) ButtonSpec
 func (b ButtonSpec) Label(t i18n.Ter) ButtonSpec // aria-label, for an icon-only button
@@ -513,7 +526,7 @@ func (c CardSpec) Attrs(a templ.Attributes) CardSpec
 type AvatarSpec struct{ /* unexported */ }
 
 func Avatar(name i18n.Ter) AvatarSpec
-func (a AvatarSpec) Src(u templ.SafeURL) AvatarSpec
+func (a AvatarSpec) Src(l ui.Link) AvatarSpec // A5
 func (a AvatarSpec) Size(s Size) AvatarSpec
 func (a AvatarSpec) Decorative() AvatarSpec
 func (a AvatarSpec) Attrs(at templ.Attributes) AvatarSpec
@@ -578,8 +591,8 @@ func Bool(v bool) templ.Component
 func Date(t time.Time) templ.Component
 func DateTime(t time.Time) templ.Component
 func Enum(o option.SelectOption) templ.Component
-func Link(href templ.SafeURL, text i18n.Ter) templ.Component
-func Image(src templ.SafeURL, alt i18n.Ter) templ.Component
+func Link(to ui.Link, text i18n.Ter) templ.Component   // A5
+func Image(src ui.Link, alt i18n.Ter) templ.Component // A5
 func Amount(text i18n.Ter) templ.Component
 func Empty() templ.Component
 ```
@@ -607,7 +620,7 @@ Table cells (D7) and detail rows (§7.6) both render values through these
 
 These render `Empty` instead: a nil `Ter` (but `Image`'s `alt`), or one
 whose `T(ctx)` is empty or white space; a nil option; the zero
-`time.Time`; an empty `href` or `src`.
+`time.Time`; a `Link` or `Image` with no address (§2.7).
 
 ### 5.5 Base classes
 
@@ -800,7 +813,7 @@ func (m MenuSpec) Attrs(a templ.Attributes) MenuSpec
 type MenuItemSpec struct{ /* unexported */ }
 
 func MenuItem() MenuItemSpec
-func (m MenuItemSpec) Href(u templ.SafeURL) MenuItemSpec
+func (m MenuItemSpec) Href(l ui.Link) MenuItemSpec // A5
 func (m MenuItemSpec) Disabled(d bool) MenuItemSpec
 func (m MenuItemSpec) Danger() MenuItemSpec
 func (m MenuItemSpec) Submit(form string) MenuItemSpec // submits the form with that id
@@ -856,7 +869,7 @@ func (t TabsSpec) Attrs(a templ.Attributes) TabsSpec
 
 type TabSpec struct{ /* unexported */ }
 
-func Tab(href templ.SafeURL) TabSpec
+func Tab(to ui.Link) TabSpec // A5
 func (t TabSpec) Current(c bool) TabSpec
 func (t TabSpec) Attrs(a templ.Attributes) TabSpec
 ```
@@ -1001,7 +1014,7 @@ func (a AppSpec) Attrs(at templ.Attributes) AppSpec
 
 type NavItemSpec struct{ /* unexported */ }
 
-func NavItem(href templ.SafeURL) NavItemSpec
+func NavItem(to ui.Link) NavItemSpec // A5
 func (n NavItemSpec) Current(c bool) NavItemSpec
 func (n NavItemSpec) Attrs(a templ.Attributes) NavItemSpec
 
@@ -1077,7 +1090,7 @@ func (a AuthSpec) Attrs(at templ.Attributes) AuthSpec
 
 ```go
 type Crumb struct {
-	Href templ.SafeURL // empty for the current page
+	Href ui.Link // A5; no address (§2.7) for the current page
 	Text i18n.Ter
 }
 
@@ -1360,6 +1373,22 @@ comparing texts at render. A forms amendment could add
 `Merge` moves from the backlog into `ui/elements` (§2.2). The backlog's
 gate for moving it into the kernel ("two ui packages need it") is met by
 inputs and components, which both import elements anyway; [V5] decides.
+
+### 13.4 Links (amendment A5)
+
+Locked by epistemer on 2026-11-22, from
+[server-state-design.md](server-state-design.md) §11 and ADR
+[0008](adr/0008-links.md). The roadmap's item A5 builds it, before
+v0.2.0 is tagged; until it lands the code still takes `templ.SafeURL`.
+
+- The kernel gains `Link` and `URL` (interface.md §4A).
+- Eight signatures take a `ui.Link` where they took a `templ.SafeURL`,
+  each marked `// A5` above: `ButtonSpec.Href` (§5.1), `AvatarSpec.Src`
+  (§5.3), `Link` and `Image` (§5.4), `MenuItemSpec.Href` (§7.3), `Tab`
+  (§7.4), `NavItem` (§8.2) and `Crumb.Href` (§8.4). The two that take an
+  image's `src` are in on the design's S8, which stands on its default.
+- §2.7 is new. Nothing these components render changes for the same
+  address.
 
 ## 14. Questions for epistemer
 

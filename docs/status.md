@@ -54,13 +54,17 @@ ones most worth a look:
   column. This differs from the brainstorm's sketch
   (`c.Email.Searchable()`); the review argued it and Claude agrees.
 
-**Waiting on epistemer:**
-- **Amendment A5** (design §11): the kernel's `Link` and `URL`, and six
-  locked signatures (eight with S8). It should land before v0.2.0 is
-  tagged, so **V7 waits for it**; release PR #28 is open.
-- S7–S22, or their defaults.
+**Amendment A5 is locked** (epistemer, the same day): the kernel's
+`Link` and `URL`, and eight signatures of the visual packages, with
+`Src` and `Image` in on S8's default. It is written into interface.md
+(§4A, §10) and visual-interface.md (§2.7, §13.4). The code still takes
+`templ.SafeURL` until the roadmap's item A5 is built, so **V7 waits for
+it**; release PR #28 is open, and its API review will not match the
+contract before then.
 
-**Next**, in a coding session: A5 once locked; then the slice spike
+**Waiting on epistemer:** S7 and S9–S22, or their defaults.
+
+**Next**, in a coding session: build A5; then the slice spike
 (D7.2), whose findings amend the design; then the handlers and models
 amendments (D7.3, D7.4) and the contract (D7.5).
 
