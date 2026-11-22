@@ -7,6 +7,28 @@ taken for epistemer, what's next, and what's waiting on epistemer.
 
 
 
+
+## 2026-11-22 — V4: inputs
+
+**Landed** (Claude):
+- `ui/inputs`, moved from the spike and cut to §6:
+  - keys renamed to `ui.inputs.field.*` and unexported;
+  - help above the control;
+  - errors led by the `CircleX` icon and a hidden "Error:";
+  - `ui-field-row` for checkboxes and passwords;
+  - the password reveal, with `data-ui-reveal` in the script, hidden until
+    `data-ui-ready`;
+  - groups carry `aria-describedby`, help and error on their fieldset, and
+    take `Attrs`.
+- Conditions refresh on `pageshow`.
+- Sign-in stories: a password, its errors, and a checkbox's help.
+
+Checked in the browser pane: the reveal switches the input and
+`aria-pressed`, swaps its icons, and a form reset puts both back.
+
+The spike now holds only the components (V5).
+
+**Next.** V5: `ui/components`.
 ## 2026-11-22 — V3: icons and elements
 
 **Landed** (Claude):

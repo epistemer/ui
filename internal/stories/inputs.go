@@ -103,3 +103,22 @@ func shippingGift() *forms.Form {
 	s.Address.Note.Set("\nleave with the doorman")
 	return s.Form
 }
+
+// signIn shows a password with its reveal button, and a checkbox's help
+// above its row.
+func newSignIn() *forms.Form {
+	f := forms.New()
+	f.Text("email").Label(i18n.Static("Email")).Required().Is(rule.Email())
+	f.Text("password").Raw().Hint(forms.KindPassword).Label(i18n.Static("Password")).Required().Is(rule.MinLen(12))
+	f.Checkbox("remember").Label(i18n.Static("Keep me signed in")).Help(i18n.Static("On this device only."))
+	return f
+}
+
+func signInFresh() *forms.Form { return newSignIn() }
+
+func signInErrors() *forms.Form {
+	f := newSignIn()
+	f.Bind(forms.FromValues(url.Values{"email": {"shop@example.com"}, "password": {"short"}}))
+	f.Validate(context.Background())
+	return f
+}
