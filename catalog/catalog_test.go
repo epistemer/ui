@@ -89,6 +89,26 @@ func TestMounted(t *testing.T) {
 	if w := get("/catalog/assets/catalog.css"); w.Code != 200 {
 		t.Errorf("assets under the mount: %d", w.Code)
 	}
+	frame := get("/catalog/frame?story=x%2Fhello&variant=plain&dir=ltr&scheme=light")
+	if frame.Code != 200 || strings.Contains(frame.Body.String(), `href="/assets`) {
+		t.Errorf("frame under the mount: %d\n%s", frame.Code, frame.Body.String())
+	}
+	if w := get("/catalog/tokens.json?brand_color=%23000000"); w.Code != 200 || !strings.Contains(w.Body.String(), "--ui-color-brand") {
+		t.Errorf("tokens under the mount: %d", w.Code)
+	}
+}
+
+// Mounted with a trailing slash in the prefix, nothing escapes either.
+func TestMountedTrailingSlash(t *testing.T) {
+	mux := http.NewServeMux()
+	mux.Handle("/catalog/", http.StripPrefix("/catalog/", newCatalog(t)))
+	for _, path := range []string{"/catalog/", "/catalog/story?name=x%2Fhello", "/catalog/frame?story=x%2Fhello&variant=plain&dir=ltr&scheme=light"} {
+		w := httptest.NewRecorder()
+		mux.ServeHTTP(w, httptest.NewRequest("GET", path, nil))
+		if loc := w.Header().Get("Location"); strings.HasPrefix(loc, "/") || w.Code >= 300 && w.Code != 302 {
+			t.Errorf("%s: %d, Location %q", path, w.Code, loc)
+		}
+	}
 }
 
 func TestNewPanics(t *testing.T) {

@@ -30,6 +30,17 @@ derived tokens through `ui/internal/themehook`, as catalogtest reads the
 stylesheet. Review 0006 noted that §1's import table names the hook only
 for catalogtest.
 
+**Review 0007** (Gemini 4 Argon (Medium), about 42k tokens): 13 findings.
+Twelve changed the code:
+- `title` counts as a name;
+- uitest's `Prefix` replaces the default;
+- golden-safe variant names;
+- the selector parser handles comments in strings, `:is`, `:where` and
+  attribute operators;
+- a trailing-slash mount works;
+- pages are buffered;
+- catalogtest has tests of its own.
+
 **Next.** V3: `ui/icons` (Lucide, with an ADR) and `ui/elements`.
 ## 2026-11-22 — V1: `ui/theme`
 

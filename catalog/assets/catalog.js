@@ -30,6 +30,7 @@ function apply() {
 		}
 		try {
 			const response = await fetch("tokens.json?" + params, { signal: inflight.signal });
+			if (!response.ok) return;
 			current = await response.json();
 			paintAll();
 		} catch (err) {
@@ -43,5 +44,10 @@ form?.addEventListener("input", (event) => {
 });
 
 for (const frame of document.querySelectorAll("iframe")) {
-	frame.addEventListener("load", () => paint(frame.contentDocument.documentElement));
+	frame.addEventListener("load", () => {
+		if (frame.contentDocument?.documentElement) paint(frame.contentDocument.documentElement);
+	});
 }
+
+// A reload can restore the panel's values: apply them.
+if ([...(form?.querySelectorAll("fieldset:last-of-type input") ?? [])].some((i) => i.value !== i.defaultValue)) apply();

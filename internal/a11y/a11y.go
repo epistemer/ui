@@ -172,15 +172,27 @@ func Names(src string) ([]string, error) {
 		if l, ok := attr(n, "aria-label"); ok && strings.TrimSpace(l) != "" {
 			return strings.Join(strings.Fields(l), " ")
 		}
-		if isControl(n) {
+		if isControl(n) || n.DataAtom == atom.Button {
 			if id, ok := attr(n, "id"); ok && strings.TrimSpace(labelFor[id]) != "" {
 				return strings.Join(strings.Fields(labelFor[id]), " ")
 			}
 			for p := n.Parent; p != nil; p = p.Parent {
 				if p.DataAtom == atom.Label {
-					return text(p, false)
+					if t := text(p, false); t != "" {
+						return t
+					}
 				}
 			}
+		}
+		// title is the last resort (amendment A4), after content for the
+		// elements named by their content.
+		if nameFromContent[lowerAttr(n, "role")] || n.DataAtom == atom.Button || n.DataAtom == atom.A {
+			if t := text(n, false); t != "" {
+				return t
+			}
+		}
+		if t, ok := attr(n, "title"); ok && strings.TrimSpace(t) != "" {
+			return strings.Join(strings.Fields(t), " ")
 		}
 		return ""
 	}
@@ -200,7 +212,7 @@ func Names(src string) ([]string, error) {
 		typ := lowerAttr(n, "type")
 		switch {
 		case n.DataAtom == atom.Img:
-			if !hasAttr(n, "alt") && name(n) == "" {
+			if !hasAttr(n, "alt") && name(n) == "" && role != "presentation" && role != "none" {
 				report(n, `an image without alt (alt="" marks a decorative one)`)
 			}
 		case n.DataAtom == atom.Input && typ == "hidden":
@@ -209,7 +221,10 @@ func Names(src string) ([]string, error) {
 				report(n, "an image button without alt")
 			}
 		case n.DataAtom == atom.Input && (typ == "submit" || typ == "button" || typ == "reset"):
-			if v, _ := attr(n, "value"); strings.TrimSpace(v) == "" && name(n) == "" && typ == "button" {
+			// An omitted value gives submit and reset the browser's own label;
+			// an empty one, or a button input, gives none.
+			v, has := attr(n, "value")
+			if strings.TrimSpace(v) == "" && name(n) == "" && (typ == "button" || has) {
 				report(n, "a button input without a value or label")
 			}
 		case isControl(n) || controlRoles[role]:
@@ -270,7 +285,7 @@ func selector(class, key, val string) string {
 func Used(src string, prefixes []string) ([]string, error) {
 	covered := func(class string) bool {
 		for _, p := range prefixes {
-			if strings.HasPrefix(class, p) {
+			if p != "" && len(class) > len(p) && strings.HasPrefix(class, p) {
 				return true
 			}
 		}
@@ -309,8 +324,7 @@ func Used(src string, prefixes []string) ([]string, error) {
 }
 
 var (
-	cssComment = regexp.MustCompile(`(?s)/\*.*?\*/`)
-	dataAttr   = regexp.MustCompile(`\[(data-[a-z0-9-]+)(?:\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\]\s]+)))?\s*\]`)
+	dataAttr = regexp.MustCompile(`\[(data-[a-z0-9-]+)(?:\s*([~|^$*]?)=\s*(?:"([^"]*)"|'([^']*)'|([^\]\s]+))(?:\s+[iIsS])?)?\s*\]`)
 )
 
 // Selected lists, in the same form as Used, what ui's CSS selects. It
@@ -318,12 +332,17 @@ var (
 // selector on its own, so .ui-button[data-variant="outline"] needs both in
 // one compound, not anywhere in the file.
 func Selected(css string, prefixes []string) []string {
-	alts := make([]string, len(prefixes))
-	for i, p := range prefixes {
-		alts[i] = regexp.QuoteMeta(p)
+	var alts []string
+	for _, p := range prefixes {
+		if p != "" {
+			alts = append(alts, regexp.QuoteMeta(p))
+		}
+	}
+	if len(alts) == 0 {
+		return nil
 	}
 	classRE := regexp.MustCompile(`\.(?:` + strings.Join(alts, "|") + `)[A-Za-z0-9_-]+`)
-	css = cssComment.ReplaceAllString(css, " ")
+	css = stripComments(css)
 	var out []string
 	var stack [][]string // resolved selector lists; nil for at-rule blocks
 	var buf strings.Builder
@@ -441,8 +460,13 @@ func compounds(sel string, classRE *regexp.Regexp) []string {
 		for _, cls := range classes {
 			out = append(out, cls)
 			for _, a := range attrs {
-				val := a[2] + a[3] + a[4]
-				out = append(out, selector(cls, a[1], val))
+				val := a[3] + a[4] + a[5]
+				switch a[2] {
+				case "", "~", "|": // selects that value
+					out = append(out, selector(cls, a[1], val))
+				default: // ^= $= *= select a family of values: count it as presence
+					out = append(out, fmt.Sprintf("%s[%s]", cls, a[1]))
+				}
 			}
 		}
 	}
@@ -489,18 +513,59 @@ func splitCompounds(sel string) []string {
 	return parts
 }
 
-// stripFunctions removes the arguments of :not(), :is(), :dir() and the
-// rest, keeping brackets (attribute selectors) as they are.
+// stripFunctions removes the arguments of :not(), :has(), :dir() and the
+// other functions, which exclude or test rather than select. The arguments
+// of :is() and :where() select, so they stay. Brackets (attribute
+// selectors) stay as they are.
 func stripFunctions(s string) string {
 	var b strings.Builder
-	depth := 0
+	var keep []bool // per open parenthesis: whether its content is kept
+	dropping := func() bool { return slices.Contains(keep, false) }
 	for i := 0; i < len(s); i++ {
-		switch c := s[i]; {
-		case c == '(':
-			depth++
-		case c == ')':
-			depth--
-		case depth == 0:
+		switch c := s[i]; c {
+		case '(':
+			k := strings.HasSuffix(s[:i], ":is") || strings.HasSuffix(s[:i], ":where")
+			keep = append(keep, k)
+			if k && !dropping() {
+				b.WriteByte(' ')
+			}
+		case ')':
+			if len(keep) > 0 {
+				keep = keep[:len(keep)-1]
+			}
+		default:
+			if !dropping() {
+				b.WriteByte(c)
+			}
+		}
+	}
+	return b.String()
+}
+
+// stripComments removes CSS comments, leaving strings alone, so a "/*"
+// inside a string can't swallow rules.
+func stripComments(css string) string {
+	var b strings.Builder
+	for i := 0; i < len(css); i++ {
+		switch c := css[i]; {
+		case c == '"' || c == '\'':
+			j := i + 1
+			for j < len(css) && css[j] != c {
+				if css[j] == '\\' {
+					j++
+				}
+				j++
+			}
+			b.WriteString(css[i:min(j+1, len(css))])
+			i = j
+		case c == '/' && i+1 < len(css) && css[i+1] == '*':
+			end := strings.Index(css[i+2:], "*/")
+			if end < 0 {
+				return b.String()
+			}
+			b.WriteByte(' ')
+			i += end + 3
+		default:
 			b.WriteByte(c)
 		}
 	}

@@ -10,6 +10,7 @@
 package catalog
 
 import (
+	"bytes"
 	"context"
 	"embed"
 	"encoding/json"
@@ -18,6 +19,7 @@ import (
 	"net/url"
 	"regexp"
 	"slices"
+	"strings"
 
 	"github.com/a-h/templ"
 
@@ -87,7 +89,22 @@ func New(t *theme.Theme, stories ...Story) *Catalog {
 
 // ServeHTTP serves the index, a page per story, a frame per variant,
 // direction and scheme, the catalogue's assets and the token panel.
-func (c *Catalog) ServeHTTP(w http.ResponseWriter, r *http.Request) { c.mux.ServeHTTP(w, r) }
+func (c *Catalog) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	// Mounted with http.StripPrefix("/catalog/", …), the path loses its
+	// leading slash, and the mux would answer with a redirect to the root,
+	// out of the mount. Put the slash back.
+	if !strings.HasPrefix(r.URL.Path, "/") {
+		r2 := *r
+		u := *r.URL
+		u.Path = "/" + u.Path
+		if u.RawPath != "" {
+			u.RawPath = "/" + u.RawPath
+		}
+		r2.URL = &u
+		r = &r2
+	}
+	c.mux.ServeHTTP(w, r)
+}
 
 // Stories returns the registered stories.
 func (c *Catalog) Stories() []Story { return slices.Clone(c.stories) }
@@ -162,12 +179,16 @@ func (c *Catalog) tokens(w http.ResponseWriter, r *http.Request) {
 }
 
 func render(w http.ResponseWriter, r *http.Request, c templ.Component) {
+	// Render first, so a failing story is a 500 rather than half a page.
+	var b bytes.Buffer
+	if err := c.Render(r.Context(), &b); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	// The catalogue runs under the CSP ui promises apps (ADR 0005).
 	w.Header().Set("Content-Security-Policy", "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:")
-	if err := c.Render(r.Context(), w); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-	}
+	w.Write(b.Bytes())
 }
 
 func storyURL(name string) string {

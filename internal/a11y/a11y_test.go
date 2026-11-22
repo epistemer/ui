@@ -123,3 +123,44 @@ func TestNamesBasics(t *testing.T) {
 		}
 	}
 }
+
+func TestSelectedEdges(t *testing.T) {
+	css := `/* a comment with .ui-gone */
+.ui-a { content: "/* not a comment"; }
+.ui-b:is(.ui-c, .ui-d) { color: red; }
+.ui-e:not(.ui-f):has(.ui-g) { color: red; }
+.ui-h[data-variant~="x"], .ui-i[data-tone="y" i], .ui-j[data-size^="s"] { color: red; }`
+	got := Selected(css, []string{"ui-", ""})
+	for _, want := range []string{".ui-a", ".ui-b", ".ui-c", ".ui-d", ".ui-e", `.ui-h[data-variant="x"]`, `.ui-i[data-tone="y"]`, ".ui-j[data-size]"} {
+		if !slices.Contains(got, want) {
+			t.Errorf("missing %s in %q", want, got)
+		}
+	}
+	for _, bad := range []string{".ui-gone", ".ui-f", ".ui-g"} {
+		if slices.Contains(got, bad) {
+			t.Errorf("%s selected in %q", bad, got)
+		}
+	}
+	if Selected(css, []string{""}) != nil {
+		t.Error("an empty prefix covered every class")
+	}
+}
+
+func TestNamesSources(t *testing.T) {
+	good := []string{
+		`<button type="button" title="Close"><svg aria-hidden="true"></svg></button>`,
+		`<label for="b">Clear</label><button id="b" type="button"><svg aria-hidden="true"></svg></button>`,
+		`<input type="submit">`,
+		`<img src="/x.png" role="presentation">`,
+	}
+	for _, h := range good {
+		if probs, _ := Names(h); len(probs) != 0 {
+			t.Errorf("%s: %v", h, probs)
+		}
+	}
+	for _, h := range []string{`<input type="submit" value="">`, `<input type="reset" value="  ">`} {
+		if probs, _ := Names(h); len(probs) == 0 {
+			t.Errorf("%s passed", h)
+		}
+	}
+}

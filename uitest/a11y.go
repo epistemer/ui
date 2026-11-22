@@ -33,25 +33,28 @@ type SelectorOption func(*selectorOptions)
 
 type selectorOptions struct{ prefixes []string }
 
-// Prefix adds class prefixes CheckSelectors covers; "ui-" is always
-// covered.
+// Prefix sets the class prefixes CheckSelectors covers, in place of the
+// default "ui-". Pass "ui-" among them to keep ui's classes covered.
 func Prefix(prefixes ...string) SelectorOption {
 	return func(o *selectorOptions) { o.prefixes = append(o.prefixes, prefixes...) }
 }
 
 // CheckSelectors fails for each compound selector the markup asks of css
 // that css never selects (amendment A4): every class of a covered prefix,
-// alone, with each variant attribute on the same element by value
+// default "ui-", alone, with each variant attribute on the same element by value
 // (.ui-button[data-variant="outline"]), and with its other data-*
 // attributes by presence (.ui-icon[data-mirror]). data-ui-* hooks for the
 // ui script are skipped. css is read with nesting resolved.
 func CheckSelectors(t testing.TB, rawHTML, css string, opts ...SelectorOption) {
 	t.Helper()
-	o := selectorOptions{prefixes: []string{"ui-"}}
+	var o selectorOptions
 	for _, opt := range opts {
 		if opt != nil {
 			opt(&o)
 		}
+	}
+	if len(o.prefixes) == 0 {
+		o.prefixes = []string{"ui-"}
 	}
 	used, err := a11y.Used(rawHTML, o.prefixes)
 	if err != nil {

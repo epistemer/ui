@@ -29,6 +29,9 @@ func TestCheckSelectors(t *testing.T) {
 	css := `.ui-button { &[data-variant="outline"] { color: inherit; } } .shop-card { color: inherit; }`
 	uitest.CheckSelectors(t, `<button class="ui-button" data-variant="outline" data-ui-hook="x">Go</button>`, css)
 	uitest.CheckSelectors(t, `<div class="shop-card"></div>`, css, uitest.Prefix("shop-"))
+	// Prefix replaces the default: ui's classes aren't checked against an
+	// app's own CSS unless asked.
+	uitest.CheckSelectors(t, `<div class="shop-card ui-unknown"></div>`, `.shop-card { color: red; }`, uitest.Prefix("shop-"))
 	for _, html := range []string{
 		`<button class="ui-button" data-variant="ghost">Go</button>`,
 		`<span class="ui-badge"></span>`,

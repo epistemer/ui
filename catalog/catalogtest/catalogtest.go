@@ -10,7 +10,9 @@ package catalogtest
 
 import (
 	"context"
+	"regexp"
 	"strings"
+	"sync"
 	"testing"
 
 	"github.com/epistemer/ui/catalog"
@@ -59,10 +61,23 @@ func Check(t *testing.T, stories []catalog.Story, opts ...Option) {
 	}
 	uiCSS := string(themehook.Stylesheet())
 	all := uiCSS + "\n" + strings.Join(o.css, "\n")
+	var mu sync.Mutex
 	used := map[string]bool{}
+	golden := map[string]string{}
 	for _, s := range stories {
 		for _, v := range s.Variants {
 			name := strings.ReplaceAll(s.Name, "/", "-") + "-" + v.Name
+			// A variant's name becomes a golden file's name: keep it a safe
+			// one, and two variants from colliding on one file.
+			if !variantName.MatchString(v.Name) {
+				t.Errorf("catalogtest: story %q: variant %q: a variant name is a-z, 0-9 and -, for its golden file", s.Name, v.Name)
+				continue
+			}
+			if other, ok := golden[name]; ok {
+				t.Errorf("catalogtest: %s and %s/%s share the golden file %s", other, s.Name, v.Name, name)
+				continue
+			}
+			golden[name] = s.Name + "/" + v.Name
 			t.Run(name, func(t *testing.T) {
 				html := uitest.Render(t, v.Render(context.Background()))
 				uitest.Golden(t, name, html)
@@ -73,23 +88,37 @@ func Check(t *testing.T, stories []catalog.Story, opts ...Option) {
 				if err != nil {
 					t.Fatal(err)
 				}
+				mu.Lock()
 				for _, s := range u {
 					used[s] = true
 				}
+				mu.Unlock()
 			})
 		}
 	}
-	reverse := func(css, whose string) {
-		for _, s := range a11y.Selected(css, o.prefixes) {
-			if !used[s] {
-				t.Errorf("catalogtest: %s selects %s, which no story renders", whose, s)
-			}
+	for _, css := range o.css {
+		for _, p := range unused(css, used, o.prefixes) {
+			t.Errorf("catalogtest: the app's CSS selects %s, which no story renders", p)
 		}
 	}
-	for _, css := range o.css {
-		reverse(css, "the app's CSS")
-	}
+	// ui's own catalogue test sets the switch; an app's can't, because it
+	// renders only some of ui. It isn't safe across parallel tests.
 	if themehook.ReverseCheck {
-		reverse(uiCSS, "ui's CSS")
+		for _, p := range unused(uiCSS, used, o.prefixes) {
+			t.Errorf("catalogtest: ui's CSS selects %s, which no story renders", p)
+		}
 	}
+}
+
+var variantName = regexp.MustCompile(`^[a-z0-9-]+$`)
+
+// unused lists what css selects that no rendered markup asked for.
+func unused(css string, used map[string]bool, prefixes []string) []string {
+	var out []string
+	for _, s := range a11y.Selected(css, prefixes) {
+		if !used[s] {
+			out = append(out, s)
+		}
+	}
+	return out
 }
