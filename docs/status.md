@@ -27,6 +27,19 @@ taken for epistemer, what's next, and what's waiting on epistemer.
 - The spike now uses `ui/theme`, so there's one copy. jstest reads
   `theme/js/cond.js`, and CI runs themeschema in every per-module step.
 
+**Review 0006** (Gemini 4 Argon (Medium), about 70k tokens): 10 findings.
+Nine changed the code:
+- a nil `Config` is refused;
+- `//` and control characters are refused in the prefix;
+- the cache key and stylesheet come from one snapshot of the config;
+- the bundle is built once;
+- `CheckFont` matches §3.2's five keywords exactly;
+- boundary tests for fonts and radius;
+- themeschema tests all eight keys and mutability.
+
+The tenth is themeschema's `replace`: V7 now spells out the order for
+tagging it after ui.
+
 **Next.** V2: `ui/catalog`, `catalogtest`, and uitest's `CheckNames` and
 `CheckSelectors` (A4).
 ## 2026-11-22 — D6: the visual packages' interface is locked

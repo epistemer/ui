@@ -2,6 +2,7 @@ package settings
 
 import (
 	"context"
+	"errors"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -49,26 +50,61 @@ func TestDefaults(t *testing.T) {
 	}
 }
 
-// Each key runs theme's check: a bad value is refused when cfgx loads.
+// Every key runs its check: a bad value is refused when cfgx loads, with
+// theme's own error.
 func TestChecks(t *testing.T) {
-	for key, bad := range map[string]string{
-		"SHOP_THEME_BRAND_COLOR": "red",
-		"SHOP_THEME_FONT_SANS":   "x; } body {",
-		"SHOP_THEME_RADIUS":      "3rem",
-	} {
-		if _, err := load(t, map[string]string{key: bad}); err == nil {
-			t.Errorf("%s=%q loaded", key, bad)
-		} else if !strings.Contains(strings.ToLower(err.Error()), strings.ToLower(strings.TrimPrefix(key, "SHOP_THEME_"))) &&
-			!strings.Contains(err.Error(), "theme") {
-			t.Errorf("%s: the problem doesn't name the key: %v", key, err)
+	cases := map[string]struct {
+		bad  string
+		want error
+	}{
+		"SHOP_THEME_BRAND_COLOR":   {"red", theme.ErrColor},
+		"SHOP_THEME_DANGER_COLOR":  {"#abcd", theme.ErrColor},
+		"SHOP_THEME_WARNING_COLOR": {"rgb(0 0 0)", theme.ErrColor},
+		"SHOP_THEME_SUCCESS_COLOR": {"#12345", theme.ErrColor},
+		"SHOP_THEME_INFO_COLOR":    {"blue", theme.ErrColor},
+		"SHOP_THEME_FONT_SANS":     {"x; } body {", theme.ErrFont},
+		"SHOP_THEME_FONT_MONO":     {"inherit", theme.ErrFont},
+		"SHOP_THEME_RADIUS":        {"3rem", theme.ErrRadius},
+	}
+	for key, c := range cases {
+		_, err := load(t, map[string]string{key: c.bad})
+		if err == nil {
+			t.Errorf("%s=%q loaded", key, c.bad)
+			continue
+		}
+		if !errors.Is(err, c.want) && !strings.Contains(err.Error(), c.want.Error()) {
+			t.Errorf("%s=%q: %v, want %v", key, c.bad, err, c.want)
 		}
 	}
-	s, err := load(t, map[string]string{"SHOP_THEME_BRAND_COLOR": "#b4f601", "SHOP_THEME_RADIUS": "4px"})
+}
+
+// Every key is mutable: an admin's update takes effect, and a bad one is
+// refused with the check's error.
+func TestMutable(t *testing.T) {
+	s, err := load(t, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if s.ThemeBrandColor() != "#b4f601" || s.ThemeRadius() != "4px" {
-		t.Errorf("got %q, %q", s.ThemeBrandColor(), s.ThemeRadius())
+	ctx := context.Background()
+	err = s.Update(ctx, func(u *Update) error {
+		u.SetThemeBrandColor("#b4f601")
+		u.SetThemeDangerColor("#aa0000")
+		u.SetThemeWarningColor("#ffaa00")
+		u.SetThemeSuccessColor("#00aa44")
+		u.SetThemeInfoColor("#0088aa")
+		u.SetThemeFontSans("Inter, sans-serif")
+		u.SetThemeFontMono("monospace")
+		u.SetThemeRadius("4px")
+		return nil
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if s.ThemeBrandColor() != "#b4f601" || s.ThemeFontSans() != "Inter, sans-serif" || s.ThemeRadius() != "4px" {
+		t.Errorf("after update: %q %q %q", s.ThemeBrandColor(), s.ThemeFontSans(), s.ThemeRadius())
+	}
+	if err := s.Update(ctx, func(u *Update) error { u.SetThemeRadius("9rem"); return nil }); err == nil {
+		t.Error("a bad radius was stored")
 	}
 }
 

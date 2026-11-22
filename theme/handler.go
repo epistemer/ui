@@ -21,10 +21,14 @@ type Theme struct {
 // New returns a Theme mounted at prefix, reading run-time values from c.
 // The prefix is a path on the app's own origin: it starts with one slash.
 func New(prefix string, c Config) (*Theme, error) {
-	if !strings.HasPrefix(prefix, "/") || strings.HasPrefix(prefix, "//") || strings.ContainsAny(prefix, `\?#"'<> `) {
+	badByte := strings.ContainsFunc(prefix, func(r rune) bool { return r < 0x21 || r == 0x7f })
+	if !strings.HasPrefix(prefix, "/") || strings.Contains(prefix, "//") || badByte || strings.ContainsAny(prefix, `\?#"'<>`) {
 		return nil, fmt.Errorf("theme: prefix %q: want a path on this origin, such as /ui", prefix)
 	}
-	b, err := newBundle()
+	if c == nil {
+		return nil, fmt.Errorf("theme: New(%q, nil): pass theme.Defaults{} for the token table's values", prefix)
+	}
+	b, err := defaultBundle()
 	if err != nil {
 		return nil, err
 	}

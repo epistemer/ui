@@ -1,6 +1,7 @@
 package theme
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/epistemer/errors"
@@ -16,9 +17,12 @@ func TestChecks(t *testing.T) {
 		bad   []string
 	}{
 		{CheckColor, ErrColor, []string{"#abc", "#2F5BD3"}, []string{"", "red", "#abcd", "rgb(0 0 0)", "#fff;"}},
-		{CheckFont, ErrFont, []string{"Inter, sans-serif", `"Noto Sans Arabic", 'Segoe UI', system-ui`},
-			[]string{"", "inherit", "sans-serif, unset", "Comic Sans", `x; }`, "a,b,c,d,e,f,g,h,i,j,k,l,m", `url(x)`}},
-		{CheckRadius, ErrRadius, []string{"0", "4px", "32px", "0.5rem", "2em"}, []string{"", "-1px", "33px", "3rem", "1", ".5rem", "1vw"}},
+		{CheckFont, ErrFont, []string{"Inter, sans-serif", `"Noto Sans Arabic", 'Segoe UI', system-ui`, `"Font_1.0-Regular"`, `"inherit"`,
+			"a,b,c,d,e,f,g,h,i,j,k,l", "A" + strings.Repeat("b", 63), `"` + strings.Repeat("x", 64) + `"`},
+			[]string{"", "inherit", "INHERIT", "Revert-Layer", "sans-serif, unset", "Comic Sans", `x; }`, "a,b,c,d,e,f,g,h,i,j,k,l,m", `url(x)`,
+				"A" + strings.Repeat("b", 64), `"` + strings.Repeat("x", 65) + `"`, `'x"`, "Inter,"}},
+		{CheckRadius, ErrRadius, []string{"0", "0px", "0rem", "4px", "32px", "32.000px", "0.5rem", "2em", "2.000rem"},
+			[]string{"", "-1px", "33px", "32.001px", "2.001rem", "2.001em", "3rem", "1", ".5rem", "1vw", "100px", "0.1234rem"}},
 	}
 	for _, c := range cases {
 		for _, s := range c.good {

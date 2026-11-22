@@ -44,11 +44,11 @@ func CheckRadius(s string) error {
 }
 
 // cssWide are the keywords a bare family name can't be.
-var cssWide = map[string]bool{"inherit": true, "initial": true, "unset": true, "revert": true, "revert-layer": true, "default": true}
+var cssWide = map[string]bool{"inherit": true, "initial": true, "unset": true, "revert": true, "revert-layer": true}
 
 func init() {
 	themehook.Stylesheet = func() []byte {
-		b, err := newBundle()
+		b, err := defaultBundle()
 		if err != nil {
 			panic(err)
 		}

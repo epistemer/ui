@@ -9,6 +9,7 @@ import (
 	"path"
 	"sort"
 	"strings"
+	"sync"
 )
 
 // layers are ui's cascade layers, lowest first (ADR 0004). "tokens" is
@@ -24,6 +25,9 @@ type bundle struct {
 	Hash  string            // of every file, so relative module imports stay in one release
 	Files map[string][]byte // "ui.css", "ui.js", other modules
 }
+
+// defaultBundle is built once: it depends only on what's embedded.
+var defaultBundle = sync.OnceValues(newBundle)
 
 // newBundle joins the layers and reads the script modules.
 func newBundle() (*bundle, error) {

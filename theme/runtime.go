@@ -156,17 +156,16 @@ func newRuntime(c Config) *runtimeTheme { return &runtimeTheme{cfg: c} }
 
 // current returns the theme stylesheet for c's current values and its hash.
 func (r *runtimeTheme) current() (css []byte, hash string) {
-	c := r.cfg
-	key := strings.Join([]string{
-		c.ThemeBrandColor(), c.ThemeDangerColor(), c.ThemeWarningColor(), c.ThemeSuccessColor(), c.ThemeInfoColor(),
-		c.ThemeFontSans(), c.ThemeFontMono(), c.ThemeRadius(),
-	}, "\x00")
+	// Read the eight values once: the stylesheet and its cache key come from
+	// the same snapshot, even if the config changes meanwhile.
+	snap := snapshot(r.cfg)
+	key := strings.Join(snap[:], "\x00")
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	if key != r.key || r.css == nil {
 		var b strings.Builder
 		b.WriteString("@layer ui.tokens {\n:root {\n")
-		for _, kv := range overrides(c) {
+		for _, kv := range overrides(snap) {
 			b.WriteString("\t" + kv[0] + ": " + kv[1] + ";\n")
 		}
 		b.WriteString("}\n}\n")
@@ -175,3 +174,22 @@ func (r *runtimeTheme) current() (css []byte, hash string) {
 	}
 	return r.css, r.hash
 }
+
+// values is a Config's eight values, read once.
+type values [8]string
+
+func snapshot(c Config) values {
+	return values{
+		c.ThemeBrandColor(), c.ThemeDangerColor(), c.ThemeWarningColor(), c.ThemeSuccessColor(), c.ThemeInfoColor(),
+		c.ThemeFontSans(), c.ThemeFontMono(), c.ThemeRadius(),
+	}
+}
+
+func (v values) ThemeBrandColor() string   { return v[0] }
+func (v values) ThemeDangerColor() string  { return v[1] }
+func (v values) ThemeWarningColor() string { return v[2] }
+func (v values) ThemeSuccessColor() string { return v[3] }
+func (v values) ThemeInfoColor() string    { return v[4] }
+func (v values) ThemeFontSans() string     { return v[5] }
+func (v values) ThemeFontMono() string     { return v[6] }
+func (v values) ThemeRadius() string       { return v[7] }

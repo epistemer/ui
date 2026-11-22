@@ -20,7 +20,6 @@ type token struct {
 	Name        string
 	kind        tokenKind
 	light, dark string // dark empty: the same in both schemes; only colours differ
-	Mutable     bool   // an admin may change it at run time (Q4)
 }
 
 // accent is a colour role with six tokens: the fill, text on the fill, the
@@ -61,7 +60,7 @@ var scales = []token{
 	{Name: "space-4", kind: kindLength, light: "1rem"},
 	{Name: "space-5", kind: kindLength, light: "1.5rem"},
 	{Name: "space-6", kind: kindLength, light: "2rem"},
-	{Name: "radius", kind: kindLength, light: "0.5rem", Mutable: true}, // the scale's base: s, m, l derive from it
+	{Name: "radius", kind: kindLength, light: "0.5rem"}, // the scale's base: s, m, l derive from it
 	{Name: "border-width", kind: kindLength, light: "1px"},
 	{Name: "focus-width", kind: kindLength, light: "2px"},
 	{Name: "focus-offset", kind: kindLength, light: "2px"},
@@ -70,8 +69,8 @@ var scales = []token{
 	{Name: "text-m", kind: kindLength, light: "1rem"},
 	{Name: "text-l", kind: kindLength, light: "1.125rem"},
 	{Name: "text-xl", kind: kindLength, light: "1.375rem"},
-	{Name: "font-sans", kind: kindFont, light: `system-ui, "Segoe UI", "Roboto", "Noto Sans", "Noto Sans Arabic", sans-serif`, Mutable: true},
-	{Name: "font-mono", kind: kindFont, light: `ui-monospace, "SFMono-Regular", "Menlo", "Consolas", monospace`, Mutable: true},
+	{Name: "font-sans", kind: kindFont, light: `system-ui, "Segoe UI", "Roboto", "Noto Sans", "Noto Sans Arabic", sans-serif`},
+	{Name: "font-mono", kind: kindFont, light: `ui-monospace, "SFMono-Regular", "Menlo", "Consolas", monospace`},
 	{Name: "shadow-1", kind: kindShadow, light: "0 1px 2px rgb(0 0 0 / 0.08)"},
 	{Name: "shadow-2", kind: kindShadow, light: "0 4px 12px rgb(0 0 0 / 0.12)"},
 	{Name: "shadow-3", kind: kindShadow, light: "0 12px 32px rgb(0 0 0 / 0.18)"},

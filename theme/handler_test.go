@@ -159,10 +159,13 @@ func TestValidators(t *testing.T) {
 }
 
 func TestPrefix(t *testing.T) {
-	for _, p := range []string{"", "ui", "//evil.example", "/ui?x", `/ui"`} {
+	for _, p := range []string{"", "ui", "//evil.example", "/ui//x", "/ui?x", `/ui"`, "/ui\tx", "/u i"} {
 		if _, err := New(p, Defaults{}); err == nil {
 			t.Errorf("New(%q) accepted", p)
 		}
+	}
+	if _, err := New("/ui", nil); err == nil {
+		t.Error("New with a nil Config accepted")
 	}
 }
 
