@@ -24,6 +24,9 @@ this module.
   [docs/server-state-interface.md](docs/server-state-interface.md),
   locked by epistemer on 2026-11-22 as amendment A6; milestones T1–T4
   build it.
+- The remote select, uploads and list fields (D8) are designed in
+  [docs/rich-inputs-design.md](docs/rich-inputs-design.md), a draft with
+  ADRs 0011–0013 and questions R1–R28 on their defaults.
 - `go run ./cmd/catalog` serves the stories, and the toy shop's tables
   and actions (`internal/toyshop`) at /shop/orders.
 - Claude owns this repository until v1.0.0, on the terms of

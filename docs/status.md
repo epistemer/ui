@@ -9,6 +9,31 @@ taken for epistemer, what's next, and what's waiting on epistemer.
 
 
 
+## 2026-11-22 — D8.1: the design of the remote select, uploads and list fields
+
+**Landed** (Claude), docs only:
+- [rich-inputs-design.md](rich-inputs-design.md), with ADRs 0011 (remote
+  select), 0012 (uploads) and 0013 (list fields). zp was read for needs
+  only (§1, counts and shapes).
+- Questions R1–R28, each with a default and an alternative (§9). The
+  defaults that reverse accepted text, each named in its question:
+  - R1 and R16 put the search link, the `Labeler` and the stored files on
+    the forms field, against forms-design §10.3, because `inputs.Field`
+    renders groups, list rows and table filters generically;
+  - R4 has the remote select fetch with the ui script instead of htmx,
+    which takes it off ADR 0005's `hx-*` list.
+- Review [0019](reviews/0019-rich-inputs-design.md): Gemini 4 Argon (High),
+  about 69k tokens, 18 findings, all valid, all folded in.
+- The roadmap splits D8 into D8.1–D8.4. The neozp project board caught up:
+  D7.2, the actions and tables milestones and T4 marked Done, and D8 In
+  progress.
+
+**Next.** D8.2, the slice spike (design §8). The questions stand on
+their defaults until epistemer answers or the lock (D8.4) takes them.
+
+**Open for epistemer** (API design, not blocking the spike): R1–R28,
+above all R1, R4, R15 and R16.
+
 ## 2026-11-22 — T4: v0.3.0
 
 **Landed** (Claude):
