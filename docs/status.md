@@ -9,6 +9,39 @@ taken for epistemer, what's next, and what's waiting on epistemer.
 
 
 
+## 2026-11-22 — D7.3, D7.4 released; D7.5 drafted
+
+**Released** (Claude), as epistemer accepted them with their defaults:
+- models v0.4.0, column sets for views (its amendment A4, ADR 0007,
+  review 0013);
+- handlers v0.2.0 with `authguard`, `openapi` and `cmd` v0.2.0: builders
+  return `handlers.Link`, and `handlers.Gate` (its A4, ADR 0005,
+  review 0006).
+
+Both were checked through the proxy, and both skills are updated.
+
+**Drafted** for epistemer's lock:
+[server-state-interface.md](server-state-interface.md), the contract of
+`ui/actions`, `ui/tables`, their test kits, and what components,
+elements, layout, the CSS and the script gain. It is built on the spike's
+findings and the two releases.
+
+**Review** ([0015](reviews/0015-d7-5-contract.md)): Gemini 4 Argon
+(High), about 71k tokens. 20 findings; 19 changed the draft:
+- `Reply`'s headers for every change, and the combinations it refuses;
+- `Answer`'s reselect;
+- the bulk bar's markup, `Selected` and `RowID`;
+- local addresses for `Request` and `Open` items;
+- the size kept on a search;
+- ids escaped from text keys;
+- a focus fallback;
+- the declaration panics.
+
+The reviewer recommended `selected` for the selection's parameter (T6),
+now the default.
+
+**Waiting for epistemer:** the lock, with questions T1–T11 (§10).
+
 ## 2026-11-22 — D7.2: the slice spike of links, actions and tables
 
 **Landed** (Claude), in `internal/spike`:
