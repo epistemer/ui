@@ -658,8 +658,9 @@ page rather than restoring an open dialog or a stale selection (finding 19)
 `previous`, `next`, `last`, `page` ("Page %d"), `size` ("Rows a page"),
 `size_n` ("%d rows a page"), `range` ("%d–%d of %d").
 `ui.components.actions.`: `label` ("Actions"), `dialog` ("Action").
-Declared errors: none new; `Fail` shows the app's own, and `ErrNotLocal`
-is private.
+Declared errors: `tables.ErrRange` (`errors.tables.range`, "the start is
+after the end", invalid), a range filter's (§3.4; named in the release's
+API review); `Fail` shows the app's own, and `ErrNotLocal` is private.
 
 ## 9. Accessibility
 

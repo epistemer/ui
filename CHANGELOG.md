@@ -7,8 +7,12 @@ All notable changes to this module. The format follows
 
 ## Unreleased
 
-Actions and tables, amendment A6 (server-state-interface.md), milestones
-T1–T3. ui now requires models v0.4.0.
+## [v0.3.0] - 2026-11-22
+
+Actions and tables, amendment A6 (server-state-interface.md, locked
+2026-11-22), milestones T1–T3. ui now requires models v0.4.0; route
+links come from handlers v0.2.0 (`handlers.Link`, `handlers.Gate`), which
+ui doesn't import. `theme/themeschema` is unchanged and stays at v0.2.0.
 
 ### Added
 - `ui/actions`: `New` and its builders, `To`, `Unless`, `If`, `Resolve`,
@@ -23,6 +27,8 @@ T1–T3. ui now requires models v0.4.0.
   `Rejected`), `Targeted`, and the view's types. On models v0.4.0's
   `column`.
 - `ui/tables/tablestest`: `Bind`, `Query`, `Errors`, `Check`.
+- `tables.ErrRange` (`errors.tables.range`), a range filter whose start
+  is after its end.
 - `ui/components` (T3): `TableOf` (`Cell`, `Attrs`, `Page`, `Row`) and
   `Pagination` (`Attrs`), with their CSS.
 - The ui script (T3): `<ui-table>` (the header checkbox, the count of
@@ -155,5 +161,6 @@ on 2026-11-21 with amendments A1–A3.
 - Examples in `examples/shop`: slotted components with goldens, and the
   store and promotion forms.
 
+[v0.3.0]: https://github.com/epistemer/ui/releases/tag/v0.3.0
 [v0.2.0]: https://github.com/epistemer/ui/releases/tag/v0.2.0
 [v0.1.0]: https://github.com/epistemer/ui/releases/tag/v0.1.0

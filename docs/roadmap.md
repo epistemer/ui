@@ -201,7 +201,7 @@ spike's code (`internal/spike`) is its draft, and goes when T3 lands.
 | ☑ | T1 | `ui/actions` and `actionstest` (§2); `Unavailable` on Button and MenuItem, `MenuSpec.ID` (§5); `ActionButtons`, `ActionMenu`, `ActionForm`, `ActionDialog`, `ActionTitle`, `InActionDialog` and `Reply` (§4.2–§4.4); the shells render the form and dialog; the script's dialog, 422 and menu parts (§7) | §2, §4.2–§4.4 and §5 hold |
 | ☑ | T2 | `ui/tables` and `tablestest` (§3) on models v0.4.0's `column` | §3 holds; a state binds from a query string and is a `listing.Source` |
 | ☑ | T3 | `TableOf` and `Pagination` (§4.1), their CSS (§6), `<ui-table>` and the state requests (§7); a page of the toy shop with demo endpoints; `internal/spike` removed | §4.1, §6 and §7 hold, with script off and with htmx, in LTR, RTL, light and dark |
-| ☐ | T4 | Release v0.3.0 | As V7 |
+| ☑ | T4 | Release v0.3.0 | As V7 |
 
 ## Backlog
 
