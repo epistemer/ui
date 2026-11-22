@@ -1,0 +1,34 @@
+package components
+
+import (
+	"github.com/epistemer/ui"
+	"github.com/epistemer/ui/elements"
+	"github.com/epistemer/ui/icons"
+)
+
+templ dialog(d DialogSpec) {
+	{{ requireBody(ctx) }}
+	@ui.Scope(dialogID) {
+		@DialogTrigger.Place(triggerAttrs(ctx)) {
+			@elements.Button().Variant(elements.Outline).Attrs(DialogTrigger.Value(ctx)) {
+				{ d.title.T(ctx) }
+			}
+		}
+		<dialog { d.dialogAttrs(ctx)... }>
+			<header class="ui-dialog-header">
+				<h2 class="ui-dialog-title" id={ dialogID.Part(ctx, "title") }>{ d.title.T(ctx) }</h2>
+				@elements.Button().Variant(elements.Ghost).Tone(elements.Neutral).Size(elements.Small).Label(dialogClose).Attrs(templ.Attributes{"commandfor": dialogID.Get(ctx), "command": "close", "value": ""}) {
+					@icons.X()
+				}
+			</header>
+			<div class="ui-dialog-body">
+				@DialogBody.Place()
+			</div>
+			if DialogActions.Filled(ctx) {
+				<footer class="ui-dialog-actions">
+					@DialogActions.Place()
+				</footer>
+			}
+		</dialog>
+	}
+}

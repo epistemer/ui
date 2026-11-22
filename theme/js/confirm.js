@@ -56,6 +56,10 @@ document.addEventListener(
 	(event) => {
 		const el = event.target instanceof Element ? event.target.closest("[data-ui-confirm]") : null;
 		if (!el || el === confirmed || el instanceof HTMLFormElement) return;
+		// A click on a field that takes input isn't an action: a select or a
+		// text box asks through htmx:confirm when its change sends a request.
+		if (el instanceof HTMLSelectElement || el instanceof HTMLTextAreaElement) return;
+		if (el instanceof HTMLInputElement && !["submit", "button", "image", "reset"].includes(el.type)) return;
 		if (el.closest('[aria-disabled="true"]') || el.disabled) return;
 		event.preventDefault();
 		event.stopImmediatePropagation();

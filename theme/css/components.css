@@ -10,7 +10,13 @@
 	background-color: var(--ui-color-surface-raised);
 	box-shadow: var(--ui-shadow-3);
 
+	/* Scrolling inside the dialog or over its backdrop never reaches the
+	   page behind it (the guidance's dialog rule). */
+	overscroll-behavior: contain;
+
 	&::backdrop {
+		overflow: hidden;
+		overscroll-behavior: contain;
 		background-color: color-mix(in oklab, var(--ui-color-text) 40%, transparent);
 	}
 
@@ -66,16 +72,23 @@
 .ui-menu-popover {
 	min-inline-size: 12em;
 	margin: 0;
-	margin-block-start: var(--ui-space-1);
 	padding: var(--ui-space-1);
-	inset: auto;
-	position-area: block-end span-inline-end;
-	position-try-fallbacks: flip-block, flip-inline, flip-block flip-inline;
 	border: 1px solid var(--ui-color-border);
 	border-radius: var(--ui-radius-m);
 	color: var(--ui-color-text);
 	background-color: var(--ui-color-surface-raised);
 	box-shadow: var(--ui-shadow-2);
+}
+
+/* Anchored under the trigger where the browser can; elsewhere <ui-menu>
+   places it. <html data-ui-no-anchor> forces the script's way, to test it. */
+@supports (position-area: block-end) {
+	:root:not([data-ui-no-anchor]) .ui-menu-popover {
+		inset: auto;
+		margin-block-start: var(--ui-space-1);
+		position-area: block-end span-inline-end;
+		position-try-fallbacks: flip-block, flip-inline, flip-block flip-inline;
+	}
 }
 
 .ui-menu-item {
@@ -117,4 +130,141 @@
 		opacity: 0.55;
 		background-color: transparent;
 	}
+}
+
+/* Navigation tabs (§7.4): links with aria-current, scrolling on the inline
+   axis when they overflow. */
+.ui-tabs {
+	overflow-x: auto;
+	border-block-end: 1px solid var(--ui-color-border);
+}
+
+.ui-tabs-list {
+	display: flex;
+	gap: var(--ui-space-1);
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.ui-tabs-item {
+	flex: none;
+}
+
+.ui-tab {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--ui-space-2);
+	padding-block: var(--ui-space-2);
+	padding-inline: var(--ui-space-3);
+	border-block-end: var(--ui-focus-width) solid transparent;
+	font-weight: 600;
+	color: var(--ui-color-text-muted);
+	text-decoration: none;
+
+	&:hover {
+		color: var(--ui-color-text);
+	}
+
+	&[aria-current="page"] {
+		border-block-end-color: var(--ui-color-brand);
+		color: var(--ui-color-brand-text);
+	}
+}
+
+/* Toasts (§7.5): the region is a manual popover at the end bottom corner,
+   above open modal dialogs. */
+.ui-toasts {
+	position: fixed;
+	inset: auto;
+	inset-block-end: var(--ui-space-4);
+	inset-inline-end: var(--ui-space-4);
+	display: grid;
+	gap: var(--ui-space-2);
+	inline-size: min(24em, 92vw);
+	margin: 0;
+	padding: 0;
+	border: 0;
+	background: transparent;
+	overflow: visible;
+
+	/* The page's region shows while open; a dialog's region (made by the
+	   script while a modal is open) always does. */
+	&:not(:popover-open, [data-ui-in-dialog]) {
+		display: none;
+	}
+}
+
+.ui-toast {
+	--_fg: var(--ui-color-info-text);
+
+	display: flex;
+	align-items: flex-start;
+	gap: var(--ui-space-2);
+	padding-block: var(--ui-space-3);
+	padding-inline: var(--ui-space-4) var(--ui-space-2);
+	border: 1px solid var(--ui-color-border);
+	border-inline-start: var(--ui-focus-width) solid var(--_fg);
+	border-radius: var(--ui-radius-m);
+	color: var(--ui-color-text);
+	background-color: var(--ui-color-surface-raised);
+	box-shadow: var(--ui-shadow-3);
+
+	&[data-tone="success"] { --_fg: var(--ui-color-success-text); }
+	&[data-tone="warning"] { --_fg: var(--ui-color-warning-text); }
+	&[data-tone="danger"] { --_fg: var(--ui-color-danger-text); }
+
+	& > .ui-icon {
+		color: var(--_fg);
+	}
+}
+
+.ui-toast-text {
+	flex: 1;
+	margin: 0;
+}
+
+.ui-toast-close {
+	display: inline-grid;
+	place-items: center;
+	padding: var(--ui-space-1);
+	border: 0;
+	border-radius: var(--ui-radius-s);
+	color: var(--ui-color-text-muted);
+	background: transparent;
+	cursor: pointer;
+
+	&:hover {
+		color: var(--ui-color-text);
+		background-color: var(--ui-color-surface);
+	}
+}
+
+/* Detail list (§7.6): label beside value where the container is wide
+   enough, label above it where it isn't. */
+.ui-detail-list {
+	container-type: inline-size;
+	display: grid;
+	gap: var(--ui-space-3);
+	margin: 0;
+}
+
+.ui-detail-row {
+	display: grid;
+	gap: var(--ui-space-1);
+
+	@container (min-width: 32em) {
+		grid-template-columns: minmax(8em, 1fr) 3fr;
+		gap: var(--ui-space-4);
+	}
+}
+
+.ui-detail-label {
+	font-weight: 600;
+	color: var(--ui-color-text-muted);
+}
+
+.ui-detail-value {
+	margin: 0;
+	min-inline-size: 0;
 }

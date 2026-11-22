@@ -3,6 +3,7 @@
 import { evaluate } from "./cond.js";
 import "./menu.js";
 import "./confirm.js";
+import "./toast.js";
 
 // A disabled link (aria-disabled, no href) and anything inside it: no
 // click reaches htmx or any other listener. A capturing listener on the

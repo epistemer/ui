@@ -8,6 +8,46 @@ taken for epistemer, what's next, and what's waiting on epistemer.
 
 
 
+
+## 2026-11-22 — V5: components
+
+**Landed** (Claude):
+- `ui/components`, moved from the spike and cut to §7:
+  - Dialog: an outline default trigger, a required body, scroll
+    containment, and an `Attrs` that keeps `id` and `aria-labelledby`;
+  - the confirmation, with `autofocus` on Cancel;
+  - Menu: `Attrs` on `<ui-menu>`, and `MenuItem.Submit(form)`;
+  - navigation tabs, toasts and the detail list.
+- The anchored menu CSS sits behind `@supports` and can be switched off
+  with `<html data-ui-no-anchor>`. The catalogue's `anchor=off` uses that
+  to test the script's placement.
+- htmx 2.0.11 (Zero-Clause BSD) is vendored into the catalogue's assets
+  for its stories only. `cmd/catalog` answers two demo requests with
+  `ToastSwap`.
+- The exception for `ToastSwap`'s `hx-swap-oob` (V18) is written into
+  ADR 0005.
+
+**Checked in the browser pane:**
+- The htmx confirmation: a click asks before any request, then sends one;
+  a select's change asks through `htmx:confirm`. Both answer with a toast
+  out of band.
+- Toasts: the timeout, closing, and focus moving to the next toast.
+- The menu's own placement, running in a browser for the first time: RTL
+  start edge, flipping above near the bottom, clamping in the viewport.
+- The detail list's container query.
+
+**What the check §7.5 asked for found:** a toast shown above an open modal
+dialog is visible but inert, because the modal makes the rest of the page
+inert, a later popover included. As §7.5 allowed, toasts now go into a
+region inside the open dialog and move back when it closes. The script
+notices the close through the dialog's `open` attribute (a
+MutationObserver), not its `close` event, which waits for rendering
+(finding 13).
+
+The confirmation's click listener now skips fields that take input, so a
+select that confirms its change isn't asked when clicked.
+
+**Next.** V6: `ui/layout`, and `internal/spike` removed (already empty).
 ## 2026-11-22 — V4: inputs
 
 **Landed** (Claude):

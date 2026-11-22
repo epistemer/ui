@@ -106,6 +106,10 @@ section.
   only where a component exists to make requests: the server table, the
   remote select, the command palette. Each of those documents the htmx
   version it targets.
+  - One exception, locked with the visual packages (V18, 2026-11-22):
+    `components.ToastSwap` wraps toasts in `hx-swap-oob="beforeend:#ui-toasts"`.
+    A toast isn't a request; it's how a response answers, and htmx 2
+    appends it to the region out of band.
   - htmx injects an inline style for its loading indicators, which
     `style-src 'self'` blocks. Apps set `includeIndicatorStyles: false`,
     and `ui.base` styles `.htmx-indicator` instead.

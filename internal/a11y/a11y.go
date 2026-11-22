@@ -460,6 +460,9 @@ func compounds(sel string, classRE *regexp.Regexp) []string {
 		for _, cls := range classes {
 			out = append(out, cls)
 			for _, a := range attrs {
+				if strings.HasPrefix(a[1], "data-ui-") {
+					continue // hooks for the ui script, as Used skips them
+				}
 				val := a[3] + a[4] + a[5]
 				switch a[2] {
 				case "", "~", "|": // selects that value

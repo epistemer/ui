@@ -5,7 +5,8 @@
 // typeahead), closes after an item is chosen, and places the popover
 // itself where anchor positioning is missing.
 
-const anchored = CSS.supports("position-area", "block-end");
+// The fallback can be forced for testing with <html data-ui-no-anchor>.
+const anchored = CSS.supports("position-area", "block-end") && !document.documentElement.hasAttribute("data-ui-no-anchor");
 
 const items = (menu) =>
 	[...menu.querySelectorAll('[role^="menuitem"]')].filter((el) => !el.disabled && el.getAttribute("aria-disabled") !== "true");
@@ -122,21 +123,30 @@ class UIMenu extends HTMLElement {
 		next.focus();
 	}
 
-	// Where the browser can't anchor the popover to its trigger, place it
-	// below the trigger's start edge ourselves, through CSSOM (a strict CSP
-	// allows it), and follow scrolling and resizing while it is open. In
-	// RTL the start edge is the right one.
+	// Where the browser can't anchor the popover to its trigger (Firefox),
+	// place it ourselves, through CSSOM (a strict CSP allows it): below the
+	// trigger at its start edge, above it when there's no room below, and
+	// clamped inside the viewport. It follows scrolling and resizing while
+	// open. In RTL the start edge is the right one.
 	#place() {
 		if (anchored || !this.#trigger || !this.#panel.matches(":popover-open")) return;
+		const gap = 4;
 		const r = this.#trigger.getBoundingClientRect();
-		const rtl = getComputedStyle(this).direction === "rtl";
 		const style = this.#panel.style;
 		style.position = "fixed";
 		style.margin = "0";
-		style.top = `${r.bottom + 4}px`;
-		style.left = rtl ? "auto" : `${r.left}px`;
-		style.right = rtl ? `${document.documentElement.clientWidth - r.right}px` : "auto";
-		style.bottom = "auto";
+		style.inset = "auto";
+		const p = this.#panel.getBoundingClientRect();
+		const vw = document.documentElement.clientWidth;
+		const vh = document.documentElement.clientHeight;
+		const rtl = getComputedStyle(this).direction === "rtl";
+		let top = r.bottom + gap;
+		if (top + p.height > vh && r.top - gap - p.height >= 0) top = r.top - gap - p.height;
+		let left = rtl ? r.right - p.width : r.left;
+		left = Math.min(Math.max(left, gap), Math.max(gap, vw - p.width - gap));
+		top = Math.min(Math.max(top, gap), Math.max(gap, vh - p.height - gap));
+		style.top = `${top}px`;
+		style.left = `${left}px`;
 		window.addEventListener("scroll", this, { capture: true, passive: true });
 		window.addEventListener("resize", this, { passive: true });
 	}

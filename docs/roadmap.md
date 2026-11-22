@@ -178,7 +178,7 @@ A finding that changes locked text is an amendment, brought to epistemer.
 | ☑ | V2 | `ui/catalog` and `catalogtest`, `cmd/catalog`; uitest's `CheckNames` and `CheckSelectors` (A4) | §9 and §13.1 hold; the spike's stories run through catalogtest |
 | ☑ | V3 | `ui/icons` (the Lucide set, ADR) and `ui/elements` (Button, Badge, Alert, Card, Avatar, Spinner, Tooltip, Separator, Heading, value renderers, `Merge`) | §4 and §5 hold, every element has stories |
 | ☑ | V4 | `ui/inputs`: every kind but lists, hints above the control, errors with their level word, the password reveal; the condition evaluator in the ui script | §6 and §10's conditions hold; the vectors pass in jstest |
-| ☐ | V5 | `ui/components`: Dialog, confirmation, Menu (with the clamping fallback, tested where anchoring is missing), navigation tabs, toasts, detail list; an htmx story for the confirmation and swaps | §7 and §10 hold |
+| ☑ | V5 | `ui/components`: Dialog, confirmation, Menu (with the clamping fallback, tested where anchoring is missing), navigation tabs, toasts, detail list; an htmx story for the confirmation and swaps | §7 and §10 hold |
 | ☐ | V6 | `ui/layout`: document, app shell with the drawer and the colour scheme menu, auth shell, page header; `internal/spike` removed | §8 holds; a full page of the toy shop renders in the catalogue |
 | ☐ | V7 | Release v0.2.0: an API review of every exported identifier against visual-interface.md, CHANGELOG, the `ui` skill updated, the tag | `go get github.com/epistemer/ui@v0.2.0` works through the proxy. In this order: tag ui `v0.2.0`, point `theme/themeschema/go.mod` at it and drop its `replace`, then tag `theme/themeschema/v0.2.0`, so the nested module never requires an unpublished ui |
 

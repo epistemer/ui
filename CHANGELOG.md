@@ -41,6 +41,17 @@ All notable changes to this module. The format follows
 
   The ui script reveals passwords, and refreshes conditions when a page
   is restored from the back-forward cache.
+- `ui/components` (§7):
+  - `Dialog` with its slots and `DialogClose`;
+  - `Confirm` and `ConfirmDialog`;
+  - `Menu` and `MenuItem` (`Href`, `Disabled`, `Danger`, `Submit`);
+  - `Tabs` and `Tab`;
+  - `Toasts`, `Toast` and `ToastSwap`;
+  - `DetailList` and `DetailRow`.
+
+  The ui script adds `<ui-toasts>` and `<ui-toast>`, which move toasts
+  into an open modal dialog and back. Menus are placed by script where
+  anchor positioning is missing, flipping and clamping to the viewport.
 ## [v0.1.0] - 2026-11-21
 
 The first release: the kernel and forms, the whole of the interface locked

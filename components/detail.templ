@@ -1,0 +1,18 @@
+package components
+
+import "github.com/epistemer/i18n"
+
+templ detailList(attrs templ.Attributes) {
+	<dl { attrs... }>
+		{ children... }
+	</dl>
+}
+
+templ detailRow(attrs templ.Attributes, label i18n.Ter) {
+	<div { attrs... }>
+		<dt class="ui-detail-label">{ label.T(ctx) }</dt>
+		<dd class="ui-detail-value">
+			{ children... }
+		</dd>
+	</div>
+}
