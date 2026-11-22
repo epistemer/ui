@@ -67,9 +67,13 @@ about 246k tokens. 17 findings:
 - forms' `FromRequest` read a spent body as a blank form;
 - `toast.js` lost a toast that arrived as its dialog closed.
 
-**Next.** D7.3, the handlers amendment (builders return a link, `Gate`),
-drafted in handlers for epistemer, and D7.4, the models amendment (the
-column and value types).
+**Next.** D7.3 and D7.4 are drafted and wait for epistemer:
+- handlers' [ADR 0005](https://github.com/epistemer/handlers/pull/15),
+  with questions H1–H4;
+- models' [ADR 0007](https://github.com/epistemer/models/pull/14), with
+  questions M1–M5.
+
+D7.5, the contract of actions and tables, follows their answers.
 
 ## 2026-11-22 — V7: v0.2.0
 
