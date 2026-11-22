@@ -158,7 +158,13 @@ the interface.
 | ☑ | D4 | Slice spike in `internal/spike` (design §10): Button, a text input on `forms.Control`, Dialog with the shared confirmation, Menu; the run-time theme with contrast derivation; the catalogue; the CSS, names and selector checks; the ui script with the invoker-command fallback, `<ui-menu>` and the condition evaluator | The catalogue runs; `go test` covers goldens, ids, names and selectors for every story and the evaluator's conformance vectors; findings amend visual-design.md |
 | ☑ | D5 | interface.md sections for what Q9 locks, with a cross-model review (drafted in [visual-interface.md](visual-interface.md), review 0005) | The review's findings are fixed or answered |
 | ☑ | D6 | epistemer locks the visual packages' interface | Locked; milestones V1… planned in this file |
-| ☐ | D7 | Design of the server-state components (table, server table, pagination, filters, remote select, uploads) over models' `listing` interfaces | Its own design and review, then an amendment to the lock |
+| ☐ | D7 | Design of the server-state components over models' `listing` interfaces, in two rounds: D7.1–D7.5 below (links, actions, tables, filters, pagination, bulk), then D8 | D7.5 is locked |
+| ☐ | D7.1 | [server-state-design.md](server-state-design.md) with ADRs [0008](adr/0008-links.md) (links), [0009](adr/0009-actions.md) (actions) and [0010](adr/0010-tables.md) (tables); decisions S1–S6 are epistemer's (2026-11-22), S7–S22 stand on defaults | Reviewed by the other model family (review 0012, done), and epistemer has answered S7–S22 or taken the defaults |
+| ☐ | D7.2 | Slice spike in `internal/spike` (design §12): the toy shop's orders table with search, two filters, sort, paging, row and bulk actions, the action dialog and `Reply`, with the proposed column, value and link shapes declared locally | It runs in the catalogue with script off and with htmx; goldens, ids, names and selectors pass; its findings amend the design |
+| ☐ | D7.3 | The handlers amendment, drafted in handlers: builders return a link, `Gate` (design §10) | epistemer accepts or changes it; handlers releases it |
+| ☐ | D7.4 | The models amendment, drafted in models: the column and value types, a column set per `_view` relation (design §10) | epistemer accepts or changes it; models releases it |
+| ☐ | D7.5 | The contract of `ui/actions`, `ui/tables` and the new components, as an amendment to visual-interface.md, with a cross-model review | epistemer locks it; milestones T1… planned in this file |
+| ☐ | D8 | Second round: the remote select (`<ui-combobox>` over `listing.Labeler`, and with it filters on link columns), uploads, list fields (`<ui-repeat>`) | Its own design and review, then an amendment to the lock |
 
 ## V — Building the visual packages
 
@@ -180,7 +186,20 @@ A finding that changes locked text is an amendment, brought to epistemer.
 | ☑ | V4 | `ui/inputs`: every kind but lists, hints above the control, errors with their level word, the password reveal; the condition evaluator in the ui script | §6 and §10's conditions hold; the vectors pass in jstest |
 | ☑ | V5 | `ui/components`: Dialog, confirmation, Menu (with the clamping fallback, tested where anchoring is missing), navigation tabs, toasts, detail list; an htmx story for the confirmation and swaps | §7 and §10 hold |
 | ☑ | V6 | `ui/layout`: document, app shell with the drawer and the colour scheme menu, auth shell, page header; `internal/spike` removed | §8 holds; a full page of the toy shop renders in the catalogue |
+| ☐ | A5 | Links (ADR 0008, design §11): the kernel's `Link` and `URL`; `Href`, `Link`, `Tab`, `NavItem` and `Crumb.Href` take a `ui.Link`, and `Src` and `Image` too if S8 holds. **Before V7**, so the tag doesn't carry signatures already replaced | epistemer locks A5; the signatures change with no golden changed; the `ui` skill and the API review follow |
 | ☐ | V7 | Release v0.2.0: an API review of every exported identifier against visual-interface.md, CHANGELOG, the `ui` skill updated, the tag | `go get github.com/epistemer/ui@v0.2.0` works through the proxy. In this order: tag ui `v0.2.0`, point `theme/themeschema/go.mod` at it and drop its `replace`, then tag `theme/themeschema/v0.2.0`, so the nested module never requires an unpublished ui |
+
+## T — Building actions and tables
+
+Planned when D7.5 locks the contract. In outline, each with stories,
+goldens and the checks of section V:
+
+| ✓ | ID | Item | Done when |
+|---|---|---|---|
+| ☐ | T1 | `ui/actions` and `actionstest`; `ActionButtons`, `ActionMenu`, `ActionDialog` and `Reply` in `ui/components`; the script's part | The contract's action sections hold |
+| ☐ | T2 | `ui/tables` and `tablestest`, on the models release of D7.4 | The contract's table sections hold; a state binds from a query string and is a `listing.Source` |
+| ☐ | T3 | `Table` and `Pagination` in `ui/components`, their CSS, `<ui-table>`; a page of the toy shop in the catalogue | It works with script off and with htmx, in LTR, RTL, light and dark |
+| ☐ | T4 | Release v0.3.0 | As V7 |
 
 ## Backlog
 
