@@ -126,19 +126,29 @@ section.
   - `light-dark()`;
   - logical properties;
   - `:focus-visible`;
-  - `<dialog>`;
-  - `popover`.
+  - `<dialog>`.
 
-  Features that are only newly available get a fallback that keeps the page
-  fully usable:
-  - **Anchor positioning** (Baseline January 2026). An open popover sits in
-    the top layer, positioned against the viewport, so CSS alone can't
-    place it next to its trigger. Where anchor positioning is missing, the
-    ui script positions it through CSSOM, which a strict CSP allows. How
-    each trigger names its anchor without an inline style is tried in the
-    D4 spike.
+  Features that are only newly available, or not yet in every browser, get
+  a fallback that keeps the page fully usable. The figures below come from
+  the web-features data behind the `modern-web-guidance` tool, checked on
+  2026-11-22. They correct an earlier web search, which had anchor
+  positioning Baseline in January 2026.
+  - **Popover** (Baseline January 2025, newly available): every current
+    browser has it. Older ones would need a polyfill loaded only when
+    `popover` is missing from `HTMLElement.prototype`; ui doesn't ship one
+    yet.
+  - **Anchor positioning** (limited availability: Chrome and Edge 157,
+    Safari 27, not Firefox). An open popover sits in the top layer,
+    positioned against the viewport, so CSS alone can't place it next to
+    its trigger. The anchored rules sit behind
+    `@supports (position-area: block-end)`. Elsewhere the ui script
+    positions the popover through CSSOM, which a strict CSP allows: below
+    its trigger, flipping and clamping to the viewport. The popover's
+    implicit anchor (its invoker, or `showPopover({ source })`) has been
+    Baseline since January 2026, so no trigger needs an anchor name.
   - **Invoker commands** (`commandfor`, Baseline December 2025): a few lines
-    in the ui script (ADR 0005).
+    in the ui script (ADR 0005), detected with
+    `'commandForElement' in HTMLButtonElement.prototype`.
 
   Features outside Baseline (`contrast-color()`, customizable `<select>`,
   `popover="hint"`) only add polish, and nothing depends on them.
@@ -174,8 +184,9 @@ section.
   of our own in a test. Neither proves a page looks right: they rule out
   the two mistakes zp's templates show most. Screenshots come with the
   browser test job.
-- The fallbacks for anchor positioning and invoker commands stay until both
-  are Baseline widely available, about mid-2028.
+- The fallbacks stay until each feature is Baseline widely available: popover
+  about mid-2027, invoker commands about mid-2028, anchor positioning not
+  yet in sight, because Firefox lacks it.
 
 **Changes elsewhere:**
 - visual-design.md's tokens and catalogue sections follow from this ADR.
