@@ -9,6 +9,33 @@ taken for epistemer, what's next, and what's waiting on epistemer.
 
 
 
+## 2026-11-22 — D8: epistemer's first answers
+
+**Decided** by epistemer:
+- R1: a remote select is declared on the forms field (`Remote`);
+- R2 and R9: only `inputs` calls the `Labeler`, at render; whether an id
+  may be picked is the app's check;
+- R4: the search goes through htmx, not the script's own `fetch` (the
+  draft's default, which the spike tried). The design (§3.3), ADR 0011 and
+  the contract are rewritten for it: `hx-get` on `<ui-combobox>`,
+  triggered by the script's `ui-search` event, stale requests vetoed by
+  htmx's events, ids given after the swap, no upgrade without htmx,
+  `htmx.process` on cloned rows. Not spiked in that form;
+- R7: a refused search link leaves the text input of the id;
+- R15 and R16: `Upload`/`Uploads` take the stored files at declaration;
+- R23: "Item %d" for every list; R24: adding and removing rows needs
+  script; R27: a new list's control yields `MinItems` blank items;
+- L1: the upload types live in `ui/forms/files`;
+- L7: no item marker; forms §5.8 stays as locked, and a row that could
+  post nothing uses `Bool` or a field that always posts;
+- H6 (handlers): a route's limit replaces the registration's.
+
+**Next.** The lock of A7 and acceptance of handlers' A5, with the rest
+on their defaults.
+
+**Waiting on epistemer**: the remaining R, L and H questions, or the
+lock with their defaults.
+
 ## 2026-11-22 — D8.3 and D8.4 drafted: the handlers amendment and the contract
 
 **Landed** (Claude), docs only, plus the spike:

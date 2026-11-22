@@ -140,7 +140,8 @@ f.Customer = f.Number[int64]("customer_id").Label(models.L10nOrder_CustomerId).
 `ui-field` wrapper (label, help, error, ids and `aria-describedby` as
 visual-interface §6.2):
 
-The server renders the shape that works without script (R3):
+The server renders the shape that works without script (R3), plus the
+popup and live region htmx needs (§3.3), which stay hidden without it:
 
 ```html
 <ui-combobox class="ui-combobox" data-ui-search="/admin/customers/search"
@@ -222,23 +223,48 @@ a field read-only against a crafted request.
 The search is a GET of the search link with one parameter, `q`, the text
 typed, added to the link's own query. It belongs to the search link, so it
 never meets a table's reserved `q`: the combobox's visible input has no
-`name`, and the request is the script's own (R4).
+`name`.
 
-**The script fetches; htmx doesn't** (R4). `<ui-combobox>` calls
-`fetch` itself, debounced (250 ms), cancelling the request it supersedes
-(`AbortController`), with `Accept: text/html` and `X-Requested-With:
-ui-combobox`. Reasons, each found in this repository:
-- the actions script treats any htmx 422 as a swap, tracks an opener for
-  any request outside an open dialog, and drops a pending refocus on any
-  other htmx request (`theme/js/actions.js`); a search must touch none of
-  that;
-- htmx 2.0.11 has no mutation observer, so `hx-*` on a row `<ui-repeat>`
-  clones needs `htmx.process`, which a script that doesn't depend on htmx
-  can't count on;
-- a search answer is a list of options, not a region swap.
+**htmx makes the request** (R4, decided by epistemer on 2026-11-22, over
+the draft's default of a `fetch` of the script's own, which the spike
+tried). The server renders, on `<ui-combobox>`:
 
-This changes ADR 0005's list of what emits `hx-*`: the remote select
-leaves it (§6).
+```html
+<ui-combobox class="ui-combobox" id="…" data-ui-search="/admin/customers/search"
+             hx-get="/admin/customers/search" hx-trigger="ui-search delay:250ms"
+             hx-target="find .ui-combobox-options" hx-select="[data-ui-suggestions] > li"
+             hx-swap="innerHTML" hx-sync="this:replace" data-ui-texts="…">
+```
+
+and inside it, after the text input and the chosen name, the popup (a
+manual popover holding the listbox and the visible status) and a visually
+hidden live region. Without script none of these show: a popover stays
+closed.
+
+- **The trigger is the script's.** It dispatches `ui-search` on the
+  element at each keystroke; htmx waits 250 ms after the last and
+  replaces a request still in flight (`hx-sync`). The script adds `q` in
+  `htmx:configRequest` on its own element, keeping the link's query.
+- **Stale requests are vetoed, not raced.** When the text is committed
+  (a choice, a restore, leaving), a request about to start is cancelled
+  in `htmx:beforeRequest`, and one in flight is aborted by dispatching
+  `htmx:abort` on the element. The script never references the `htmx`
+  object for this: events only.
+- **Without htmx the field isn't upgraded.** The script upgrades only
+  when `globalThis.htmx` exists; otherwise the field stays the text
+  input of the id, as without script. The remote select needs htmx, as a
+  table's swaps do.
+- **Clones**: htmx 2.0.11 doesn't see nodes another script inserts, so
+  `<ui-repeat>` calls `globalThis.htmx?.process(item)` after appending a
+  row.
+- **The other scripts** (checked against `theme/js`): the request's
+  target is the listbox, which neither the actions script's `isAction`
+  nor the table script's `isState` claims, so no opener is recorded, no
+  table goes busy, no live address is merged. Inside the open action
+  dialog the actions script keeps its opener. A search after a reply
+  drops a pending refocus, as any request does: the person has moved on.
+  The actions script swaps every 422, so a search handler never answers
+  one.
 
 **The answer** is HTML, rendered by the handler with
 `components.Suggestions`:
@@ -265,28 +291,28 @@ func (h *H) CustomerSearch(w http.ResponseWriter, r *http.Request) error {
 - A suggestion is ui's `components.Suggestion{Value string; Label
   i18n.Ter}` (R5). Not models' `option.SelectOption`, whose `Label()` is
   an `i18n.TKer`, a translation key: a row's name is data and has none
-  (found by the spike, §8.1).
-  ui adds no type and no request parser: `q` is one line to read.
-- `Suggestions` renders `<ul data-ui-suggestions [data-ui-more]>` holding
-  `<li data-value="…">label</li>` per option, at most `SuggestionLimit`
-  (20); given more, it renders 20 and sets `data-ui-more` (R6). No paging
-  and no infinite scroll.
-- **The script never inserts the answer's markup.** It parses it in an
-  inert `<template>`, reads each item's `data-value` and text, and builds
-  its own `<li role="option" id="<input id>-opt-<n>">` with `textContent`.
-  So option ids are unique per combobox (two comboboxes on a page never
-  share one), and nothing in an answer can add elements, attributes or
-  script to the page.
-- **What counts as an answer**: status 200, not redirected
-  (`response.redirected` is false: a session that expired redirects to a
-  sign-in page), and a root `ul[data-ui-suggestions]`. Anything else, or a
-  network error, says "Couldn't search. Try again." in the status and
-  keeps the previous choice.
-- Given none, the status says "No matches". `data-ui-more` adds "Keep
-  typing to narrow these down" to the status, outside the listbox, which
-  holds options only.
+  (found by the spike, §8.1). ui adds no request parser: `q` is one line
+  to read.
+- `Suggestions` renders `<ul data-ui-suggestions>` holding
+  `<li role="option" aria-selected="false" data-value="…">label</li>` per
+  option, at most `SuggestionLimit` (20); given more, it renders 20 and a
+  last `<li data-ui-more hidden>` (R6). No paging and no infinite scroll.
+- `hx-select` takes only the answer's items, so a page that isn't an
+  answer swaps in nothing. After the swap the script gives each option an
+  id, `<input id>-opt-<n>` (unique per combobox: the server doesn't know
+  which asked), moves the `data-ui-more` item out of the listbox into the
+  status ("Keep typing to narrow these down"), counts the options and
+  announces.
+- **What counts as an answer**: in `htmx:beforeSwap`, a response whose
+  `xhr.responseURL` isn't the address asked (a session that expired
+  redirects to a sign-in page) isn't swapped. That, `htmx:responseError`
+  or `htmx:sendError` on the element says "Couldn't search. Try again."
+  and keeps the previous choice.
+- The options are the app's handler's markup, swapped as htmx swaps any
+  answer; templ escapes the labels.
+- Given none, the status says "No matches".
 - The search is a GET with no side effects; it carries the page's cookies
-  (`credentials: "same-origin"`) and needs no CSRF token.
+  and needs no CSRF token.
 - An empty `q` is a search like any other; most handlers answer their
   first page. The popup opens on typing, on Alt+Down, or on Down.
 
@@ -634,8 +660,8 @@ and `Upload` move to a leaf package as `files.Stored` and `files.Upload`
   table owns (`data-ui-own`), like any filter's, or the live-address
   merge drops it (spiked).
 
-**ADR 0005:** the remote select leaves the list of what emits `hx-*`; it
-fetches by itself (R4).
+**ADR 0005:** unchanged: the remote select stays on its list of what
+emits `hx-*` (R4, decided by epistemer).
 
 **Other packages:**
 - handlers: a per-route body limit (R21), its own amendment.
@@ -765,37 +791,39 @@ Not settled by the spike:
 
 ## 9. Decisions
 
-All stand on their defaults until epistemer answers. Each is API design.
+Each is API design. epistemer answered R1, R2, R4, R7, R9, R15, R16,
+R23, R24 and R27 on 2026-11-22 (marked **decided**; R4 against the
+draft's default). The rest stand on their defaults until the lock.
 
 | # | Question | Default | Alternative |
 |---|---|---|---|
-| R1 | Where "this field is a remote select" is declared | On the forms field: `Field[T].Remote(search, labeler)` and `KindRemote`, so groups, list rows and table filters render it generically. Reverses forms-design §10.3 ("widget parameters… are arguments of the widget call") | As §10.3 says: `inputs.Remote(c, search, labeler)`, plus an override in `inputs.Field` keyed by path that must match `lines[__i__].product` and `lines[3].product` alike, and a separate hook in `TableOf` for filters |
-| R2 | Who calls the `Labeler` | `inputs`, at render. forms carries it and never calls it | forms calls it in `Validate`, and a miss is a field error: a models clarification first, since `LabelOf` is documented for display |
+| R1 | Where "this field is a remote select" is declared | **Decided**: on the forms field. As drafted: On the forms field: `Field[T].Remote(search, labeler)` and `KindRemote`, so groups, list rows and table filters render it generically. Reverses forms-design §10.3 ("widget parameters… are arguments of the widget call") | As §10.3 says: `inputs.Remote(c, search, labeler)`, plus an override in `inputs.Field` keyed by path that must match `lines[__i__].product` and `lines[3].product` alike, and a separate hook in `TableOf` for filters |
+| R2 | Who calls the `Labeler` | **Decided**: `inputs`, at render; forms never calls it. As drafted: `inputs`, at render. forms carries it and never calls it | forms calls it in `Validate`, and a miss is a field error: a models clarification first, since `LabelOf` is documented for display |
 | R3 | A remote select without script | A text input of the id, with the chosen name beside it | Nothing usable: the field renders read-only |
-| R4 | How the search is requested | The ui script's own `fetch`, debounced and cancelled; no `hx-*`. Removes the remote select from ADR 0005's `hx-*` list | htmx (`hx-get` on the input), with the actions and table scripts taught to ignore it and `htmx.process` called on clones |
+| R4 | How the search is requested | **Decided**: htmx (`hx-get` on `<ui-combobox>`, triggered by the script, stale requests vetoed by events; §3.3). The remote select stays on ADR 0005's `hx-*` list | The draft's default, the script's own `fetch` (spiked) |
 | R5 | The suggestion type, and parsing the search request | ui's `components.Suggestion{Value, Label}` (a struct, `Label` an `i18n.Ter`); no parser, `q` is read by the handler. Models' `option.SelectOption` doesn't fit: its label is a key | A `Search(r)` helper, and a description line per suggestion |
 | R6 | More suggestions than fit | The first 20, then "Keep typing to narrow these down" | A "Show more" option that fetches the next page |
-| R7 | The gate refuses the search link | The shape without script, not upgraded: an id can be typed, nothing is searched. Markup can't make a field read-only against a crafted post; the form's handler decides what it accepts | The field renders read-only (an earlier draft), which only hides the control |
+| R7 | The gate refuses the search link | **Decided**: the shape without script. As drafted: The shape without script, not upgraded: an id can be typed, nothing is searched. Markup can't make a field read-only against a crafted post; the form's handler decides what it accepts | The field renders read-only (an earlier draft), which only hides the control |
 | R8 | `LabelOf` finds nothing, or fails, at render | Nothing: the id is shown. An error: the render fails. Text that didn't convert is never looked up | Both show the id, and the error is logged |
-| R9 | Is a posted id checked against the `Labeler`? | No: the app's own check, which also knows who may pick it | Yes, in `Validate` (R2's alternative) |
+| R9 | Is a posted id checked against the `Labeler`? | **Decided**: no; the app's own check. As drafted: No: the app's own check, which also knows who may pick it | Yes, in `Validate` (R2's alternative) |
 | R10 | `LabelOf` calls in a render | An opt-in per-request memo by `Labeler` and id, `inputs.WithLabelCache(ctx)`; without it, one call per field | A memo every render shares without asking (impossible: a page renders its controls one by one); or a batch method on `Labeler` (a models amendment) |
 | R11 | Several values in one remote select | Not in D8 (models' `listing` has no `IN` either) | A multi-value remote select with chips |
 | R12 | Creating a record from inside the select | Not in D8; an `Open` action beside the field | A "New…" option opening the action dialog, whose reply chooses the new record |
 | R13 | A table filter on a link column | `tables.Col(c).Filter().Remote(search, labeler)`, `Eq` on a `Text` or `Integer` column | A kind of its own in models' `column` (`Link`, with its target), a models amendment |
 | R14 | Where a file goes | With its form, to the form's handler; ui stores nothing | An upload endpoint per field that stores at once and posts back a key (needs a storage package) |
-| R15 | Keeping and removing stored files | `Form.Upload`/`Uploads(name, stored)` with `Upload{Kept, Added}`; kept keys post back, deduplicated, and must be among `stored` | Keep `File`/`Files` and let the app declare a `Texts("x.keep")` field and check the keys itself |
-| R16 | Where a stored file's name and link come from | `StoredFile`, given to the declaration. Reverses §10.3's bullet on current-file URLs | An argument of `inputs.Field`, with the same path-keyed override as R1's alternative |
+| R15 | Keeping and removing stored files | **Decided**: `Upload`/`Uploads` with the stored files. As drafted: `Form.Upload`/`Uploads(name, stored)` with `Upload{Kept, Added}`; kept keys post back, deduplicated, and must be among `stored` | Keep `File`/`Files` and let the app declare a `Texts("x.keep")` field and check the keys itself |
+| R16 | Where a stored file's name and link come from | **Decided**: given to the declaration. As drafted: `StoredFile`, given to the declaration. Reverses §10.3's bullet on current-file URLs | An argument of `inputs.Field`, with the same path-keyed override as R1's alternative |
 | R17 | Thumbnails of chosen files | Opt-in (`Previews()`), since they need `img-src blob:` | Always on, and every app's CSP allows `blob:` images |
 | R18 | Drag and drop | The native file input is the drop zone; the script only highlights | A script drop handler on a larger zone |
 | R19 | Upload progress | A `<progress>` per upload field with files chosen, fed by `htmx:xhr:progress`, hidden at the answer, never announced; nothing without htmx | None |
 | R20 | Files chosen in a form that fails | A note asking for them again, through `Control.Lost()`. `hx-preserve` is rejected (§4.4) | No note: the browser's empty file input says it |
 | R21 | A larger body for an upload route | A per-route limit in handlers (D8.3); a 413 is answered on the form's upload fields by the script | The app raises its surface's limit, and a 413 shows nothing with htmx |
 | R22 | Checking size and type before sending | Yes, in the script, with the server's translated message | Server only |
-| R23 | An item's legend | "Item %d", one key for every list | `List.ItemLabel(i18n.Ter)` on forms, "Line 2" (a forms amendment) |
-| R24 | Adding and removing rows without script | Not possible; the buttons are hidden until the script shows them | Submit buttons the handler recognises, with a forms amendment for adding and removing items while binding without validating |
+| R23 | An item's legend | **Decided**: "Item %d" everywhere. As drafted: "Item %d", one key for every list | `List.ItemLabel(i18n.Ter)` on forms, "Line 2" (a forms amendment) |
+| R24 | Adding and removing rows without script | **Decided**: needs script. As drafted: Not possible; the buttons are hidden until the script shows them | Submit buttons the handler recognises, with a forms amendment for adding and removing items while binding without validating |
 | R25 | Reordering rows | None | Move up and Move down buttons that renumber |
 | R26 | `Upload` inside a list | Panics: an item built during `Bind` has no record to take stored files from. `File` and `Files` work there | Stored files keyed by a row id field the item declares |
-| R27 | A new form's list with `MinItems(n)` | forms fills an unbound list without items to `n` blank items | The app calls `List.Add()` n times |
+| R27 | A new form's list with `MinItems(n)` | **Decided**: the control yields blank items. As drafted: forms fills an unbound list without items to `n` blank items | The app calls `List.Add()` n times |
 | R28 | Names | `KindRemote`, `Remote`, `Upload`, `Uploads`, `StoredFile`, `KindUpload(s)`, `Control.Stored`, `Control.Lost`, `rule.Files`, `MinFiles`, `MaxFiles`, `components.Suggestions`, `Suggestion` (a struct), `SuggestionLimit`, `Control.Bounds`, `inputs.WithLabelCache`, `data-ui-texts`, `<ui-combobox>`, `<ui-repeat>` | epistemer's choice at the lock |
 
 ## 10. Out of this round

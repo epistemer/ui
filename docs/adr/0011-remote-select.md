@@ -1,11 +1,11 @@
-# ADR 0011: a remote select is declared on its field and searches with the ui script's own request
+# ADR 0011: a remote select is declared on its field and searches through htmx
 
 | | |
 |---|---|
-| Status | Proposed |
+| Status | Accepted by epistemer on 2026-11-22 (R1, R2, R4), with the search through htmx rather than the proposed `fetch` |
 | Date | 2026-11-22 |
 | Roadmap item | D8.1 |
-| Deciders | Claude proposed it (design R1, R2, R4); epistemer decides at the lock (D8.4) |
+| Deciders | Claude proposed it (design R1, R2, R4); epistemer decided R1 and R2 as proposed and R4 for htmx |
 
 ## Context
 
@@ -26,11 +26,13 @@ remembered, a pending refocus is dropped) and htmx 2.0.11 doesn't set up
   `KindRemote`, and the control hands both to a renderer. forms carries
   the `Labeler` and never calls it; `inputs` calls it once at render to
   show the chosen name.
-- `<ui-combobox>` fetches suggestions itself, debounced and cancelled,
-  from the search link with `q`. The answer is HTML from
-  `components.Suggestions` over models' `option.SelectOption`; the script
-  reads values and texts from it and builds its own options, so no markup
-  from an answer reaches the page.
+- htmx makes the search: `hx-get` on `<ui-combobox>`, triggered by the
+  script's `ui-search` event with htmx's own delay and `hx-sync`; the
+  script adds `q`, vetoes and aborts stale requests through htmx's
+  events, and gives the swapped options their ids. The answer is
+  `components.Suggestions`, `hx-select`ed. Without htmx the field isn't
+  upgraded. (Proposed instead: a `fetch` of the script's own, which the
+  spike tried; epistemer chose htmx.)
 - Without script it is a text input of the id with the name beside it.
 
 ## Consequences
@@ -39,7 +41,10 @@ remembered, a pending refocus is dropped) and htmx 2.0.11 doesn't set up
   per-page wiring, and a clone sets itself up.
 - forms' locked contract gains a kind, a builder and a control method, and
   imports models' `listing` (standard library only).
-- The remote select leaves ADR 0005's list of what emits `hx-*`.
+- The remote select stays on ADR 0005's list of what emits `hx-*`; its
+  requests target the listbox, which the actions and table scripts don't
+  claim.
+- `<ui-repeat>` calls `htmx.process` on a clone when htmx is there.
 - `LabelOf` is memoized per request; a batch method waits for a
   measurement.
 - The gate on the search link governs searching only; what a form
