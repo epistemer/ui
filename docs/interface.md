@@ -156,6 +156,24 @@ Messages read `ui: slot declared at <file>:<line>: <what happened>`.
 block return `ErrInBlock`; opened around the component call they work. A
 wrapper of the app's own that only renders its block is allowed there.
 
+## 4A. Kernel: links (amendment A5)
+
+```go
+// Link is anything with a URL: a route link, or URL's adapter.
+type Link = interface{ URL() string }
+
+// URL makes a Link of a literal or external address.
+func URL(s string) Link
+```
+
+- `Link` is an alias of the bare interface, so a function another package
+  declares over `interface{ URL() string }` is assignable where ui wants
+  one over `Link`, with no import either way.
+- `URL(s).URL()` is `s`. `URL("")` is a link with no address.
+- The visual packages take a `Link` wherever they take an address, and
+  say what no address means ([visual-interface.md](visual-interface.md)
+  §2.7). The kernel's imports don't change.
+
 ## 5. Forms (`ui/forms`)
 
 ### 5.1 Form and lifecycle
@@ -750,6 +768,7 @@ entry in status.md.
 | A2 | 2026-11-21 | §5.1, §5.8, §5.10, §7, §9.2 | Clarifications by Claude (F5 review): a list item has no `When` or `Label` of its own (both panic; conditions go on its fields or on the list, and it takes its list's label); `When` and `Label` on the root are legal and have no effect. A list index counts only when one of its names reaches a member an item declares, so junk never builds items or uses up `MaxItems`. `MinItems` above the default limit raises it. A template row's fields report their own conditions, not their list's, so a client can clone it while the list is hidden. A check that fails a field or the form and returns nil stops the remaining checks. `AssertLabelled` checks a list's members once, on its template row |
 | A3 | 2026-11-21 | §1, §5.3, §5.10, §6.2, §8, §9.2, §9.3 | From the release review (Claude): a list index counts only when one of its names reaches a declared field, at any depth; `FromRequest` reads a body without parsing the query, so a query net/http would refuse doesn't spoil it; a Checkbox is unticked, present and `false` before Bind too; an unreadable `Submit` leaves every form and sub-form invalid; an Enum accepts any option whose `Value()` is offered; `Options` makes any field `KindSelect` (`KindMultiSelect` for several values) unless `Hint` set the kind; `When` on the root is accepted and ignored; `Min`, `Max`, `Between` panic on a NaN bound, length, size and item limits on a negative one; `ContentType("*/*")` matches any file; `Matches` gives `pattern` only when the expression avoids Go-only syntax; `URL` needs a host name; uitest keeps a whole page's `<html>` and `<body>`, fails an id with white space, and its `-update` is shared with the test package (§8); formstest's imports |
 | A4 | 2026-11-22 | §8 | uitest gains `CheckNames` and `CheckSelectors` (with `SelectorOption`, `Prefix`), as [visual-interface.md](visual-interface.md) §13.1 states them. Locked by epistemer with the visual packages |
+| A5 | 2026-11-22 | §4A (new); visual-interface.md §2.7, §5.1, §5.3, §5.4, §7.3, §7.4, §8.2, §8.4, §13.4 | An address is a link: the kernel gains `Link` and `URL`, and eight signatures of the visual packages take a `ui.Link` where they took a `templ.SafeURL` (ADR 0008). Locked by epistemer. Built by the roadmap's item A5, before v0.2.0 is tagged |
 
 **The visual packages.** Their contract is
 [visual-interface.md](visual-interface.md), locked by epistemer on

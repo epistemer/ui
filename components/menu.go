@@ -11,6 +11,7 @@ import (
 
 	"github.com/epistemer/ui"
 	"github.com/epistemer/ui/elements"
+	"github.com/epistemer/ui/internal/links"
 )
 
 // Menu's slots (§7.3): the trigger's fill receives the attributes that
@@ -79,8 +80,8 @@ type MenuItemSpec struct {
 // MenuItem starts an item.
 func MenuItem() MenuItemSpec { return MenuItemSpec{} }
 
-// Href makes the item a link.
-func (m MenuItemSpec) Href(u templ.SafeURL) MenuItemSpec { m.href = u; return m }
+// Href makes the item a link to l. No address leaves it a button.
+func (m MenuItemSpec) Href(l ui.Link) MenuItemSpec { m.href = links.Href(l); return m }
 
 // Disabled disables the item when d is true: arrow keys skip it, the
 // script stops its clicks, and a link loses its href.

@@ -10,6 +10,7 @@ import (
 
 	"github.com/epistemer/ui"
 	"github.com/epistemer/ui/elements"
+	"github.com/epistemer/ui/internal/links"
 )
 
 // The app shell's slots (§8.2). AppMain is required; the others render
@@ -65,8 +66,8 @@ type NavItemSpec struct {
 	attrs   templ.Attributes
 }
 
-// NavItem starts a link to href.
-func NavItem(href templ.SafeURL) NavItemSpec { return NavItemSpec{href: href} }
+// NavItem starts a link to to. Rendering one with no address panics.
+func NavItem(to ui.Link) NavItemSpec { return NavItemSpec{href: links.Href(to)} }
 
 // Current marks the item as the page shown when c is true
 // (aria-current="page").
@@ -83,7 +84,7 @@ var navItemOwned = []string{"href", "aria-current"}
 
 func (n NavItemSpec) Render(ctx context.Context, w io.Writer) error {
 	if n.href == "" {
-		panic("layout: NavItem with no href: a navigation item is a link")
+		panic("layout: NavItem with no address: a navigation item is a link")
 	}
 	own := templ.Attributes{"class": "ui-nav-item", "href": n.href}
 	if n.current {

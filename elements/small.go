@@ -11,6 +11,7 @@ import (
 	"github.com/epistemer/i18n"
 
 	"github.com/epistemer/ui"
+	"github.com/epistemer/ui/internal/links"
 )
 
 // AvatarSpec is a person's picture or initials (§5.3).
@@ -26,8 +27,8 @@ type AvatarSpec struct {
 // Src, else the first letters of the name's first two words.
 func Avatar(name i18n.Ter) AvatarSpec { return AvatarSpec{name: name} }
 
-// Src shows a picture.
-func (a AvatarSpec) Src(u templ.SafeURL) AvatarSpec { a.src = u; return a }
+// Src shows the picture at l. No address shows the initials.
+func (a AvatarSpec) Src(l ui.Link) AvatarSpec { a.src = links.Href(l); return a }
 
 // Size sets the size.
 func (a AvatarSpec) Size(s Size) AvatarSpec { a.size = s; return a }

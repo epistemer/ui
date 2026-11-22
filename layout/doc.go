@@ -9,7 +9,7 @@
 //		@layout.App() {
 //			@layout.AppBrand { Bricks & Co }
 //			@layout.AppNav {
-//				@layout.NavItem("/orders").Current(here == "/orders") { Orders }
+//				@layout.NavItem(ui.URL("/orders")).Current(here == "/orders") { Orders }
 //			}
 //			@layout.AppBar {
 //				@layout.ColorSchemeMenu(layout.ColorSchemeOf(r))

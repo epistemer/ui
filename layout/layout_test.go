@@ -113,9 +113,14 @@ func TestPageHeader(t *testing.T) {
 		t.Errorf("blank actions or description render their box: %s", html)
 	}
 	html := render(t, with(PageHeader(i18n.Static("Orders")).Breadcrumbs(
-		Crumb{Href: "/", Text: i18n.Static("Home")},
-		Crumb{Href: "/orders", Text: i18n.Static("Orders")},
+		Crumb{Href: ui.URL("/"), Text: i18n.Static("Home")},
+		Crumb{Href: ui.URL("/orders"), Text: i18n.Static("Orders")},
 	), templ.Raw("<button>Export</button>")))
+	for _, last := range []ui.Link{nil, ui.URL(""), ui.URL("javascript:x")} {
+		if html := render(t, PageHeader(i18n.Static("Orders")).Breadcrumbs(Crumb{Href: ui.URL("/"), Text: i18n.Static("Home")}, Crumb{Href: last, Text: i18n.Static("Orders")})); !strings.Contains(html, `<span aria-current="page">Orders</span>`) {
+			t.Errorf("a last crumb with no address (%v) isn't the current page as text: %s", last, html)
+		}
+	}
 	contains(t, html,
 		`<a href="/">Home</a>`,
 		`<a href="/orders" aria-current="page">Orders</a>`,
@@ -126,7 +131,7 @@ func TestPageHeader(t *testing.T) {
 }
 
 func TestOwned(t *testing.T) {
-	html := render(t, with(NavItem("/a").Current(true).Attrs(templ.Attributes{"href": "/b", "aria-current": "false", "class": "mine"}), templ.Raw("A")))
+	html := render(t, with(NavItem(ui.URL("/a")).Current(true).Attrs(templ.Attributes{"href": "/b", "aria-current": "false", "class": "mine"}), templ.Raw("A")))
 	contains(t, html, `href="/a"`, `aria-current="page"`, `class="ui-nav-item mine"`)
 	html = render(t, with(NavSection(i18n.Static("Catalogue")).Attrs(templ.Attributes{"role": "list"}), templ.Raw("")))
 	contains(t, html, `role="group"`, `aria-labelledby="nav-section--t-1-label"`, `id="nav-section--t-1-label"`)
@@ -141,9 +146,12 @@ func TestPanics(t *testing.T) {
 	panicsWith(t, "auth without a title", "no title", Auth(nil))
 	panicsWith(t, "auth without a body", "without AuthBody", Auth(i18n.Static("Sign in")))
 	panicsWith(t, "a page header without a title", "no title", PageHeader(i18n.Static("")))
-	panicsWith(t, "a crumb without text", "crumb", PageHeader(i18n.Static("x")).Breadcrumbs(Crumb{Href: "/"}))
-	panicsWith(t, "a nav item without href", "no href", NavItem(""))
+	panicsWith(t, "a crumb without text", "crumb", PageHeader(i18n.Static("x")).Breadcrumbs(Crumb{Href: ui.URL("/")}))
+	panicsWith(t, "a nav item without an address", "no address", NavItem(nil))
+	panicsWith(t, "a nav item with a refused address", "no address", NavItem(ui.URL("javascript:alert(1)")))
+	panicsWith(t, "a nav item with an empty address", "no address", NavItem(ui.URL("")))
+	panicsWith(t, "a crumb above the page with a refused address", "no address", PageHeader(i18n.Static("x")).Breadcrumbs(Crumb{Href: ui.URL("javascript:x"), Text: i18n.Static("Home")}, Crumb{Text: i18n.Static("Here")}))
 	panicsWith(t, "a nav section without a label", "no label", NavSection(i18n.Static(" ")))
 	panicsWith(t, "a scheme menu in sepia", "colour scheme", ColorSchemeMenu("sepia"))
-	panicsWith(t, "a crumb above the page without href", "no href", PageHeader(i18n.Static("x")).Breadcrumbs(Crumb{Text: i18n.Static("Home")}, Crumb{Text: i18n.Static("Here")}))
+	panicsWith(t, "a crumb above the page without an address", "no address", PageHeader(i18n.Static("x")).Breadcrumbs(Crumb{Text: i18n.Static("Home")}, Crumb{Text: i18n.Static("Here")}))
 }

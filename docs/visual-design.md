@@ -216,6 +216,9 @@ unreadable theme, and nobody has to reject the colour they chose.
   button or a menu item. `Confirm(msg)` adds a question to any action,
   answered by the one shared confirmation dialog (ADR 0005). This replaces
   zp's 13 action components with two ideas (Q6).
+  [server-state-design.md](server-state-design.md) §5 is that design:
+  actions are a logic package, shown only when the request's guard admits
+  their route (ADR 0009).
 
 ## 6. Behaviour
 

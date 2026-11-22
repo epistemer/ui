@@ -10,11 +10,19 @@ All notable changes to this module. The format follows
 ## [v0.2.0] - 2026-11-22
 
 The visual packages, to the contract locked on 2026-11-22
-(visual-interface.md), with the kernel's amendment A4. ui ships its own
+(visual-interface.md), with the kernel's amendments A4 (uitest) and A5
+(links). ui ships its own
 CSS and script (ADRs 0004 and 0005); a nested module,
 `theme/themeschema/v0.2.0`, carries the cfgx group.
 
 ### Added
+- The kernel's `Link`, an alias of `interface{ URL() string }`, and
+  `URL(s)` for a literal or external address (amendment A5, ADR 0008).
+  Everything in the visual packages that takes an address takes a
+  `ui.Link` (`ButtonSpec.Href`, `AvatarSpec.Src`, `elements.Link`,
+  `elements.Image`, `MenuItemSpec.Href`, `Tab`, `NavItem`, `Crumb.Href`)
+  and renders it through `templ.URL`. A nil link, an empty one, or one
+  `templ.URL` refuses is no address (visual-interface.md §2.7).
 - `ui/theme`: the token table, `Config` with `Defaults` and the checks
   `CheckColor`, `CheckFont` and `CheckRadius` (errors `errors.theme.*`),
   and `Theme`. `Theme` serves ui's stylesheet and script under one release

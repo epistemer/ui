@@ -9,12 +9,16 @@ import (
 	"github.com/a-h/templ"
 	"github.com/epistemer/i18n"
 	"github.com/epistemer/models/option"
+
+	"github.com/epistemer/ui"
+	"github.com/epistemer/ui/internal/links"
 )
 
 // The value renderers (§5.4) render a value by kind, the same way in a
 // table cell (D7) and a detail row. Each renders Empty instead of a value
 // that isn't there: a nil Ter (but Image's alt), one whose text is empty
-// or white space, a nil option, the zero time, an empty href or src.
+// or white space, a nil option, the zero time, a Link or Image with no
+// address (a nil link, an empty one, or one templ.URL refuses).
 
 func blank(ctx context.Context, t i18n.Ter) bool {
 	return t == nil || strings.TrimSpace(t.T(ctx)) == ""
@@ -69,10 +73,11 @@ func Enum(o option.SelectOption) templ.Component {
 	})
 }
 
-// Link renders <a class="ui-link">.
-func Link(href templ.SafeURL, text i18n.Ter) templ.Component {
+// Link renders <a class="ui-link"> to to.
+func Link(to ui.Link, text i18n.Ter) templ.Component {
+	href := links.Href(to)
 	return templ.ComponentFunc(func(ctx context.Context, w io.Writer) error {
-		if strings.TrimSpace(string(href)) == "" || blank(ctx, text) {
+		if href == "" || blank(ctx, text) {
 			return emptyValue().Render(ctx, w)
 		}
 		return linkValue(href, text.T(ctx)).Render(ctx, w)
@@ -81,16 +86,17 @@ func Link(href templ.SafeURL, text i18n.Ter) templ.Component {
 
 // Image renders <img class="ui-image">. A nil alt renders alt=""
 // (decorative), never no alt.
-func Image(src templ.SafeURL, alt i18n.Ter) templ.Component {
+func Image(src ui.Link, alt i18n.Ter) templ.Component {
+	href := links.Href(src)
 	return templ.ComponentFunc(func(ctx context.Context, w io.Writer) error {
-		if strings.TrimSpace(string(src)) == "" {
+		if href == "" {
 			return emptyValue().Render(ctx, w)
 		}
 		a := ""
 		if alt != nil {
 			a = alt.T(ctx)
 		}
-		return imageValue(src, a).Render(ctx, w)
+		return imageValue(href, a).Render(ctx, w)
 	})
 }
 

@@ -11,6 +11,7 @@ import templruntime "github.com/a-h/templ/runtime"
 
 import (
 	"github.com/epistemer/i18n"
+	"github.com/epistemer/ui"
 	"github.com/epistemer/ui/elements"
 	"github.com/epistemer/ui/icons"
 )
@@ -332,7 +333,7 @@ func buttonStates() templ.Component {
 			}
 			return nil
 		})
-		templ_7745c5c3_Err = elements.Button().Href("/orders").Render(templ.WithChildren(ctx, templ_7745c5c3_Var14), templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = elements.Button().Href(ui.URL("/orders")).Render(templ.WithChildren(ctx, templ_7745c5c3_Var14), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -354,7 +355,7 @@ func buttonStates() templ.Component {
 			}
 			return nil
 		})
-		templ_7745c5c3_Err = elements.Button().Href("/orders").Disabled(true).Render(templ.WithChildren(ctx, templ_7745c5c3_Var15), templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = elements.Button().Href(ui.URL("/orders")).Disabled(true).Render(templ.WithChildren(ctx, templ_7745c5c3_Var15), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -1083,7 +1084,7 @@ func avatars() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = elements.Avatar(i18n.Static("Layla Adel")).Src("/static/layla.png").Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = elements.Avatar(i18n.Static("Layla Adel")).Src(ui.URL("/static/layla.png")).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

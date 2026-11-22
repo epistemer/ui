@@ -12,26 +12,124 @@ taken for epistemer, what's next, and what's waiting on epistemer.
 ## 2026-11-22 — V7: v0.2.0
 
 **Landed** (Claude):
-- An API review of every exported identifier in the visual packages,
-  checked both ways against visual-interface.md. Every function, type and
-  method in theme, icons, elements, inputs, components, layout, catalog and
-  catalogtest is in the contract, and every function the contract names is
-  in the code. The one exception, `Group`, is themeschema's, in its own
-  module.
-- CHANGELOG `[v0.2.0]`; a README section on building a page; the `ui`
-  skill now covers the visual packages.
+- An API review of every exported identifier, checked both ways against
+  the contracts:
+  - Every function, type and method in theme, icons, elements, inputs,
+    components, layout, catalog and catalogtest is in visual-interface.md.
+  - Every function the contract names is in the code. The one exception,
+    `Group`, is themeschema's, in its own module.
+  - Run again after A5: the kernel's `Link` and `URL` are in interface.md
+    §4A.
+- CHANGELOG `[v0.2.0]`, with A5; a README section on building a page; the
+  `ui` skill covers the visual packages and links.
 - The release, in the roadmap's order: tag ui `v0.2.0`, point
   `theme/themeschema` at it and drop its `replace`, then tag
   `theme/themeschema/v0.2.0`. Then `go get` both through the proxy.
 
-**Still open for epistemer** (defaults hold until answered):
-- §5.2/§6.2's wording says the level words carry their own space; §11 and
-  the code render the space. Default: fix the wording to §11.
-- V15, forms' `Placeholder`. Default: no change.
+**Defaults taken** (epistemer's rule: an unanswered question takes its
+default):
+- §5.2 and §6.2 said the level words carry their own space, while §11 and
+  the code render the space. The wording now follows §11. No behaviour
+  changes.
+- V15, forms' `Placeholder`: no change.
+- D7.1's S7–S20 and S22 stand on their defaults.
 
-**Next.** D7: the design of the server-state components (table, server
-table, pagination, filters, remote select, uploads) over models'
-`listing` interfaces.
+**Next.** D7.2: the slice spike of the orders table (server-state-design
+§12).
+
+## 2026-11-22 — A5: links
+
+**Landed** (Claude), to interface.md §4A and visual-interface.md §2.7 and
+§13.4:
+- `ui.Link` and `ui.URL` in the kernel, which still imports only templ and
+  the standard library.
+- `internal/links.Href` resolves a link: through `templ.URL`, and `""` for
+  no address (nil, empty, or refused).
+- The eight signatures take a `ui.Link`. Every golden is unchanged.
+- Callers pass `ui.URL("…")` for literal addresses: stories, tests,
+  examples, doc comments.
+- No address keeps what an empty `templ.SafeURL` did before, with tests
+  for each case:
+  - Button and MenuItem stay buttons;
+  - Link and Image render `Empty`;
+  - Avatar shows the initials;
+  - the last Crumb is the current page as text;
+  - NavItem panics, as it did on an empty href.
+- One addition the contract doesn't name: `Tab` with no address now panics,
+  as `NavItem` does, under §2's rule that programmer mistakes panic at
+  render. Before, it rendered `href=""`.
+
+**Review** ([0013](reviews/0013-a5-links.md)): Gemini 3.8 Flash (High),
+about 207k tokens. Five findings; four changed the code: typed nil
+pointers are nil links, crumbs and value links resolve once, and more
+no-address tests. Rejected: keeping `data:` and `blob:` images, which A5
+gives up on purpose (ADR 0008); review 0008's allowance is superseded.
+
+**Next.** V7: the release, on top of this.
+
+## 2026-11-22 — D7.1: the design of links, actions and tables
+
+A design session with epistemer: a reading of zp's server table and
+actions, a brainstorm, then the draft. No code.
+
+**Landed** (Claude):
+- [server-state-design.md](server-state-design.md): what the record of zp
+  asks for, links, `ui/actions`, `ui/tables`, filters as a form, the
+  pager, selection and bulk actions, transport, accessibility, the two
+  test kits, and the spike's list.
+- ADRs [0008](adr/0008-links.md) (an address is a link),
+  [0009](adr/0009-actions.md) (actions are a logic layer, gated by their
+  route) and [0010](adr/0010-tables.md) (generated columns, state in the
+  URL, one response).
+- The roadmap: D7 split into D7.1–D7.5, D8 for the second round, A5
+  before V7, and the T milestones in outline.
+- The inventory's "keep: rows streamed over SSE" is withdrawn (ADR 0010).
+
+**Decided by epistemer** (design §9): the permission comes from an
+action's route (S1); models generates each view's columns (S2), as a kind
+and plain values (S3); one handler and one response, no SSE for rows
+(S4); handlers' builders return a link and every href in ui takes
+`interface{ URL() string }` (S5); this round is tables and actions, and
+v0.2.0 is tagged after it is reviewed (S6).
+
+**Review** ([0012](reviews/0012-server-state-design.md)): Gemini 4 Argon
+(High), about 93k tokens, and about 94k more on Argon (Medium) to repeat
+three findings its answer had cut. Sixteen findings; fifteen changed the
+draft. The largest: request attributes inherit, so they sit on the
+table's controls and never on its region; a request action without
+script needs a form, so the shells get one; a search box must not sit in
+its own swap target; an answer retargets itself at a row instead of
+sending rows out of band.
+
+**Decisions taken for epistemer, on defaults** (S7–S22, design §9). The
+ones most worth a look:
+- S7: ui doesn't import handlers. It owns `Link` and the gate's type.
+- S8: `Src` and `Image` take a link too.
+- S22: a column's page options sit on `tables.Col`, not on models'
+  column. This differs from the brainstorm's sketch
+  (`c.Email.Searchable()`); the review argued it and Claude agrees.
+  Either way the table a page declares decides which columns show and
+  which are searched, sorted or filtered, which is what epistemer asked
+  for; S22 is only which package's type carries the options.
+
+**S21, decided by epistemer** later the same day: a disabled action must
+be reachable to say why. At D7.5, after the spike, the lock gains a
+second Button state that is `aria-disabled` and focusable (`Disabled`
+stays native), and menus stop on disabled items.
+
+**Amendment A5 is locked** (epistemer, the same day): the kernel's
+`Link` and `URL`, and eight signatures of the visual packages, with
+`Src` and `Image` in on S8's default. It is written into interface.md
+(§4A, §10) and visual-interface.md (§2.7, §13.4). The code still takes
+`templ.SafeURL` until the roadmap's item A5 is built, so **V7 waits for
+it**; release PR #28 is open, and its API review will not match the
+contract before then.
+
+**Waiting on epistemer:** S7, S9–S20 and S22, or their defaults.
+
+**Next**, in a coding session: build A5; then the slice spike
+(D7.2), whose findings amend the design; then the handlers and models
+amendments (D7.3, D7.4) and the contract (D7.5).
 
 ## 2026-11-22 — V6: ui/layout
 

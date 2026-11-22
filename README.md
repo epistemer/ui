@@ -251,7 +251,7 @@ templ ordersPage(r *http.Request, th *theme.Theme) {
 				Bricks & Co
 			}
 			@layout.AppNav {
-				@layout.NavItem("/orders").Current(true) {
+				@layout.NavItem(ui.URL("/orders")).Current(true) {
 					Orders
 				}
 			}
@@ -260,7 +260,7 @@ templ ordersPage(r *http.Request, th *theme.Theme) {
 			}
 			@layout.AppMain {
 				@layout.PageHeader(i18n.Static("Orders")) {
-					@elements.Button().Href("/orders/new") {
+					@elements.Button().Href(ui.URL("/orders/new")) {
 						New order
 					}
 				}
@@ -270,7 +270,9 @@ templ ordersPage(r *http.Request, th *theme.Theme) {
 }
 ```
 
-The brand colours, fonts and radius change at run time through cfgx
+An address is a `ui.Link`: a route link from handlers' generated
+builders, or `ui.URL("…")` for a literal one. The brand colours, fonts and
+radius change at run time through cfgx
 (`theme/themeschema`). `go run ./cmd/catalog` shows every component in its
 states, in LTR and RTL and in light and dark.
 

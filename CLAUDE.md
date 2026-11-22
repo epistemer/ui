@@ -16,6 +16,10 @@ this module.
   visual packages' contract is drafted in
   [docs/visual-interface.md](docs/visual-interface.md) until epistemer
   locks it (D6).
+- Links, actions and tables (D7) are designed in
+  [docs/server-state-design.md](docs/server-state-design.md), a draft with
+  ADRs 0008–0010. Its amendment A5 (links: `ui.Link`, `ui.URL`, eight
+  signatures) is locked, in both contracts, and built (2026-11-22).
 - Claude owns this repository until v1.0.0, on the terms of
   [docs/ownership.md](docs/ownership.md) (delegated 2026-11-21). Only API
   design is epistemer's, and the lock of interface.md.

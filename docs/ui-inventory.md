@@ -81,7 +81,8 @@ script, so they are a separate concern from the web packages.
 - the theme read from a cookie on the server, so a page never flashes the
   wrong theme;
 - dropdown placements named by logical sides;
-- table rows streamed over SSE;
+- ~~table rows streamed over SSE~~ (withdrawn on 2026-11-22: ADR 0010
+  keeps the goal, a fast first paint, and drops SSE for rows);
 - typed placement enums instead of strings.
 
 ## Coverage for ui
