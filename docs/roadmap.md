@@ -167,7 +167,7 @@ the interface.
 | ☑ | D8 | Second round: the remote select (`<ui-combobox>` over `listing.Labeler`, and with it filters on link columns), uploads, list fields (`<ui-repeat>`), in D8.1–D8.4 below | D8.4 is locked |
 | ☑ | D8.1 | [rich-inputs-design.md](rich-inputs-design.md) with ADRs [0011](adr/0011-remote-select.md) (remote select), [0012](adr/0012-uploads.md) (uploads) and [0013](adr/0013-list-fields.md) (list fields); questions R1–R28 stand on their defaults | Reviewed by the other model family (review 0019) |
 | ☑ | D8.2 | Slice spike in `internal/spike` (design §8): the toy shop's order form with a customer, a receipt and lines, and every pairing of the parts | Runs with script on and its markup without; ids, names and selectors pass (goldens move to the build: the spike's ids are random per request); its findings amend the design |
-| ☐ | D8.3 | The handlers amendment: a per-route body limit (design R21), drafted as handlers' ADR 0006 with questions H5–H9 (handlers PR #18, review 0007) | epistemer accepts or changes it; handlers releases it |
+| ☑ | D8.3 | The handlers amendment: a per-route body limit (design R21), handlers' ADR 0006, accepted and released in handlers v0.3.0 | epistemer accepts or changes it; handlers releases it |
 | ☑ | D8.4 | The contract, amendment A7, drafted in [rich-inputs-interface.md](rich-inputs-interface.md) with questions L1–L7, reviewed (review 0021) | epistemer locks it, with R1–R28; build milestones planned in this file |
 
 ## V — Building the visual packages
