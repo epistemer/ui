@@ -197,6 +197,7 @@ templ User() {
 // Labelled gives an icon that is the only carrier of meaning a name:
 // <span class="ui-icon-labelled" role="img" aria-label="…">.
 templ Labelled(icon templ.Component, text i18n.Ter) {
+	{{ checkLabelled(ctx, icon, text) }}
 	<span class="ui-icon-labelled" role="img" aria-label={ text.T(ctx) }>
 		@icon
 	</span>

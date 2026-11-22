@@ -35,6 +35,27 @@ Checked in the browser pane:
 The spike's own elements and icons are gone. The spike's inputs and
 components use ui's now.
 
+**Review 0008** (Gemini 4 Argon (Medium), about 223k tokens): 14 findings.
+Twelve changed the code:
+- `data:` URLs in `Image`;
+- tooltip Esc against open menus, and tooltips shown on keyboard focus
+  only;
+- a hoverable tooltip;
+- `Merge` deduplicating one-sided lists;
+- visible neutral hovers;
+- validation of variants, sizes and tones;
+- blank texts;
+- initials with combining marks.
+
+One was declined (keys differing by case in one map). One was rejected
+against §11, which points to a contradiction in the locked text, below.
+
+**For epistemer (locked text):** §5.2 says the alert's hidden level word
+"carries its own punctuation and space". §11 says the words end with their
+punctuation and that ui renders the space after them. The code follows §11,
+so translators write "Erreur :" without a trailing space. The default is to
+correct §5.2's wording to match.
+
 **Next.** V4: `ui/inputs`.
 ## 2026-11-22 — V2: the catalogue and the checks
 

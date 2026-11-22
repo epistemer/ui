@@ -620,6 +620,7 @@ func Labelled(icon templ.Component, text i18n.Ter) templ.Component {
 		}
 		ctx = templ.InitializeContext(ctx)
 		ctx = templ.ClearChildren(ctx)
+		checkLabelled(ctx, icon, text)
 		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 23, "<span class=\"ui-icon-labelled\" role=\"img\" aria-label=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
@@ -627,7 +628,7 @@ func Labelled(icon templ.Component, text i18n.Ter) templ.Component {
 		var templ_7745c5c3_Var24 string
 		templ_7745c5c3_Var24, templ_7745c5c3_Err = templruntime.NewAttributeExpression(text.T(ctx)).Resolve(ctx)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `icons/icons.templ`, Line: 200, Col: 67}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `icons/icons.templ`, Line: 201, Col: 67}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var24)
 		if templ_7745c5c3_Err != nil {

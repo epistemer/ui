@@ -93,7 +93,7 @@
 		--_hover: var(--ui-color-surface);
 		--_active: var(--ui-color-border);
 		--_text: var(--ui-color-text);
-		--_subtle: var(--ui-color-surface);
+		--_subtle: var(--ui-color-border); /* visible on the page and on cards */
 
 		border-color: var(--ui-color-border-strong);
 
@@ -215,6 +215,11 @@
 	box-shadow: var(--ui-shadow-1);
 }
 
+.ui-card-body {
+	& > :first-child { margin-block-start: 0; }
+	& > :last-child { margin-block-end: 0; }
+}
+
 .ui-card-header,
 .ui-card-body,
 .ui-card-footer {
@@ -299,9 +304,23 @@
 	box-shadow: var(--ui-shadow-2);
 	visibility: hidden;
 	opacity: 0;
-	transition: opacity var(--ui-duration-s) var(--ui-ease);
+	transition:
+		opacity var(--ui-duration-s) var(--ui-ease),
+		visibility var(--ui-duration-s) var(--ui-ease);
 
-	.ui-tooltip:is(:hover, :focus-within) > & {
+	/* Bridges the gap to the trigger, so the pointer can move onto the
+	   text without the tooltip closing (WCAG 1.4.13, hoverable). */
+	&::before {
+		content: "";
+		position: absolute;
+		inset-block-start: 100%;
+		inset-inline: 0;
+		block-size: var(--ui-space-1);
+	}
+
+	/* On hover, and on keyboard focus: a click or a dialog's first focus
+	   doesn't pop it up. */
+	.ui-tooltip:is(:hover, :has(:focus-visible)) > & {
 		visibility: visible;
 		opacity: 1;
 	}

@@ -283,9 +283,9 @@ func imageValue(src templ.SafeURL, alt string) templ.Component {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var15 string
-		templ_7745c5c3_Var15, templ_7745c5c3_Err = templruntime.NewAttributeExpression(string(src)).ResolveURL(ctx)
+		templ_7745c5c3_Var15, templ_7745c5c3_Err = templruntime.NewAttributeExpression(src).ResolveURL(ctx)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `elements/values.templ`, Line: 32, Col: 40}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `elements/values.templ`, Line: 32, Col: 32}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var15)
 		if templ_7745c5c3_Err != nil {
@@ -298,7 +298,7 @@ func imageValue(src templ.SafeURL, alt string) templ.Component {
 		var templ_7745c5c3_Var16 string
 		templ_7745c5c3_Var16, templ_7745c5c3_Err = templruntime.NewAttributeExpression(alt).Resolve(ctx)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `elements/values.templ`, Line: 32, Col: 52}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `elements/values.templ`, Line: 32, Col: 44}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var16)
 		if templ_7745c5c3_Err != nil {

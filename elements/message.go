@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"strings"
 
 	"github.com/a-h/templ"
 	"github.com/epistemer/i18n"
@@ -31,6 +32,7 @@ func (b BadgeSpec) Tone(t Tone) BadgeSpec { b.tone = t; return b }
 func (b BadgeSpec) Attrs(a templ.Attributes) BadgeSpec { b.attrs = Merge(b.attrs, nil, a); return b }
 
 func (b BadgeSpec) Render(ctx context.Context, w io.Writer) error {
+	checkTone("Badge", b.tone)
 	own := templ.Attributes{"class": "ui-badge"}
 	if t := toneAttr(b.tone, Neutral); t != "" {
 		own["data-tone"] = t
@@ -80,11 +82,15 @@ func level(component string, t Tone) (templ.Component, i18n.Ter) {
 
 func (a AlertSpec) Render(ctx context.Context, w io.Writer) error {
 	icon, word := level("Alert", a.tone)
+	title := a.title
+	if title != nil && strings.TrimSpace(title.T(ctx)) == "" {
+		title = nil // a blank title is no title
+	}
 	own := templ.Attributes{"class": "ui-alert"}
 	if t := toneAttr(a.tone, Info); t != "" {
 		own["data-tone"] = t
 	}
-	return alert(Merge(own, []string{"data-tone"}, a.attrs), icon, word, a.title).Render(ctx, w)
+	return alert(Merge(own, []string{"data-tone"}, a.attrs), icon, word, title).Render(ctx, w)
 }
 
 // Card's slots (§5.2): each renders only when filled.

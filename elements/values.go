@@ -58,17 +58,21 @@ func DateTime(t time.Time) templ.Component {
 // Enum renders an option's label in a neutral Badge.
 func Enum(o option.SelectOption) templ.Component {
 	return templ.ComponentFunc(func(ctx context.Context, w io.Writer) error {
-		if o == nil || o.Label() == nil || blank(ctx, o.Label()) {
+		if o == nil {
 			return emptyValue().Render(ctx, w)
 		}
-		return enumValue(o.Label().T(ctx)).Render(ctx, w)
+		label := o.Label()
+		if blank(ctx, label) {
+			return emptyValue().Render(ctx, w)
+		}
+		return enumValue(label.T(ctx)).Render(ctx, w)
 	})
 }
 
 // Link renders <a class="ui-link">.
 func Link(href templ.SafeURL, text i18n.Ter) templ.Component {
 	return templ.ComponentFunc(func(ctx context.Context, w io.Writer) error {
-		if href == "" || blank(ctx, text) {
+		if strings.TrimSpace(string(href)) == "" || blank(ctx, text) {
 			return emptyValue().Render(ctx, w)
 		}
 		return linkValue(href, text.T(ctx)).Render(ctx, w)
@@ -79,7 +83,7 @@ func Link(href templ.SafeURL, text i18n.Ter) templ.Component {
 // (decorative), never no alt.
 func Image(src templ.SafeURL, alt i18n.Ter) templ.Component {
 	return templ.ComponentFunc(func(ctx context.Context, w io.Writer) error {
-		if src == "" {
+		if strings.TrimSpace(string(src)) == "" {
 			return emptyValue().Render(ctx, w)
 		}
 		a := ""

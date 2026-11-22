@@ -29,7 +29,7 @@ templ linkValue(href templ.SafeURL, text string) {
 }
 
 templ imageValue(src templ.SafeURL, alt string) {
-	<img class="ui-image" src={ string(src) } alt={ alt }/>
+	<img class="ui-image" src={ src } alt={ alt }/>
 }
 
 templ amountValue(text string) {

@@ -45,17 +45,25 @@ func (a AvatarSpec) Attrs(at templ.Attributes) AvatarSpec {
 
 var avatarOwned = []string{"alt", "role", "aria-label", "aria-hidden", "src", "data-size"}
 
-// initials are the first letters of a name's first two words.
+// initials are the first letters of a name's first two words, each with
+// the marks that follow it (an accent, a vowel sign).
 func initials(name string) string {
 	var b strings.Builder
+	n := 0
 	for _, w := range strings.Fields(name) {
-		for _, r := range w {
-			if unicode.IsLetter(r) || unicode.IsDigit(r) {
-				b.WriteRune(unicode.ToUpper(r))
-				break
+		rs := []rune(w)
+		for i, r := range rs {
+			if !unicode.IsLetter(r) && !unicode.IsDigit(r) {
+				continue
 			}
+			b.WriteRune(unicode.ToUpper(r))
+			for j := i + 1; j < len(rs) && unicode.IsMark(rs[j]); j++ {
+				b.WriteRune(rs[j])
+			}
+			n++
+			break
 		}
-		if b.Len() > 0 && len([]rune(b.String())) == 2 {
+		if n == 2 {
 			break
 		}
 	}
@@ -63,9 +71,10 @@ func initials(name string) string {
 }
 
 func (a AvatarSpec) Render(ctx context.Context, w io.Writer) error {
-	if a.name == nil {
-		panic("elements: Avatar(nil): an avatar needs the person's name")
+	if a.name == nil || strings.TrimSpace(a.name.T(ctx)) == "" {
+		panic("elements: Avatar with no name: an avatar needs the person's name")
 	}
+	checkSize("Avatar", a.size)
 	name := a.name.T(ctx)
 	own := templ.Attributes{"class": "ui-avatar"}
 	if a.size != Medium {
@@ -114,12 +123,13 @@ func (s SpinnerSpec) Attrs(a templ.Attributes) SpinnerSpec {
 }
 
 func (s SpinnerSpec) Render(ctx context.Context, w io.Writer) error {
+	checkSize("Spinner", s.size)
 	own := templ.Attributes{"class": "ui-spinner", "role": "status"}
 	if s.size != Medium {
 		own["data-size"] = string(s.size)
 	}
 	label := i18n.Ter(spinnerLoading)
-	if s.label != nil {
+	if s.label != nil && strings.TrimSpace(s.label.T(ctx)) != "" {
 		label = s.label
 	}
 	return spinner(Merge(own, []string{"role", "data-size"}, s.attrs), label).Render(ctx, w)
@@ -156,8 +166,8 @@ func (t TooltipSpec) Attrs(a templ.Attributes) TooltipSpec {
 }
 
 func (t TooltipSpec) Render(ctx context.Context, w io.Writer) error {
-	if t.text == nil {
-		panic("elements: Tooltip(nil): a tooltip needs its text")
+	if t.text == nil || strings.TrimSpace(t.text.T(ctx)) == "" {
+		panic("elements: Tooltip with no text: a tooltip needs its text")
 	}
 	return ui.Slotted(tooltip(Merge(templ.Attributes{"class": "ui-tooltip"}, nil, t.attrs), t.text), TooltipTrigger).Render(ctx, w)
 }
@@ -199,6 +209,7 @@ func (h HeadingSpec) Render(ctx context.Context, w io.Writer) error {
 	if h.level < 1 || h.level > 6 {
 		panic(fmt.Sprintf("elements: Heading(%d): a heading's level is 1 to 6", h.level))
 	}
+	checkSize("Heading", h.size)
 	own := templ.Attributes{"class": "ui-heading"}
 	if h.size != Medium {
 		own["data-size"] = string(h.size)

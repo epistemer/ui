@@ -1,5 +1,7 @@
 package elements
 
+import "fmt"
+
 // Variant is a button's look.
 type Variant string
 
@@ -27,6 +29,30 @@ const (
 	Success Tone = "success"
 	Info    Tone = "info"
 )
+
+func checkVariant(component string, v Variant) {
+	switch v {
+	case Solid, Outline, Ghost:
+	default:
+		panic(fmt.Sprintf("elements: %s with variant %q: Solid, Outline or Ghost", component, v))
+	}
+}
+
+func checkSize(component string, s Size) {
+	switch s {
+	case Small, Medium, Large:
+	default:
+		panic(fmt.Sprintf("elements: %s with size %q: Small, Medium or Large", component, s))
+	}
+}
+
+func checkTone(component string, t Tone) {
+	switch t {
+	case "", Neutral, Brand, Danger, Warning, Success, Info:
+	default:
+		panic(fmt.Sprintf("elements: %s with tone %q: Neutral, Brand, Danger, Warning, Success or Info", component, t))
+	}
+}
 
 // toneAttr is the data-tone a component renders: none when the tone it
 // resolves to is its default.

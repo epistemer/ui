@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"strings"
 
 	"github.com/a-h/templ"
 	"github.com/epistemer/i18n"
@@ -101,6 +102,12 @@ func (b ButtonSpec) attributes(ctx context.Context) templ.Attributes {
 func (b ButtonSpec) Render(ctx context.Context, w io.Writer) error {
 	if b.href != "" && b.submit {
 		panic(fmt.Sprintf("elements: Button with href %q can't submit", b.href))
+	}
+	checkVariant("Button", b.variant)
+	checkSize("Button", b.size)
+	checkTone("Button", b.tone)
+	if b.label != nil && strings.TrimSpace(b.label.T(ctx)) == "" {
+		panic("elements: Button with a blank Label: an icon-only button needs a name")
 	}
 	if b.href != "" {
 		return linkTag(b.attributes(ctx)).Render(ctx, w)
