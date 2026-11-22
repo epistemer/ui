@@ -179,8 +179,9 @@ func (t *Table[R]) SelectionName() string // the parameter, for a form that carr
 Panics at declaration (`tables: <name>: …`):
 - a name not `[a-z][a-z0-9-]*`, no columns, a column twice;
 - a key that is neither text nor an integer;
-- a filter on a column named `q`, `sort`, `page` or `size` (S13), or whose
-  name forms can't take as a field's;
+- a filter on a column named `q`, `sort`, `page`, `size` (S13) or
+  `selected` (the selection's, T6; clarified in T2), or whose name forms
+  can't take as a field's;
 - `Searchable` on a column that isn't text; `Amount` on one that isn't an
   integer or a number (an integer of minor units is money too); more than
   one of `Link`, `Amount` and `Image` on one column;
@@ -197,8 +198,9 @@ column), since a row's controls are named by it. The first `Bind` or `Row`
 panics on what `Check` reports.
 
 A text key may hold any character: ids escape it (every byte outside
-`[A-Za-z0-9_-]` as `_xx`, hexadecimal), so an id stays one token and a
-valid selector.
+`[A-Za-z0-9-]` as `_xx`, hexadecimal; an underscore too, so an escape is
+never ambiguous: clarified in T2), so an id stays one token and a valid
+selector.
 
 ### 3.2 A request
 
