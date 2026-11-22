@@ -1,5 +1,5 @@
-// Package stories holds the D4 spike's stories, one file per package;
-// the catalogue serves them and the tests check them.
+// Package stories holds ui's own stories, one file per package; the
+// catalogue serves them and the tests check them.
 package stories
 
 import (
@@ -9,6 +9,7 @@ import (
 
 	"github.com/epistemer/ui/catalog"
 	"github.com/epistemer/ui/elements"
+	"github.com/epistemer/ui/layout"
 )
 
 func variant(name string, c templ.Component) catalog.Variant {
@@ -58,5 +59,19 @@ func All() []catalog.Story {
 		{Name: "components/tabs", Variants: []catalog.Variant{variant("navigation", tabsStory())}},
 		{Name: "components/toast", Variants: []catalog.Variant{variant("levels", toastsStory())}},
 		{Name: "components/detail-list", Variants: []catalog.Variant{variant("in-a-card", detailStory())}},
+		{Name: "layout/app", Variants: []catalog.Variant{
+			variant("shell", appShell(layout.SystemScheme, true)),
+			variant("dark-picked", appShell(layout.DarkScheme, true)),
+			variant("no-nav", appShell(layout.LightScheme, false)),
+			variant("toast", toastInApp()),
+		}},
+		{Name: "layout/auth", Variants: []catalog.Variant{
+			variant("sign-in", authShell(signInFresh())),
+			variant("sign-in-errors", authShell(signInErrors())),
+		}},
+		{Name: "layout/page-header", Variants: []catalog.Variant{
+			variant("full", ordersHeader()),
+			variant("title-only", titleOnlyHeader()),
+		}},
 	}
 }

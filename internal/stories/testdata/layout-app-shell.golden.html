@@ -1,0 +1,165 @@
+<div class="ui-app">
+  <a class="ui-app-skip" href="#ui-main">
+    Skip to content
+  </a>
+  <header class="ui-app-bar">
+    <button aria-controls="ui-app-nav" aria-expanded="false" aria-label="Open navigation" class="ui-app-nav-toggle" data-ui-nav-toggle="" type="button">
+      <svg aria-hidden="true" class="ui-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+        <path d="M4 5h16"></path>
+        <path d="M4 12h16"></path>
+        <path d="M4 19h16"></path>
+      </svg>
+    </button>
+    <div class="ui-app-brand">
+      Bricks &amp; Co
+    </div>
+    <div class="ui-app-bar-end">
+      <button aria-label="Search" class="ui-button" data-tone="neutral" data-variant="ghost" type="button">
+        <svg aria-hidden="true" class="ui-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+          <path d="m21 21-4.34-4.34"></path>
+          <circle cx="11" cy="11" r="8"></circle>
+        </svg>
+      </button>
+      <ui-menu class="ui-menu">
+        <button aria-controls="menu--t-1" aria-haspopup="menu" aria-label="Theme" class="ui-button" data-tone="neutral" data-variant="ghost" id="menu--t-1-trigger" popovertarget="menu--t-1" type="button">
+          <span class="ui-scheme-icon" data-scheme="light">
+            <svg aria-hidden="true" class="ui-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+              <circle cx="12" cy="12" r="4"></circle>
+              <path d="M12 2v2"></path>
+              <path d="M12 20v2"></path>
+              <path d="m4.93 4.93 1.41 1.41"></path>
+              <path d="m17.66 17.66 1.41 1.41"></path>
+              <path d="M2 12h2"></path>
+              <path d="M20 12h2"></path>
+              <path d="m6.34 17.66-1.41 1.41"></path>
+              <path d="m19.07 4.93-1.41 1.41"></path>
+            </svg>
+          </span>
+          <span class="ui-scheme-icon" data-scheme="dark">
+            <svg aria-hidden="true" class="ui-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+              <path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401"></path>
+            </svg>
+          </span>
+        </button>
+        <div aria-labelledby="menu--t-1-trigger" class="ui-menu-popover" id="menu--t-1" popover="" role="menu">
+          <button aria-checked="true" class="ui-menu-item ui-scheme-item" data-ui-color-scheme="system" role="menuitemradio" tabindex="-1" type="button">
+            <span class="ui-scheme-check">
+              <svg aria-hidden="true" class="ui-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+                <path d="M20 6 9 17l-5-5"></path>
+              </svg>
+            </span>
+            System
+          </button>
+          <button aria-checked="false" class="ui-menu-item ui-scheme-item" data-ui-color-scheme="light" role="menuitemradio" tabindex="-1" type="button">
+            <span class="ui-scheme-check">
+              <svg aria-hidden="true" class="ui-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+                <path d="M20 6 9 17l-5-5"></path>
+              </svg>
+            </span>
+            Light
+          </button>
+          <button aria-checked="false" class="ui-menu-item ui-scheme-item" data-ui-color-scheme="dark" role="menuitemradio" tabindex="-1" type="button">
+            <span class="ui-scheme-check">
+              <svg aria-hidden="true" class="ui-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+                <path d="M20 6 9 17l-5-5"></path>
+              </svg>
+            </span>
+            Dark
+          </button>
+        </div>
+      </ui-menu>
+    </div>
+  </header>
+  <nav aria-label="Main" class="ui-app-nav" id="ui-app-nav">
+    <a class="ui-nav-item" href="/dashboard">
+      Dashboard
+    </a>
+    <a aria-current="page" class="ui-nav-item" href="/orders">
+      Orders
+    </a>
+    <div aria-labelledby="nav-section--t-2-label" class="ui-nav-section" role="group">
+      <p class="ui-nav-section-label" id="nav-section--t-2-label">
+        Catalogue
+      </p>
+      <a class="ui-nav-item" href="/toys">
+        Toys
+      </a>
+      <a class="ui-nav-item" href="/stores">
+        Stores
+      </a>
+    </div>
+  </nav>
+  <main class="ui-app-main" id="ui-main" tabindex="-1">
+    <header class="ui-page-header">
+      <nav aria-label="Breadcrumb" class="ui-breadcrumbs">
+        <ol class="ui-breadcrumbs-list">
+          <li class="ui-breadcrumbs-item">
+            <a href="/">
+              Home
+            </a>
+          </li>
+          <li class="ui-breadcrumbs-item">
+            <svg aria-hidden="true" class="ui-icon" data-mirror="" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+              <path d="m9 18 6-6-6-6"></path>
+            </svg>
+            <a href="/shop">
+              Shop
+            </a>
+          </li>
+          <li class="ui-breadcrumbs-item">
+            <svg aria-hidden="true" class="ui-icon" data-mirror="" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+              <path d="m9 18 6-6-6-6"></path>
+            </svg>
+            <span aria-current="page">
+              Orders
+            </span>
+          </li>
+        </ol>
+      </nav>
+      <h1 class="ui-page-title">
+        Orders
+      </h1>
+      <p class="ui-page-description">
+        Every order placed in the last 30 days.
+      </p>
+      <div class="ui-page-actions">
+        <button class="ui-button" data-tone="neutral" data-variant="outline" type="button">
+          Export
+        </button>
+        <a class="ui-button" href="/orders/new">
+          <svg aria-hidden="true" class="ui-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+            <path d="M5 12h14"></path>
+            <path d="M12 5v14"></path>
+          </svg>
+          New order
+        </a>
+      </div>
+    </header>
+    <section class="ui-card">
+      <div class="ui-card-body">
+        <p>
+          Twelve orders are waiting to ship.
+        </p>
+      </div>
+    </section>
+  </main>
+  <dialog aria-describedby="ui-confirm-question" aria-labelledby="ui-confirm-title" class="ui-dialog" data-ui-confirm-dialog="" id="ui-confirm">
+    <header class="ui-dialog-header">
+      <h2 class="ui-dialog-title" id="ui-confirm-title">
+        Are you sure?
+      </h2>
+    </header>
+    <div class="ui-dialog-body">
+      <p id="ui-confirm-question"></p>
+    </div>
+    <footer class="ui-dialog-actions">
+      <button autofocus="" class="ui-button" command="close" commandfor="ui-confirm" data-tone="neutral" data-variant="ghost" type="button" value="cancel">
+        Cancel
+      </button>
+      <button class="ui-button" command="close" commandfor="ui-confirm" data-tone="danger" type="button" value="confirm">
+        Confirm
+      </button>
+    </footer>
+  </dialog>
+  <ui-toasts aria-live="polite" class="ui-toasts" id="ui-toasts" popover="manual"></ui-toasts>
+</div>

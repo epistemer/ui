@@ -1,0 +1,57 @@
+package layout
+
+import (
+	"github.com/epistemer/ui"
+	"github.com/epistemer/ui/components"
+	"github.com/epistemer/ui/elements"
+	"github.com/epistemer/ui/icons"
+)
+
+templ app(a AppSpec) {
+	{{ requireMain(ctx) }}
+	<div { elements.Merge(templ.Attributes{"class": "ui-app"}, nil, a.attrs)... }>
+		<a class="ui-app-skip" href="#ui-main">{ appSkip.T(ctx) }</a>
+		<header class="ui-app-bar">
+			if AppNav.Filled(ctx) {
+				<button type="button" class="ui-app-nav-toggle" aria-controls="ui-app-nav" aria-expanded="false" aria-label={ appOpenNav.T(ctx) } data-ui-nav-toggle>
+					@icons.Menu()
+				</button>
+			}
+			if AppBrand.Filled(ctx) {
+				<div class="ui-app-brand">
+					@AppBrand.Place()
+				</div>
+			}
+			if AppBar.Filled(ctx) {
+				<div class="ui-app-bar-end">
+					@AppBar.Place()
+				</div>
+			}
+		</header>
+		if AppNav.Filled(ctx) {
+			<nav id="ui-app-nav" class="ui-app-nav" aria-label={ appNavigation.T(ctx) }>
+				@AppNav.Place()
+			</nav>
+		}
+		<main id="ui-main" class="ui-app-main" tabindex="-1">
+			@AppMain.Place()
+		</main>
+		@components.ConfirmDialog()
+		@components.Toasts()
+	</div>
+}
+
+templ navLink(attrs templ.Attributes) {
+	<a { attrs... }>
+		{ children... }
+	</a>
+}
+
+templ navSection(n NavSectionSpec) {
+	@ui.Scope(navSectionID) {
+		<div { n.attributes(ctx)... }>
+			<p class="ui-nav-section-label" id={ navSectionID.Part(ctx, "label") }>{ n.label.T(ctx) }</p>
+			{ children... }
+		</div>
+	}
+}

@@ -1,1 +1,362 @@
 /* ui.layout: ui/layout's rules (visual-interface.md §8). */
+
+/* The app shell (§8.2): the bar, the navigation and the main content. The
+   breakpoint, 60rem, is the script's too (layout.js). The bar is 3.5em
+   high, which the drawer, the sticky column and scrolling all start below. */
+:root:has(.ui-app) {
+	scroll-padding-block-start: 3.5em;
+}
+
+.ui-app {
+	display: grid;
+	grid-template-areas: "bar" "nav" "main";
+	grid-template-rows: auto auto 1fr;
+	grid-template-columns: minmax(0, 1fr);
+	min-block-size: 100dvb;
+	background-color: var(--ui-color-surface);
+}
+
+/* The skip link: hidden until it has focus. */
+.ui-app-skip {
+	position: absolute;
+	inset-block-start: var(--ui-space-2);
+	inset-inline-start: var(--ui-space-2);
+	z-index: 4;
+	padding-block: var(--ui-space-2);
+	padding-inline: var(--ui-space-3);
+	border-radius: var(--ui-radius-m);
+	color: var(--ui-color-on-brand);
+	background-color: var(--ui-color-brand);
+
+	&:not(:focus) {
+		inline-size: 1px;
+		block-size: 1px;
+		padding: 0;
+		overflow: hidden;
+		clip-path: inset(50%);
+		white-space: nowrap;
+	}
+}
+
+.ui-app-bar {
+	grid-area: bar;
+	position: sticky;
+	inset-block-start: 0;
+	z-index: 2;
+	display: flex;
+	align-items: center;
+	gap: var(--ui-space-3);
+	block-size: 3.5em;
+	padding-inline: var(--ui-space-4);
+	border-block-end: 1px solid var(--ui-color-border);
+	background-color: var(--ui-color-surface-raised);
+}
+
+.ui-app-brand {
+	display: flex;
+	align-items: center;
+	gap: var(--ui-space-2);
+	font-size: var(--ui-text-l);
+	font-weight: 600;
+}
+
+.ui-app-bar-end {
+	display: flex;
+	align-items: center;
+	gap: var(--ui-space-2);
+	margin-inline-start: auto;
+}
+
+/* The toggle shows only on narrow screens once the script runs. */
+.ui-app-nav-toggle {
+	display: none;
+	align-items: center;
+	justify-content: center;
+	padding: var(--ui-space-2);
+	border: 0;
+	border-radius: var(--ui-radius-m);
+	color: inherit;
+	background-color: transparent;
+	cursor: pointer;
+
+	&:hover {
+		background-color: var(--ui-color-brand-subtle);
+	}
+}
+
+.ui-app-nav {
+	grid-area: nav;
+	display: flex;
+	flex-direction: column;
+	gap: var(--ui-space-1);
+	padding: var(--ui-space-3);
+	border-block-end: 1px solid var(--ui-color-border);
+	background-color: var(--ui-color-surface-raised);
+}
+
+.ui-app-main {
+	grid-area: main;
+	padding: var(--ui-space-5);
+
+	/* #ui-main takes focus only as the skip link's and a dismissed toast's
+	   target: no ring around the whole page. */
+	&:focus {
+		outline: none;
+	}
+}
+
+.ui-nav-item {
+	display: flex;
+	align-items: center;
+	gap: var(--ui-space-2);
+	padding-block: var(--ui-space-2);
+	padding-inline: var(--ui-space-3);
+	border-radius: var(--ui-radius-s);
+	color: inherit;
+	text-decoration: none;
+
+	&:hover {
+		background-color: var(--ui-color-brand-subtle);
+	}
+
+	&[aria-current="page"] {
+		font-weight: 600;
+		color: var(--ui-color-brand-text);
+		background-color: var(--ui-color-brand-subtle);
+	}
+}
+
+.ui-nav-section {
+	display: flex;
+	flex-direction: column;
+	gap: var(--ui-space-1);
+	margin-block-start: var(--ui-space-3);
+}
+
+.ui-nav-section-label {
+	margin: 0;
+	padding-inline: var(--ui-space-3);
+	font-size: var(--ui-text-xs);
+	font-weight: 600;
+	text-transform: uppercase;
+	color: var(--ui-color-text-muted);
+}
+
+/* Narrow screens, with the script: the navigation is a drawer from the
+   start edge, shown while the toggle is expanded. */
+@media (width < 60rem) {
+	:root[data-ui-ready] .ui-app {
+		& .ui-app-nav-toggle {
+			display: inline-flex;
+		}
+
+		/* Below the bar, so its toggle stays in reach to close it. */
+		& .ui-app-nav {
+			position: fixed;
+			inset-block: 3.5em 0;
+			inset-inline-start: 0;
+			z-index: 1;
+			inline-size: min(18em, 85vi);
+			overflow-block: auto;
+			border-block-end: 0;
+			border-inline-end: 1px solid var(--ui-color-border);
+			box-shadow: var(--ui-shadow-3);
+		}
+
+		&:not(:has(.ui-app-nav-toggle[aria-expanded="true"])) .ui-app-nav {
+			display: none;
+		}
+	}
+}
+
+/* Wide screens: a static column. */
+@media (width >= 60rem) {
+	.ui-app:has(> .ui-app-nav) {
+		grid-template-areas: "bar bar" "nav main";
+		grid-template-rows: auto 1fr;
+		grid-template-columns: 16em minmax(0, 1fr);
+	}
+
+	.ui-app-nav {
+		position: sticky;
+		inset-block-start: 3.5em;
+		align-self: start;
+		max-block-size: calc(100dvb - 3.5em);
+		overflow-block: auto;
+		border-block-end: 0;
+		border-inline-end: 1px solid var(--ui-color-border);
+		background-color: transparent;
+	}
+}
+
+/* The colour scheme menu (§8.2): the trigger shows the scheme in use, the
+   items a check on the one picked. */
+.ui-scheme-icon {
+	display: inline-flex;
+
+	&[data-scheme="dark"] {
+		display: none;
+	}
+}
+
+:root[data-color-scheme="dark"] .ui-scheme-icon {
+	&[data-scheme="light"] {
+		display: none;
+	}
+
+	&[data-scheme="dark"] {
+		display: inline-flex;
+	}
+}
+
+@media (prefers-color-scheme: dark) {
+	:root:not([data-color-scheme="light"]) .ui-scheme-icon {
+		&[data-scheme="light"] {
+			display: none;
+		}
+
+		&[data-scheme="dark"] {
+			display: inline-flex;
+		}
+	}
+}
+
+.ui-scheme-item {
+	display: flex;
+	align-items: center;
+	gap: var(--ui-space-2);
+}
+
+.ui-scheme-check {
+	display: inline-flex;
+	visibility: hidden;
+
+	.ui-scheme-item[aria-checked="true"] > & {
+		visibility: visible;
+	}
+}
+
+/* The auth shell (§8.3): a card centred on the page. */
+.ui-auth {
+	display: grid;
+	place-items: center;
+	min-block-size: 100dvb;
+	padding: var(--ui-space-4);
+	background-color: var(--ui-color-surface);
+}
+
+.ui-auth-card {
+	display: flex;
+	flex-direction: column;
+	gap: var(--ui-space-4);
+	inline-size: min(100%, 26em);
+	padding: var(--ui-space-6);
+	border: 1px solid var(--ui-color-border);
+	border-radius: var(--ui-radius-l);
+	background-color: var(--ui-color-surface-raised);
+	box-shadow: var(--ui-shadow-2);
+
+	&:focus {
+		outline: none;
+	}
+}
+
+.ui-auth-brand {
+	display: flex;
+	justify-content: center;
+	font-size: var(--ui-text-l);
+	font-weight: 600;
+}
+
+.ui-auth-title {
+	margin: 0;
+	font-size: var(--ui-text-xl);
+	text-align: center;
+}
+
+.ui-auth-body {
+	display: flex;
+	flex-direction: column;
+	gap: var(--ui-space-4);
+
+	/* The form the body holds lays its fields out the same way. */
+	& > form {
+		display: flex;
+		flex-direction: column;
+		gap: var(--ui-space-4);
+	}
+}
+
+.ui-auth-footer {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: center;
+	gap: var(--ui-space-3);
+	padding-block-start: var(--ui-space-4);
+	border-block-start: 1px solid var(--ui-color-border);
+	font-size: var(--ui-text-s);
+}
+
+/* The page header (§8.4): breadcrumbs above, the title and description at
+   the start, the actions at the end. */
+.ui-page-header {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) auto;
+	grid-template-areas: "crumbs crumbs" "title actions" "description actions";
+	margin-block-end: var(--ui-space-5);
+}
+
+.ui-breadcrumbs {
+	grid-area: crumbs;
+	margin-block-end: var(--ui-space-2);
+	font-size: var(--ui-text-s);
+}
+
+.ui-breadcrumbs-list {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: var(--ui-space-1);
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.ui-breadcrumbs-item {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--ui-space-1);
+	color: var(--ui-color-text-muted);
+
+	& a {
+		color: inherit;
+	}
+
+	& [aria-current="page"] {
+		color: var(--ui-color-text);
+	}
+}
+
+.ui-page-title {
+	grid-area: title;
+	margin: 0;
+	font-size: var(--ui-text-xl);
+}
+
+/* Spacing by margins, not gaps: a missing part leaves an empty track,
+   which a gap would still space. */
+.ui-page-description {
+	grid-area: description;
+	margin: 0;
+	margin-block-start: var(--ui-space-1);
+	color: var(--ui-color-text-muted);
+}
+
+.ui-page-actions {
+	grid-area: actions;
+	align-self: center;
+	margin-inline-start: var(--ui-space-4);
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--ui-space-2);
+}

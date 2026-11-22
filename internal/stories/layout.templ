@@ -1,0 +1,107 @@
+package stories
+
+import (
+	"github.com/epistemer/i18n"
+	"github.com/epistemer/ui/components"
+	"github.com/epistemer/ui/elements"
+	"github.com/epistemer/ui/forms"
+	"github.com/epistemer/ui/icons"
+	"github.com/epistemer/ui/inputs"
+	"github.com/epistemer/ui/layout"
+)
+
+// appShell is the app shell around an orders page, with the colour scheme
+// menu showing scheme as picked.
+templ appShell(scheme layout.ColorScheme, withNav bool) {
+	@layout.App() {
+		@layout.AppBrand {
+			Bricks & Co
+		}
+		if withNav {
+			@layout.AppNav {
+				@layout.NavItem("/dashboard") {
+					Dashboard
+				}
+				@layout.NavItem("/orders").Current(true) {
+					Orders
+				}
+				@layout.NavSection(i18n.Static("Catalogue")) {
+					@layout.NavItem("/toys") {
+						Toys
+					}
+					@layout.NavItem("/stores") {
+						Stores
+					}
+				}
+			}
+		}
+		@layout.AppBar {
+			@elements.Button().Variant(elements.Ghost).Tone(elements.Neutral).Label(i18n.Static("Search")) {
+				@icons.Search()
+			}
+			@layout.ColorSchemeMenu(scheme)
+		}
+		@layout.AppMain {
+			@ordersHeader()
+			@elements.Card() {
+				@elements.CardBody {
+					<p>Twelve orders are waiting to ship.</p>
+				}
+			}
+		}
+	}
+}
+
+templ ordersHeader() {
+	@layout.PageHeader(i18n.Static("Orders")).Description(i18n.Static("Every order placed in the last 30 days.")).Breadcrumbs(
+		layout.Crumb{Href: "/", Text: i18n.Static("Home")},
+		layout.Crumb{Href: "/shop", Text: i18n.Static("Shop")},
+		layout.Crumb{Text: i18n.Static("Orders")},
+	) {
+		@elements.Button().Variant(elements.Outline).Tone(elements.Neutral) {
+			Export
+		}
+		@elements.Button().Href("/orders/new") {
+			@icons.Plus()
+			New order
+		}
+	}
+}
+
+templ titleOnlyHeader() {
+	@layout.PageHeader(i18n.Static("Settings")) {
+	}
+}
+
+templ authShell(f *forms.Form) {
+	@layout.Auth(i18n.Static("Sign in")) {
+		@layout.AuthBrand {
+			Bricks & Co
+		}
+		@layout.AuthBody {
+			<form method="post" action="/catalog/none" novalidate>
+				for c := range f.Controls() {
+					@inputs.Field(c)
+				}
+				@elements.Button().Submit() {
+					Sign in
+				}
+			</form>
+		}
+		@layout.AuthFooter {
+			<a href="/forgot">Forgot your password?</a>
+			<a href="/join">Create an account</a>
+		}
+	}
+}
+
+// toastInApp shows the shell's toast region in use.
+templ toastInApp() {
+	@layout.App() {
+		@layout.AppMain {
+			@layout.PageHeader(i18n.Static("Stores")) {
+			}
+			@components.Toast(i18n.Static("The store was saved.")).Tone(elements.Success)
+		}
+	}
+}

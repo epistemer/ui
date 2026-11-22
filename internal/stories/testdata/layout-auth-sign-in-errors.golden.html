@@ -1,0 +1,98 @@
+<div class="ui-auth">
+  <main class="ui-auth-card" id="ui-main" tabindex="-1">
+    <div class="ui-auth-brand">
+      Bricks &amp; Co
+    </div>
+    <h1 class="ui-auth-title">
+      Sign in
+    </h1>
+    <div class="ui-auth-body">
+      <form action="/catalog/none" method="post" novalidate="">
+        <div class="ui-field">
+          <label class="ui-field-label" for="field--t-1">
+            Email
+            <span aria-hidden="true" class="ui-field-required">
+              *
+            </span>
+          </label>
+          <input class="ui-input" dir="ltr" id="field--t-1" name="email" required="" type="email" value="shop@example.com">
+        </div>
+        <div class="ui-field">
+          <label class="ui-field-label" for="field--t-2">
+            Password
+            <span aria-hidden="true" class="ui-field-required">
+              *
+            </span>
+          </label>
+          <div class="ui-field-row">
+            <input aria-describedby="field--t-2-error" aria-invalid="true" class="ui-input" id="field--t-2" minlength="12" name="password" required="" type="password">
+            <button aria-controls="field--t-2" aria-label="Show password" aria-pressed="false" class="ui-field-reveal" data-ui-reveal="" type="button">
+              <svg aria-hidden="true" class="ui-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+                <path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"></path>
+                <circle cx="12" cy="12" r="3"></circle>
+              </svg>
+              <svg aria-hidden="true" class="ui-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+                <path d="M10.733 5.076a10.744 10.744 0 0 1 11.205 6.575 1 1 0 0 1 0 .696 10.747 10.747 0 0 1-1.444 2.49"></path>
+                <path d="M14.084 14.158a3 3 0 0 1-4.242-4.242"></path>
+                <path d="M17.479 17.499a10.75 10.75 0 0 1-15.417-5.151 1 1 0 0 1 0-.696 10.75 10.75 0 0 1 4.446-5.143"></path>
+                <path d="m2 2 20 20"></path>
+              </svg>
+            </button>
+          </div>
+          <p class="ui-field-error" id="field--t-2-error">
+            <svg aria-hidden="true" class="ui-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+              <circle cx="12" cy="12" r="10"></circle>
+              <path d="m15 9-6 6"></path>
+              <path d="m9 9 6 6"></path>
+            </svg>
+            <span class="ui-visually-hidden">
+              Error:
+            </span>
+            must be at least 12 characters
+          </p>
+        </div>
+        <div class="ui-field">
+          <p class="ui-field-help" id="field--t-3-help">
+            On this device only.
+          </p>
+          <div class="ui-field-row">
+            <input aria-describedby="field--t-3-help" class="ui-input" id="field--t-3" name="remember" type="checkbox" value="true">
+            <label class="ui-field-label" for="field--t-3">
+              Keep me signed in
+            </label>
+          </div>
+        </div>
+        <button class="ui-button" type="submit">
+          Sign in
+        </button>
+      </form>
+    </div>
+    <div class="ui-auth-footer">
+      <a href="/forgot">
+        Forgot your password?
+      </a>
+      <a href="/join">
+        Create an account
+      </a>
+    </div>
+  </main>
+  <ui-toasts aria-live="polite" class="ui-toasts" id="ui-toasts" popover="manual"></ui-toasts>
+  <dialog aria-describedby="ui-confirm-question" aria-labelledby="ui-confirm-title" class="ui-dialog" data-ui-confirm-dialog="" id="ui-confirm">
+    <header class="ui-dialog-header">
+      <h2 class="ui-dialog-title" id="ui-confirm-title">
+        Are you sure?
+      </h2>
+    </header>
+    <div class="ui-dialog-body">
+      <p id="ui-confirm-question"></p>
+    </div>
+    <footer class="ui-dialog-actions">
+      <button autofocus="" class="ui-button" command="close" commandfor="ui-confirm" data-tone="neutral" data-variant="ghost" type="button" value="cancel">
+        Cancel
+      </button>
+      <button class="ui-button" command="close" commandfor="ui-confirm" data-tone="danger" type="button" value="confirm">
+        Confirm
+      </button>
+    </footer>
+  </dialog>
+</div>
