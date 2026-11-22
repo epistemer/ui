@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | **Draft** for epistemer's lock (roadmap D7.5), reviewed ([0015](reviews/0015-d7-5-contract.md)). Questions T1–T11 (§10) carry defaults; taking them locks the text as written. Once locked it is amendment A6 to [visual-interface.md](visual-interface.md), whose §13 records it |
+| Status | **Locked by epistemer on 2026-11-22, with the defaults of T1–T11** (reviewed in [0015](reviews/0015-d7-5-contract.md)). It is amendment A6 to [visual-interface.md](visual-interface.md), whose §13.5 records it. A change that alters what an app writes or gets back is an amendment |
 | Date | 2026-11-22 |
 | Roadmap item | D7.5 |
 | Inputs | [server-state-design.md](server-state-design.md) (decisions S1–S22, the spike's findings §12.1), ADRs [0008](adr/0008-links.md)–[0010](adr/0010-tables.md), reviews [0012](reviews/0012-server-state-design.md) and [0014](reviews/0014-d7-2-spike.md), the spike in `internal/spike`, handlers v0.2.0 (`handlers.Link`, `handlers.Gate`) and models v0.4.0 (`column`) |
@@ -669,9 +669,10 @@ keyed ids. `CheckNames`, `CheckIDs` and `CheckSelectors` run on every
 story; keyboard and focus after a swap are checked in the pane until the
 browser test job exists.
 
-## 10. Questions for epistemer
+## 10. Questions, answered
 
-Each has a default; taking it locks the text above as written.
+epistemer took every default on 2026-11-22, so the text above is locked as
+written.
 
 | # | Question | Default | Alternative |
 |---|---|---|---|

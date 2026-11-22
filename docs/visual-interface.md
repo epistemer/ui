@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | **Locked by epistemer on 2026-11-22 (D6), with the defaults of V1–V18.** Amendment A5 (links, §2.7 and §13.4) was locked the same day. It stays a document of its own beside [interface.md](interface.md), whose §10 records the lock and amendment A4 (uitest, §13.1). A change to anything here that alters what an app writes or gets back is an amendment |
+| Status | **Locked by epistemer on 2026-11-22 (D6), with the defaults of V1–V18.** Amendment A5 (links, §2.7 and §13.4) was locked the same day, and A6 (actions and tables, §13.5) after it. It stays a document of its own beside [interface.md](interface.md), whose §10 records the lock and amendment A4 (uitest, §13.1). A change to anything here that alters what an app writes or gets back is an amendment |
 | Date | 2026-11-22 |
 | Roadmap item | D5 |
 | Inputs | [visual-design.md](visual-design.md) §2–§11 (Q1–Q9 and the spike's findings), ADRs [0004](adr/0004-own-css.md), [0005](adr/0005-client-behaviour.md), [0006](adr/0006-goja-for-script-tests.md), reviews [0002](reviews/0002-visual-design.md)–[0004](reviews/0004-d4-part2.md), the spike in `internal/spike`, and review [0005](reviews/0005-visual-interface.md) of this draft |
@@ -1390,6 +1390,24 @@ v0.2.0 is tagged. Built on 2026-11-22 (review 0013).
   image's `src` are in on the design's S8, which stands on its default.
 - §2.7 is new. Nothing these components render changes for the same
   address.
+
+### 13.5 Actions and tables (amendment A6)
+
+Locked by epistemer on 2026-11-22 with the defaults of T1–T11. The contract
+is [server-state-interface.md](server-state-interface.md): `ui/actions`,
+`ui/tables`, their test kits, and what components gain. It changes these
+locked parts (its §5):
+
+- `ButtonSpec` and `MenuItemSpec` gain `Unavailable(reason i18n.Ter)` (S21):
+  `aria-disabled`, focusable, inert, described by the reason. Menus' arrow
+  keys stop on unavailable items and still skip `Disabled` ones (§7.3).
+- `MenuSpec` gains `ID(id string)`, a keyed id for its trigger (§7.3).
+- The shells (§8.2, §8.3) render `ActionForm` and `ActionDialog` beside
+  `ConfirmDialog` and `Toasts`.
+- ADR 0005's list of what emits `hx-*` gains the table's state controls,
+  the action placements and `Reply`.
+
+The roadmap's T milestones build it, through v0.3.0.
 
 ## 14. Questions for epistemer
 
