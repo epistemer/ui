@@ -9,6 +9,32 @@ taken for epistemer, what's next, and what's waiting on epistemer.
 
 
 
+## 2026-11-22 — D8.2: the slice spike of the remote select, uploads and list fields
+
+**Landed** (Claude):
+- `internal/spike` again, mounted by the catalogue at `/spike/order` and
+  `/spike/table`: the toy order form with a customer remote select, a
+  receipt upload with two stored files, and lines (a list holding a
+  remote select, a file and a nested list); a filter form inside a
+  `<ui-table>`; a remote select in the action dialog. The design's forms
+  shapes are declared locally, keyed by path; nothing in forms or inputs
+  changed. Go tests check ids, names, selectors, the `Labeler` rules and
+  the keep keys.
+- Checked in the pane by script, and with real keys for Esc, Enter and
+  Tab, in LTR and RTL, light and dark. Seven findings amended the design
+  (§8.1): R5's suggestion becomes a ui struct (models' option label is a
+  key), `Control.Bounds()`, an Add button named for its list, count-free
+  bound texts, announcements through a timer, htmx's progress events
+  telling upload from download only by order, and a remote filter owned
+  by its table.
+- Review [0020](reviews/0020-d8-2-spike.md).
+
+**Next.** D8.3, the handlers amendment (a per-route body limit), then
+D8.4, the contract.
+
+**Open for epistemer** (API design): R1–R28, unchanged in number; R5's
+default changed with the spike.
+
 ## 2026-11-22 — D8.1: the design of the remote select, uploads and list fields
 
 **Landed** (Claude), docs only:
