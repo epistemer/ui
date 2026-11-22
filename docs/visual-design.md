@@ -462,3 +462,35 @@ forms-backed field, Dialog, the shared confirmation and Menu (part 2).
 19. **A three-state boolean isn't a checkbox.** A checkbox can't say "no
     answer", so `Bool` (forms' toggle) renders as a Yes/No select with an
     empty first option.
+20. **The guidance tool agrees on most points, and corrects four.**
+    `modern-web-guidance` ran once Node 24 was installed (2026-11-22). Its
+    guides for menus, placement, dialogs, dark mode, validation and toasts
+    back:
+    - the native `<dialog>` with no extra role;
+    - `:user-invalid`;
+    - flip fallbacks;
+    - typeahead that matches the next item after the current one;
+    - anchoring gated on `@supports`, with script placement as the
+      fallback.
+
+    It corrects these, for D5 to carry into the interface:
+    - **Browser support.** Anchor positioning has limited availability:
+      Firefox lacks it. Popover has been Baseline since January 2025, so it
+      isn't widely available yet. ADR 0004 is amended.
+    - **Menus.** The guide's trigger is `commandfor` with
+      `command="toggle-popover"`, which also anchors implicitly, and the
+      items go in a native `focusgroup="menu nomemory"`. Roles and the
+      arrow keys are added by script only where `focusgroup` is missing
+      (Chrome and Edge 150 have it). The spike used `popovertarget`, older
+      and Baseline, with roles and keys always from script. D5 decides.
+      Either way, the fallback placement must flip and clamp to the
+      viewport, which the spike's doesn't.
+    - **Fields.** A hint goes above the control, so autocomplete and the
+      on-screen keyboard don't cover it; the spike put help below. Each
+      error message starts with an icon whose text alternative is "Error",
+      so an error isn't shown by colour alone.
+    - **Dialogs and toasts.** A modal needs `overscroll-behavior: contain`
+      on the dialog and on `::backdrop`, so scrolling doesn't reach the
+      page behind it. The confirmation should `autofocus` Cancel rather
+      than rely on order. The guide's toasts are `popover="manual"`;
+      `ariaNotify()` is Baseline only since September 2026.

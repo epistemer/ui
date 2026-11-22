@@ -3,6 +3,22 @@
 Newest entry first. Each working session adds one: what landed, decisions
 taken for epistemer, what's next, and what's waiting on epistemer.
 
+## 2026-11-22 — Guidance cross-check of the spike
+
+epistemer upgraded Node to 24, so the `modern-web-guidance` tool now runs.
+Its guides for menus, dropdown placement, dialogs, dark mode, validation
+and toasts were checked against the spike (visual-design.md §11,
+finding 20). Most of the spike's choices hold. Four corrections go to D5:
+- Browser support: anchor positioning has limited availability (Firefox
+  lacks it), and popover is only newly available. ADR 0004's figures are
+  amended.
+- Menus: `commandfor` triggers and native `focusgroup`, and a fallback
+  placement that flips and clamps.
+- Fields: hints above the control, and an "Error" text alternative on
+  error messages.
+- Dialogs: scroll containment, and `autofocus` on the confirmation's
+  Cancel.
+
 ## 2026-11-22 — Design of the visual packages (D1–D3)
 
 **Landed** (this PR):
