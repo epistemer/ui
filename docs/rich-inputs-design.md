@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | Draft. Every question in §9 (R1–R28) has a default and stands on it until epistemer answers or the lock (D8.4) takes the defaults. Nothing here is built |
+| Status | Draft, amended by the D8.2 spike's findings (§8.1). Every question in §9 (R1–R28) has a default and stands on it until epistemer answers or the lock (D8.4) takes the defaults |
 | Date | 2026-11-22 |
 | Roadmap item | D8.1 |
 | Review | [0019](reviews/0019-rich-inputs-design.md) |
@@ -174,6 +174,8 @@ choice. On `connectedCallback` the script upgrades it to:
   becomes the chosen name. The upgrade can flash the id for a frame before
   the module runs; the spike measures it, and CSS on
   `ui-combobox:not(:defined)` is the fallback.
+- `inputmode="numeric"` only for an integer field; a text id (a uuid)
+  takes none.
 - Every text the script shows or announces is rendered by the server into
   `data-ui-texts`, translated (ADR 0005: the script holds no catalogue).
 - The clear button is out of the Tab order (`tabindex="-1"`): the keyboard
@@ -245,16 +247,18 @@ func (h *H) CustomerSearch(w http.ResponseWriter, r *http.Request) error {
 	if err != nil {
 		return err
 	}
-	opts := make([]option.SelectOption, 0, len(rows))
+	opts := make([]components.Suggestion, 0, len(rows))
 	for _, c := range rows {
-		opts = append(opts, components.Suggestion(strconv.FormatInt(c.ID, 10), i18n.Static(c.Name)))
+		opts = append(opts, components.Suggestion{Value: strconv.FormatInt(c.ID, 10), Label: i18n.Static(c.Name)})
 	}
 	return components.Suggestions(opts...).Render(r.Context(), w)
 }
 ```
 
-- A suggestion is models' `option.SelectOption` (R5): a value and an
-  `i18n.Ter`. `components.Suggestion(value, label)` makes one for a row.
+- A suggestion is ui's `components.Suggestion{Value string; Label
+  i18n.Ter}` (R5). Not models' `option.SelectOption`, whose `Label()` is
+  an `i18n.TKer`, a translation key: a row's name is data and has none
+  (found by the spike, §8.1).
   ui adds no type and no request parser: `q` is one line to read.
 - `Suggestions` renders `<ul data-ui-suggestions [data-ui-more]>` holding
   `<li data-value="…">label</li>` per option, at most `SuggestionLimit`
@@ -440,12 +444,17 @@ f.Receipt = f.Upload("receipt", stored).Label(…).Required().
 - **Size and type, before sending** (R22): the script checks
   `data-ui-max-size` and `accept` on change and shows ui's own message
   (`ui.inputs.upload.too_large`, `ui.inputs.upload.wrong_type`, from
-  `data-ui-texts`) in the field's error, through `setCustomValidity` so
-  the form won't submit. The server still checks: the script only saves a
+  `data-ui-texts`) in the field's error, and sets `setCustomValidity`.
+  ui's forms are `novalidate`, so that alone blocks nothing: a capturing
+  `submit` listener refuses a form holding such a field, before htmx or
+  the browser sends it, and focuses the field (found in review 0020). The server still checks: the script only saves a
   long upload that would fail.
 - **Progress** (R19): with htmx, the script listens to `htmx:xhr:progress`
   on the form and fills the `<progress>` of each upload field that has
-  files chosen, and no other. The bar hides when the answer arrives, and
+  files chosen, and no other. htmx sends the download's progress under
+  the same name, so the script listens to the request's own
+  `xhr.upload`, which `htmx:beforeSend` hands over before the body goes
+  (spiked). The bar hides when the answer arrives, and
   nothing announces "uploaded": an upload done isn't a form saved, and the
   answer (a 422 or a reply) speaks for itself. The progress is never
   focused. Without htmx, the browser's own progress shows.
@@ -498,7 +507,7 @@ today, visual-interface §6.1):
       …
     </ol>
     <template>…the template row at lines[__i__], the same markup…</template>
-    <button type="button" class="ui-list-add" data-ui-add hidden>Add item</button>
+    <button type="button" class="ui-list-add" data-ui-add hidden>Add to Lines</button>
     <p class="ui-visually-hidden" role="status"></p>
   </ui-repeat>
   <p class="ui-field-error">…</p>
@@ -576,6 +585,8 @@ amendment A7 (D8.4), locked by epistemer.
 - §5.10: `Control.Lost() bool`, true for a file field that was posted
   files in a form that failed (§4.4).
 - §5.8: an unbound list without items holds `MinItems` blank ones (R27).
+- §5.10: `Control.Bounds() (min, max int)` for a list: `<ui-repeat>`
+  needs both, and a control exposes neither today (found by the spike).
 - §6.2: `rule.Files`, `rule.MinFiles`, `rule.MaxFiles` for `Upload`;
   `MaxSize` adds `data-ui-max-size` to `Control.Attrs`.
 - forms-design §10.3's bullets on current-file URLs and search endpoints
@@ -593,7 +604,9 @@ amendment A7 (D8.4), locked by epistemer.
 
 **server-state-interface.md (locked, A6):**
 - §6: `Column.Remote`; the filter table's row for a link column; chips
-  name a link filter through the `Labeler`.
+  name a link filter through the `Labeler`. Its parameter is one the
+  table owns (`data-ui-own`), like any filter's, or the live-address
+  merge drops it (spiked).
 
 **ADR 0005:** the remote select leaves the list of what emits `hx-*`; it
 fetches by itself (R4).
@@ -614,16 +627,16 @@ fetches by itself (R4).
 | List | Nested fieldsets with legends; Add and Remove named for the item; focus moves as §5.2 and §5.3 say; min and max explained, not just disabled |
 
 New keys, all `ui.inputs.*`: `combobox.clear` ("Clear %s"),
-`combobox.results` ("%d results"), `combobox.none` ("No matches"),
+`combobox.results` ("Results: %d"), `combobox.none` ("No matches"),
 `combobox.failed` ("Couldn't search. Try again."), `combobox.more` ("Keep
 typing to narrow these down"), `upload.keep` ("Keep %s"), `upload.remove`
 ("Remove %s"), `upload.undo` ("Undo"), `upload.chosen` ("%s chosen"),
 `upload.again` ("Choose the files again"), `upload.too_large` ("%s is
 larger than %s"), `upload.wrong_type` ("%s isn't a type this field
-takes"), `list.item` ("Item %d"), `list.add` ("Add item"),
+takes"), `list.item` ("Item %d"), `list.add` ("Add to %s", the list's label),
 `list.remove` ("Remove item %d"), `list.added`, `list.removed`,
-`list.at_most` ("At most %d items"), `list.at_least` ("At least %d
-items"). Texts are drafts until the lock.
+`list.at_most` ("Maximum: %d"), `list.at_least` ("Minimum: %d"; texts
+with no noun after the count, since i18n has no plurals). Texts are drafts until the lock.
 
 ## 8. The slice spike (D8.2)
 
@@ -657,6 +670,65 @@ with script on and off, LTR and RTL, light and dark, and passes goldens,
 Its findings amend this design before the contract is drafted, as D7.2's
 did.
 
+### 8.1 What the spike found
+
+The spike ran on 2026-11-22 in `internal/spike`, and was reviewed
+([0020](reviews/0020-d8-2-spike.md)); its script's fixes were checked
+again in the pane. It was mounted by the catalogue at `/spike/order` and `/spike/table`, with htmx 2.0.11. Its Go tests check
+the pages with `CheckIDs`, `CheckNames` and `CheckSelectors`, the
+`Labeler` rules and the keep keys; the browser pane checked the rest, by
+script and, for Esc, Enter and Tab, with real keys.
+
+What held, as written:
+- **The combobox**: the upgrade from the shape without script; searching,
+  cancelling, counting results; Down, Up, Enter, Esc (three presses
+  inside the modal dialog: popup, text, then the dialog), Tab clearing
+  empty text and skipping the clear button, Enter submitting only a
+  committed value; the popup above the modal dialog (a hit test lands in
+  it); a redirected answer failing cleanly; no htmx request and no
+  `aria-busy` inside a `<ui-table>`; the refused link left as typed; the
+  hidden input's events reaching a filter form. LTR and RTL, light and
+  dark: the popup lines up with the input either way.
+- **The list**: adding into a nested list (the inner list's path and its
+  template's `__i__`, rewritten as §5.2 says); fresh ids with every
+  reference intact (none duplicated, none broken); a condition rewritten
+  and evaluated in the clone; renumbered legends and Remove buttons; focus
+  after add and remove; both bounds unavailable with their reason; a
+  combobox in a clone upgrading itself.
+- **The upload**: keep cards over the checkboxes; the chosen list and its
+  status; the size check through `setCustomValidity`; after a 422, the
+  keep state as left, the note, and the next save keeping only what was
+  kept; a repeated or unknown key dropped.
+- **`LabelOf`**: once per id per request (five lines of one product made
+  one call); text that didn't convert never looked up; a miss shown as
+  the id; a failing `Labeler` a 500.
+
+What changed the design:
+
+| # | Finding | Change |
+|---|---|---|
+| 1 | models' `option.SelectOption` has `Label() i18n.TKer`, a key; a row's name is data | R5's default is ui's own `components.Suggestion{Value, Label i18n.Ter}` (§3.3) |
+| 2 | forms' `Control` exposes neither bound of a list, which `<ui-repeat>` needs | `Control.Bounds()` joins the contract list (§6) |
+| 3 | In a nested list, two buttons named "Add item" can't be told apart | `list.add` is "Add to %s", with the list's label (§5.1, §7) |
+| 4 | "At least 1 items": a count followed by a noun needs plurals, which i18n lacks | "Minimum: %d", "Maximum: %d" (§7) |
+| 5 | A hidden page runs no animation frames, so a status set in one is never written | The script announces through a timer, never a frame |
+| 6 | htmx 2.0.11 fires `htmx:xhr:progress` for the upload and the download alike, with nothing to tell them apart | The bar listens to the request's own `xhr.upload`, from `htmx:beforeSend` (§4.3; the first fix, following events until one reached its total, failed review 0020) |
+| 7 | A filter the table doesn't own is dropped by the live-address merge | `Column.Remote`'s parameter is owned like any filter's (§6) |
+| 8 | "1 results" has the plural problem of finding 4 | "Results: %d" (§7) |
+| 9 | ui's forms are `novalidate`, so `setCustomValidity` blocks no submit (review 0020) | The script refuses the submit itself (§4.3) |
+
+Not settled by the spike:
+- The upgrade's flash of the id: the pane was hidden, so nothing painted
+  to measure. It moves to the build, in a visible pane.
+- A screen-reader pass: none was run; the roles, names and live regions
+  were checked in the DOM only.
+- A real `<ui-table>` filter: `tables` has no `Remote` yet, so a stand-in
+  form inside a `<ui-table>` carried the check, and no chip was drawn.
+- A single-file `Upload` replacing its stored file, and `Required`,
+  `MinFiles` and `MaxFiles` on an upload: the spike's receipt is an
+  `Uploads` bound by hand, keeping and adding only.
+- A text id (a uuid) in a remote select: every spiked id is an integer.
+
 ## 9. Decisions
 
 All stand on their defaults until epistemer answers. Each is API design.
@@ -667,7 +739,7 @@ All stand on their defaults until epistemer answers. Each is API design.
 | R2 | Who calls the `Labeler` | `inputs`, at render. forms carries it and never calls it | forms calls it in `Validate`, and a miss is a field error: a models clarification first, since `LabelOf` is documented for display |
 | R3 | A remote select without script | A text input of the id, with the chosen name beside it | Nothing usable: the field renders read-only |
 | R4 | How the search is requested | The ui script's own `fetch`, debounced and cancelled; no `hx-*`. Removes the remote select from ADR 0005's `hx-*` list | htmx (`hx-get` on the input), with the actions and table scripts taught to ignore it and `htmx.process` called on clones |
-| R5 | The suggestion type, and parsing the search request | models' `option.SelectOption`; `components.Suggestion(value, label)`; no parser, `q` is read by the handler | A ui type with a description line per option, and a `Search(r)` helper |
+| R5 | The suggestion type, and parsing the search request | ui's `components.Suggestion{Value, Label}` (a struct, `Label` an `i18n.Ter`); no parser, `q` is read by the handler. Models' `option.SelectOption` doesn't fit: its label is a key | A `Search(r)` helper, and a description line per suggestion |
 | R6 | More suggestions than fit | The first 20, then "Keep typing to narrow these down" | A "Show more" option that fetches the next page |
 | R7 | The gate refuses the search link | The shape without script, not upgraded: an id can be typed, nothing is searched. Markup can't make a field read-only against a crafted post; the form's handler decides what it accepts | The field renders read-only (an earlier draft), which only hides the control |
 | R8 | `LabelOf` finds nothing, or fails, at render | Nothing: the id is shown. An error: the render fails. Text that didn't convert is never looked up | Both show the id, and the error is logged |
@@ -690,7 +762,7 @@ All stand on their defaults until epistemer answers. Each is API design.
 | R25 | Reordering rows | None | Move up and Move down buttons that renumber |
 | R26 | `Upload` inside a list | Panics: an item built during `Bind` has no record to take stored files from. `File` and `Files` work there | Stored files keyed by a row id field the item declares |
 | R27 | A new form's list with `MinItems(n)` | forms fills an unbound list without items to `n` blank items | The app calls `List.Add()` n times |
-| R28 | Names | `KindRemote`, `Remote`, `Upload`, `Uploads`, `StoredFile`, `KindUpload(s)`, `Control.Stored`, `Control.Lost`, `rule.Files`, `MinFiles`, `MaxFiles`, `components.Suggestions`, `Suggestion`, `SuggestionLimit`, `data-ui-texts`, `<ui-combobox>`, `<ui-repeat>` | epistemer's choice at the lock |
+| R28 | Names | `KindRemote`, `Remote`, `Upload`, `Uploads`, `StoredFile`, `KindUpload(s)`, `Control.Stored`, `Control.Lost`, `rule.Files`, `MinFiles`, `MaxFiles`, `components.Suggestions`, `Suggestion` (a struct), `SuggestionLimit`, `Control.Bounds`, `data-ui-texts`, `<ui-combobox>`, `<ui-repeat>` | epistemer's choice at the lock |
 
 ## 10. Out of this round
 

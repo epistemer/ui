@@ -166,7 +166,7 @@ the interface.
 | ☑ | D7.5 | The contract of `ui/actions`, `ui/tables` and the new components, as an amendment to visual-interface.md, with a cross-model review | epistemer locks it; milestones T1… planned in this file |
 | ☐ | D8 | Second round: the remote select (`<ui-combobox>` over `listing.Labeler`, and with it filters on link columns), uploads, list fields (`<ui-repeat>`), in D8.1–D8.4 below | D8.4 is locked |
 | ☑ | D8.1 | [rich-inputs-design.md](rich-inputs-design.md) with ADRs [0011](adr/0011-remote-select.md) (remote select), [0012](adr/0012-uploads.md) (uploads) and [0013](adr/0013-list-fields.md) (list fields); questions R1–R28 stand on their defaults | Reviewed by the other model family (review 0019) |
-| ☐ | D8.2 | Slice spike in `internal/spike` (design §8): the toy shop's order form with a customer, a receipt and lines, and every pairing of the parts | Runs with script on and off; goldens, ids, names and selectors pass; its findings amend the design |
+| ☑ | D8.2 | Slice spike in `internal/spike` (design §8): the toy shop's order form with a customer, a receipt and lines, and every pairing of the parts | Runs with script on and off; goldens, ids, names and selectors pass; its findings amend the design |
 | ☐ | D8.3 | The handlers amendment: a per-route body limit (design R21) | epistemer accepts or changes it; handlers releases it |
 | ☐ | D8.4 | The contract, amendment A7 to interface.md, visual-interface.md and server-state-interface.md (design §6), with a cross-model review | epistemer locks it; build milestones planned in this file |
 
