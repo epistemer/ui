@@ -95,3 +95,38 @@ func TestOwned(t *testing.T) {
 		t.Errorf("an info toast doesn't time out: %s", html)
 	}
 }
+
+func TestSuggestions(t *testing.T) {
+	makeOpts := func(n int) []Suggestion {
+		out := make([]Suggestion, n)
+		for i := range n {
+			out[i] = Suggestion{
+				Value: fmt.Sprintf("v-%d", i+1),
+				Label: i18n.Static(fmt.Sprintf("Option %d", i+1)),
+			}
+		}
+		return out
+	}
+
+	html20 := render(t, Suggestions(makeOpts(SuggestionLimit)...))
+	if strings.Count(html20, `role="option"`) != SuggestionLimit {
+		t.Errorf("20 items: got %d options", strings.Count(html20, `role="option"`))
+	}
+	if strings.Contains(html20, "data-ui-more") {
+		t.Errorf("20 items should not render data-ui-more: %s", html20)
+	}
+	if !strings.Contains(html20, `<li role="option" aria-selected="false" data-value="v-20">Option 20</li>`) {
+		t.Errorf("20 items missing 20th option: %s", html20)
+	}
+
+	html21 := render(t, Suggestions(makeOpts(SuggestionLimit+1)...))
+	if strings.Count(html21, `role="option"`) != SuggestionLimit {
+		t.Errorf("21 items: got %d options, want %d", strings.Count(html21, `role="option"`), SuggestionLimit)
+	}
+	if strings.Contains(html21, "Option 21") {
+		t.Errorf("21 items rendered 21st option: %s", html21)
+	}
+	if !strings.Contains(html21, "<li data-ui-more hidden></li>") {
+		t.Errorf("21 items missing data-ui-more marker: %s", html21)
+	}
+}

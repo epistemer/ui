@@ -9,6 +9,29 @@ taken for epistemer, what's next, and what's waiting on epistemer.
 
 
 
+## 2026-11-23 — U2: inputs and components for A7
+
+**Landed**, to rich-inputs-interface.md §3, §4 and §7:
+- `inputs.Field` renders the remote select (with its htmx attributes,
+  popup and live region), the upload shape for all four file kinds, and
+  lists with `<ui-repeat>` and their template row;
+- `inputs.WithLabelCache`, `FieldSpec.Previews`; the gate asked for the
+  search link and stored files' links;
+- `components.Suggestion`, `SuggestionLimit`, `Suggestions`;
+- the keys of §7; the CSS moved from the spike into components.css;
+  stories and goldens for a remote select, an upload, a list and a
+  nested list.
+
+Choices where the contract is silent: the server-rendered listbox is
+named by the field's label; the clear button's CSS waits for U3, whose
+script creates it; `tooLarge` is filled with `MaxSize`'s value formatted
+as rule formats sizes.
+
+Gemini 4 Argon (Medium) wrote it in a worktree, about 313k tokens;
+Claude reviewed the goldens and ran every check.
+
+**Next.** U3: the script.
+
 ## 2026-11-23 — U1: forms for the remote select, uploads and lists
 
 **Landed**, to rich-inputs-interface.md §2:

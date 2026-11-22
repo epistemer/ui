@@ -45,6 +45,10 @@ func All() []catalog.Story {
 			variant("kinds-gift", promotionForm(shippingGift())),
 			variant("sign-in", promotionForm(signInFresh())),
 			variant("sign-in-errors", promotionForm(signInErrors())),
+			variant("remote", withGate(promotionForm(remoteForm()))),
+			variant("upload", withGate(promotionForm(uploadForm()))),
+			variant("list", promotionForm(listForm())),
+			variant("list-nested", withGate(promotionForm(nestedListForm()))),
 		}},
 		{Name: "components/dialog", Variants: []catalog.Variant{
 			variant("basic", dialogBasic()),

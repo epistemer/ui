@@ -1,0 +1,18 @@
+package components
+
+templ suggestions(s []Suggestion) {
+	<ul data-ui-suggestions>
+		for i, o := range s {
+			if i < SuggestionLimit {
+				<li role="option" aria-selected="false" data-value={ o.Value }>
+					if o.Label != nil {
+						{ o.Label.T(ctx) }
+					}
+				</li>
+			}
+		}
+		if len(s) > SuggestionLimit {
+			<li data-ui-more hidden></li>
+		}
+	</ul>
+}

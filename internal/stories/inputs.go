@@ -1,13 +1,41 @@
 package stories
 
 import (
+	"bytes"
 	"context"
+	"io"
+	"mime/multipart"
+	"net/http"
+	"net/http/httptest"
 	"net/url"
 
+	"github.com/a-h/templ"
 	"github.com/epistemer/i18n"
+
+	"github.com/epistemer/ui"
+	"github.com/epistemer/ui/actions"
 	"github.com/epistemer/ui/forms"
+	"github.com/epistemer/ui/forms/files"
 	"github.com/epistemer/ui/forms/rule"
 )
+
+type toyLabeler map[string]string
+
+func (l toyLabeler) LabelOf(_ context.Context, id string) (string, bool, error) {
+	name, ok := l[id]
+	return name, ok, nil
+}
+
+var (
+	toyCustomers = toyLabeler{"7": "Ann Lee", "12": "Laila Haddad"}
+	toyProducts  = toyLabeler{"101": "Brick 2x4 red", "103": "Brick 2x2 yellow", "105": "Wheel small"}
+)
+
+func withGate(c templ.Component) templ.Component {
+	return templ.ComponentFunc(func(ctx context.Context, w io.Writer) error {
+		return c.Render(actions.Gate.With(ctx, actions.AllowAll), w)
+	})
+}
 
 type choice struct {
 	value string
@@ -120,5 +148,86 @@ func signInErrors() *forms.Form {
 	f := newSignIn()
 	f.Bind(forms.FromValues(url.Values{"email": {"shop@example.com"}, "password": {"short"}}))
 	f.Validate(context.Background())
+	return f
+}
+
+// remoteForm shows a remote select with an initial record chosen, and a
+// second one blank.
+func remoteForm() *forms.Form {
+	f := forms.New()
+	c := f.Number[int64]("customer_id").Label(i18n.Static("Customer")).
+		Help(i18n.Static("Search by name or email.")).
+		Required().Remote(ui.URL("/demo/customers/search"), toyCustomers)
+	c.Set(7)
+	f.Text("referrer_id").Label(i18n.Static("Referred by")).
+		Remote(ui.URL("/demo/customers/search"), toyCustomers)
+	return f
+}
+
+// uploadForm shows an upload field with two stored files (one a PDF, one
+// an image with a thumbnail), rules for size and media type, and a file
+// field that lost its posted file when the form failed.
+func uploadForm() *forms.Form {
+	f := forms.New()
+	stored := []files.Stored{
+		{Key: "k-81", Name: "receipt.pdf", Href: ui.URL("/files/k-81")},
+		{Key: "k-82", Name: "box.png", Href: ui.URL("/files/k-82"), Image: true},
+	}
+	f.Uploads("attachments", stored).Label(i18n.Static("Attachments")).
+		Help(i18n.Static("PNG, JPEG or PDF, up to 5 MB.")).
+		Required().
+		Is(rule.Files(rule.MaxSize(5<<20), rule.ContentType("image/png", "image/jpeg", "application/pdf")))
+	f.File("invoice").Label(i18n.Static("Invoice"))
+	f.Text("note").Label(i18n.Static("Note")).Required()
+
+	var body bytes.Buffer
+	mw := multipart.NewWriter(&body)
+	mw.WriteField("attachments.keep", "k-81")
+	mw.WriteField("attachments.keep", "k-82")
+	fw, _ := mw.CreateFormFile("invoice", "invoice.pdf")
+	fw.Write([]byte("%PDF-1.4"))
+	mw.Close()
+	r := httptest.NewRequest(http.MethodPost, "/catalog/none", &body)
+	r.Header.Set("Content-Type", mw.FormDataContentType())
+	f.Submit(context.Background(), r)
+	return f
+}
+
+// listForm shows a list with MinItems(1), so a fresh form renders one
+// blank row besides the template row.
+func listForm() *forms.Form {
+	f := forms.New()
+	f.List("lines", func(g *forms.Form) int {
+		g.Text("sku").Label(i18n.Static("SKU")).Required()
+		g.Int("qty").Label(i18n.Static("Quantity")).Required().Is(rule.Min(1))
+		return 0
+	}).Label(i18n.Static("Order lines")).MinItems(1).MaxItems(5)
+	return f
+}
+
+type nestedLine struct {
+	product *forms.Field[int64]
+	qty     *forms.Field[int]
+	extras  *forms.List[*forms.Field[string]]
+}
+
+// nestedListForm shows a list with a nested list inside its rows.
+func nestedListForm() *forms.Form {
+	f := forms.New()
+	lines := f.List("lines", func(g *forms.Form) nestedLine {
+		var l nestedLine
+		l.product = g.Number[int64]("product_id").Label(i18n.Static("Product")).
+			Required().Remote(ui.URL("/demo/products/search"), toyProducts)
+		l.qty = g.Int("qty").Label(i18n.Static("Quantity")).Required()
+		l.extras = g.List("extras", func(e *forms.Form) *forms.Field[string] {
+			return e.Text("note").Label(i18n.Static("Engraving or note")).Required()
+		}).Label(i18n.Static("Extras")).MaxItems(3)
+		return l
+	}).Label(i18n.Static("Lines")).MinItems(1).MaxItems(5)
+	row := lines.Add()
+	row.product.Set(103)
+	row.qty.Set(2)
+	extra := row.extras.Add()
+	extra.Set("Gift wrap")
 	return f
 }

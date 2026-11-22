@@ -1,0 +1,183 @@
+<form action="/catalog/none" class="catalog-form" method="post" novalidate="">
+  <fieldset class="ui-list">
+    <legend class="ui-group-legend">
+      Lines
+      <span aria-hidden="true" class="ui-field-required">
+        *
+      </span>
+    </legend>
+    <ui-repeat data-ui-max="5" data-ui-min="1" data-ui-next="1" data-ui-path="lines" data-ui-texts="{&#34;added&#34;:&#34;Item %d added&#34;,&#34;atLeast&#34;:&#34;Minimum: %d&#34;,&#34;atMost&#34;:&#34;Maximum: %d&#34;,&#34;item&#34;:&#34;Item %d&#34;,&#34;remove&#34;:&#34;Remove item %d&#34;,&#34;removed&#34;:&#34;Item %d removed&#34;}">
+      <ol class="ui-list-items">
+        <li class="ui-list-item">
+          <fieldset class="ui-group">
+            <legend class="ui-group-legend">
+              Item 1
+            </legend>
+            <div class="ui-field">
+              <label class="ui-field-label" for="field--t-2">
+                Product
+                <span aria-hidden="true" class="ui-field-required">
+                  *
+                </span>
+              </label>
+              <ui-combobox class="ui-combobox" data-ui-search="/demo/products/search" data-ui-texts="{&#34;clear&#34;:&#34;Clear Product&#34;,&#34;failed&#34;:&#34;Couldn&#39;t search. Try again.&#34;,&#34;more&#34;:&#34;Keep typing to narrow these down&#34;,&#34;none&#34;:&#34;No matches&#34;,&#34;results&#34;:&#34;Results: %d&#34;}" hx-get="/demo/products/search" hx-params="none" hx-select="[data-ui-suggestions] &gt; li" hx-swap="innerHTML" hx-sync="this:replace" hx-target="find .ui-combobox-options" hx-trigger="ui-search" id="field--t-2-combobox">
+                <input aria-describedby="field--t-2-chosen" class="ui-input" id="field--t-2" inputmode="numeric" name="lines[0].product_id" required="" type="text" value="103">
+                <span class="ui-combobox-chosen" id="field--t-2-chosen">
+                  Brick 2x2 yellow
+                </span>
+                <div class="ui-combobox-popup" popover="manual">
+                  <ul aria-label="Product" class="ui-combobox-options" id="field--t-2-options" role="listbox"></ul>
+                  <p class="ui-combobox-status"></p>
+                </div>
+                <p class="ui-visually-hidden" role="status"></p>
+              </ui-combobox>
+            </div>
+            <div class="ui-field">
+              <label class="ui-field-label" for="field--t-3">
+                Quantity
+                <span aria-hidden="true" class="ui-field-required">
+                  *
+                </span>
+              </label>
+              <input class="ui-input" id="field--t-3" name="lines[0].qty" required="" type="number" value="2">
+            </div>
+            <fieldset class="ui-list">
+              <legend class="ui-group-legend">
+                Extras
+              </legend>
+              <ui-repeat data-ui-max="3" data-ui-min="0" data-ui-next="1" data-ui-path="lines[0].extras" data-ui-texts="{&#34;added&#34;:&#34;Item %d added&#34;,&#34;atLeast&#34;:&#34;Minimum: %d&#34;,&#34;atMost&#34;:&#34;Maximum: %d&#34;,&#34;item&#34;:&#34;Item %d&#34;,&#34;remove&#34;:&#34;Remove item %d&#34;,&#34;removed&#34;:&#34;Item %d removed&#34;}">
+                <ol class="ui-list-items">
+                  <li class="ui-list-item">
+                    <fieldset class="ui-group">
+                      <legend class="ui-group-legend">
+                        Item 1
+                      </legend>
+                      <div class="ui-field">
+                        <label class="ui-field-label" for="field--t-5">
+                          Engraving or note
+                          <span aria-hidden="true" class="ui-field-required">
+                            *
+                          </span>
+                        </label>
+                        <input class="ui-input" id="field--t-5" name="lines[0].extras[0].note" required="" type="text" value="Gift wrap">
+                      </div>
+                      <button class="ui-button ui-list-remove" data-ui-remove="" hidden="" type="button">
+                        Remove item 1
+                      </button>
+                    </fieldset>
+                  </li>
+                </ol>
+                <template>
+                  <li class="ui-list-item">
+                    <fieldset class="ui-group">
+                      <legend class="ui-group-legend">
+                        Item 1
+                      </legend>
+                      <div class="ui-field">
+                        <label class="ui-field-label" for="field--t-6">
+                          Engraving or note
+                          <span aria-hidden="true" class="ui-field-required">
+                            *
+                          </span>
+                        </label>
+                        <input class="ui-input" id="field--t-6" name="lines[0].extras[__i__].note" required="" type="text">
+                      </div>
+                      <button class="ui-button ui-list-remove" data-ui-remove="" hidden="" type="button">
+                        Remove item 1
+                      </button>
+                    </fieldset>
+                  </li>
+                </template>
+                <button class="ui-button ui-list-add" data-ui-add="" hidden="" type="button">
+                  Add to Extras
+                </button>
+                <p class="ui-visually-hidden" role="status"></p>
+              </ui-repeat>
+            </fieldset>
+            <button class="ui-button ui-list-remove" data-ui-remove="" hidden="" type="button">
+              Remove item 1
+            </button>
+          </fieldset>
+        </li>
+      </ol>
+      <template>
+        <li class="ui-list-item">
+          <fieldset class="ui-group">
+            <legend class="ui-group-legend">
+              Item 1
+            </legend>
+            <div class="ui-field">
+              <label class="ui-field-label" for="field--t-7">
+                Product
+                <span aria-hidden="true" class="ui-field-required">
+                  *
+                </span>
+              </label>
+              <ui-combobox class="ui-combobox" data-ui-search="/demo/products/search" data-ui-texts="{&#34;clear&#34;:&#34;Clear Product&#34;,&#34;failed&#34;:&#34;Couldn&#39;t search. Try again.&#34;,&#34;more&#34;:&#34;Keep typing to narrow these down&#34;,&#34;none&#34;:&#34;No matches&#34;,&#34;results&#34;:&#34;Results: %d&#34;}" hx-get="/demo/products/search" hx-params="none" hx-select="[data-ui-suggestions] &gt; li" hx-swap="innerHTML" hx-sync="this:replace" hx-target="find .ui-combobox-options" hx-trigger="ui-search" id="field--t-7-combobox">
+                <input aria-describedby="field--t-7-chosen" class="ui-input" id="field--t-7" inputmode="numeric" name="lines[__i__].product_id" required="" type="text">
+                <span class="ui-combobox-chosen" id="field--t-7-chosen"></span>
+                <div class="ui-combobox-popup" popover="manual">
+                  <ul aria-label="Product" class="ui-combobox-options" id="field--t-7-options" role="listbox"></ul>
+                  <p class="ui-combobox-status"></p>
+                </div>
+                <p class="ui-visually-hidden" role="status"></p>
+              </ui-combobox>
+            </div>
+            <div class="ui-field">
+              <label class="ui-field-label" for="field--t-8">
+                Quantity
+                <span aria-hidden="true" class="ui-field-required">
+                  *
+                </span>
+              </label>
+              <input class="ui-input" id="field--t-8" name="lines[__i__].qty" required="" type="number">
+            </div>
+            <fieldset class="ui-list">
+              <legend class="ui-group-legend">
+                Extras
+              </legend>
+              <ui-repeat data-ui-max="3" data-ui-min="0" data-ui-next="0" data-ui-path="lines[__i__].extras" data-ui-texts="{&#34;added&#34;:&#34;Item %d added&#34;,&#34;atLeast&#34;:&#34;Minimum: %d&#34;,&#34;atMost&#34;:&#34;Maximum: %d&#34;,&#34;item&#34;:&#34;Item %d&#34;,&#34;remove&#34;:&#34;Remove item %d&#34;,&#34;removed&#34;:&#34;Item %d removed&#34;}">
+                <ol class="ui-list-items"></ol>
+                <template>
+                  <li class="ui-list-item">
+                    <fieldset class="ui-group">
+                      <legend class="ui-group-legend">
+                        Item 1
+                      </legend>
+                      <div class="ui-field">
+                        <label class="ui-field-label" for="field--t-10">
+                          Engraving or note
+                          <span aria-hidden="true" class="ui-field-required">
+                            *
+                          </span>
+                        </label>
+                        <input class="ui-input" id="field--t-10" name="lines[__i__].extras[__i__].note" required="" type="text">
+                      </div>
+                      <button class="ui-button ui-list-remove" data-ui-remove="" hidden="" type="button">
+                        Remove item 1
+                      </button>
+                    </fieldset>
+                  </li>
+                </template>
+                <button class="ui-button ui-list-add" data-ui-add="" hidden="" type="button">
+                  Add to Extras
+                </button>
+                <p class="ui-visually-hidden" role="status"></p>
+              </ui-repeat>
+            </fieldset>
+            <button class="ui-button ui-list-remove" data-ui-remove="" hidden="" type="button">
+              Remove item 1
+            </button>
+          </fieldset>
+        </li>
+      </template>
+      <button class="ui-button ui-list-add" data-ui-add="" hidden="" type="button">
+        Add to Lines
+      </button>
+      <p class="ui-visually-hidden" role="status"></p>
+    </ui-repeat>
+  </fieldset>
+  <button class="ui-button" type="submit">
+    Save
+  </button>
+</form>
