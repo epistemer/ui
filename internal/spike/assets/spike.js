@@ -589,6 +589,8 @@ function chosen(input) {
 	const accept = (input.accept || "").split(",").map((s) => s.trim().toLowerCase()).filter(Boolean);
 	const fits = (f) => {
 		const type = f.type.toLowerCase();
+		// No type from the system: the server sniffs the bytes, so it decides.
+		if (!type && !accept.some((a) => a.startsWith("."))) return true;
 		const name = f.name.toLowerCase();
 		return accept.some((a) => (a.endsWith("/*") ? type.startsWith(a.slice(0, -1)) : a.startsWith(".") ? name.endsWith(a) : type === a));
 	};
@@ -688,6 +690,31 @@ document.addEventListener("htmx:beforeSend", (e) => {
 		}
 	});
 });
+// A body past the route's limit is a 413, which htmx doesn't swap: the
+// form stays as it is, chosen files included, and its upload fields say
+// why (§4.5, found when the spike capped its route).
+function bodyTooLarge(e) {
+	const form = e.detail.elt?.closest?.("form") ?? e.detail.elt;
+	const fields = [...(form?.querySelectorAll?.(".ui-upload") ?? [])].filter((f) => f.querySelector('input[type="file"]')?.files.length);
+	for (const field of fields) {
+		const input = field.querySelector('input[type="file"]');
+		const t = textsOf(field);
+		let err = field.querySelector(".ui-upload-check");
+		if (!err) {
+			err = document.createElement("p");
+			err.className = "ui-field-error ui-upload-check";
+			err.id = `${input.id}-check`;
+			input.after(err);
+			input.setAttribute("aria-describedby", `${input.getAttribute("aria-describedby") ?? ""} ${err.id}`.trim());
+		}
+		err.textContent = t.bodyTooLarge ?? "";
+		input.setAttribute("aria-invalid", "true");
+	}
+	fields[0]?.querySelector('input[type="file"]')?.focus();
+}
+// Only a 413: a send error is as likely a network gone (review 0021).
+document.addEventListener("htmx:responseError", (e) => e.detail.xhr?.status === 413 && bodyTooLarge(e));
+
 document.addEventListener("htmx:afterRequest", (e) => {
 	for (const bar of (e.detail.elt?.closest?.("form") ?? document).querySelectorAll(".ui-upload-progress")) bar.hidden = true;
 });

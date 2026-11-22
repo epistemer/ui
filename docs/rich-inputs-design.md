@@ -196,11 +196,18 @@ A `Labeler` answers `false`, not an error, for an id that can't name a
 row (`abc` for a uuid column): the design asks that of every app's
 `Labeler`, and the contract says so beside `Remote`.
 
-One call per distinct id per request: `inputs` memoizes `LabelOf` by
-`Labeler` and id in the request's context, through a provider the form
-render sets (R10). A list of 50 lines picking 12 products makes 12 calls;
-50 different products still make 50. A batch method waits for a
-measurement and would be a models amendment.
+**The memo** (R10): `inputs` memoizes `LabelOf` by `Labeler` and id in a
+cache the request's context carries, set with
+`inputs.WithLabelCache(ctx)` in the app's middleware or render helper. A
+list of 50 lines picking 12 products then makes 12 calls. Without the
+cache, nothing fails: each field calls once. The spike set it in its
+render helper; a page that loops over its form's controls has no other
+place to share one, which is why it lives in the context.
+
+**The gate** is required, as for actions (A6, S9): rendering a remote
+field or a stored file's link with no `actions.Gate` in the context
+panics. Stories and tests set `actions.AllowAll`. `inputs` imports
+`actions`.
 
 **The search link and the gate.** `inputs` asks `actions.Allowed(ctx,
 search)` at render. A refused link renders the shape without script,
@@ -480,8 +487,23 @@ it is re-rendered empty. The spike doesn't try it.
 handlers limits every route's body at 1 MiB unless the app passes
 `WithMaxBody` to `Register`, and the option is per registration, not per
 route. An upload route needs more than its siblings. D8 asks handlers for
-a per-route limit, a directive `//h:body 20MiB` (R21), as its own
-amendment; until then an app raises the surface's limit.
+a per-route limit (R21), as its own amendment (D8.3); until then an app
+raises the surface's limit.
+
+**Past the limit** (spiked, with a route capped below two files): the
+server answers 413, which htmx doesn't swap, so with htmx alone the
+person sees nothing. The script answers it: on a 413 from a form with
+chosen files, each of its upload fields shows
+`ui.inputs.upload.body_too_large` ("These files are too large to send
+together. Send fewer at a time.") as its error and the first takes focus.
+Nothing was swapped, so the chosen files are still there. Without script
+the browser shows the error writer's 413 page, and Back returns to the
+form. A connection the server resets before answering (a far larger
+body) is `htmx:sendError`, which the script leaves to htmx: a send error
+is as likely a network gone (review 0021). The handler must answer 413,
+not re-render: `Submit` reports an oversized body as `ErrUnreadable`
+wrapping `*http.MaxBytesError`, which the handler returns as is, and
+handlers' `Status` finds it (the contract says so).
 
 ## 5. List fields (ADR 0013)
 
@@ -570,7 +592,10 @@ Rows don't move (R25). An order that matters is a field of the item.
 ## 6. What other locked text D8 would change
 
 Proposed here, edited by none of this PR: each is part of the contract
-amendment A7 (D8.4), locked by epistemer.
+amendment A7 (D8.4), locked by epistemer. Its draft is
+[rich-inputs-interface.md](rich-inputs-interface.md), where `StoredFile`
+and `Upload` move to a leaf package as `files.Stored` and `files.Upload`
+(its L1: `rule` can't import forms).
 
 **forms ([interface.md](interface.md), locked):**
 - §5.4: `Field[T].Remote(search, labeler)`, with its panics and the rule
@@ -585,8 +610,9 @@ amendment A7 (D8.4), locked by epistemer.
 - §5.10: `Control.Lost() bool`, true for a file field that was posted
   files in a form that failed (§4.4).
 - §5.8: an unbound list without items holds `MinItems` blank ones (R27).
-- §5.10: `Control.Bounds() (min, max int)` for a list: `<ui-repeat>`
-  needs both, and a control exposes neither today (found by the spike).
+- §5.10: `Control.Bounds() (min, max int)` for a list, the effective
+  ones (`max` is `DefaultMaxItems` when unset): `<ui-repeat>` needs both,
+  and a control exposes neither today (found by the spike).
 - §6.2: `rule.Files`, `rule.MinFiles`, `rule.MaxFiles` for `Upload`;
   `MaxSize` adds `data-ui-max-size` to `Control.Attrs`.
 - forms-design §10.3's bullets on current-file URLs and search endpoints
@@ -716,6 +742,8 @@ What changed the design:
 | 7 | A filter the table doesn't own is dropped by the live-address merge | `Column.Remote`'s parameter is owned like any filter's (§6) |
 | 8 | "1 results" has the plural problem of finding 4 | "Results: %d" (§7) |
 | 9 | ui's forms are `novalidate`, so `setCustomValidity` blocks no submit (review 0020) | The script refuses the submit itself (§4.3) |
+| 10 | Past a route's body limit, a 413 that htmx doesn't swap: with htmx, nothing shows | The script puts a message on the form's upload fields and keeps the files (§4.5) |
+| 11 | The memo held only because the spike's render helper set it; a page looping over controls has nowhere else to share one | The cache is opt-in, in the context (§3.2, R10) |
 
 Not settled by the spike:
 - The upgrade's flash of the id: the pane was hidden, so nothing painted
@@ -728,6 +756,12 @@ Not settled by the spike:
   `MinFiles` and `MaxFiles` on an upload: the spike's receipt is an
   `Uploads` bound by hand, keeping and adding only.
 - A text id (a uuid) in a remote select: every spiked id is an integer.
+- Goldens: the spike's pages draw random id prefixes per request, so it
+  checked ids, names and selectors, not goldens; the build adds them on
+  a fixed sequence, as every V and T milestone did.
+- Script off: the shape without script was checked in the markup and by
+  its Go tests (the refused field, the text input of the id, the keep
+  checkboxes, hidden list buttons), not in a pane with script disabled.
 
 ## 9. Decisions
 
@@ -744,7 +778,7 @@ All stand on their defaults until epistemer answers. Each is API design.
 | R7 | The gate refuses the search link | The shape without script, not upgraded: an id can be typed, nothing is searched. Markup can't make a field read-only against a crafted post; the form's handler decides what it accepts | The field renders read-only (an earlier draft), which only hides the control |
 | R8 | `LabelOf` finds nothing, or fails, at render | Nothing: the id is shown. An error: the render fails. Text that didn't convert is never looked up | Both show the id, and the error is logged |
 | R9 | Is a posted id checked against the `Labeler`? | No: the app's own check, which also knows who may pick it | Yes, in `Validate` (R2's alternative) |
-| R10 | `LabelOf` calls in a render | Memoized per request by `Labeler` and id, so repeated ids cost one call | No memo (one call per field); or a batch method on `Labeler` (a models amendment) |
+| R10 | `LabelOf` calls in a render | An opt-in per-request memo by `Labeler` and id, `inputs.WithLabelCache(ctx)`; without it, one call per field | A memo every render shares without asking (impossible: a page renders its controls one by one); or a batch method on `Labeler` (a models amendment) |
 | R11 | Several values in one remote select | Not in D8 (models' `listing` has no `IN` either) | A multi-value remote select with chips |
 | R12 | Creating a record from inside the select | Not in D8; an `Open` action beside the field | A "New…" option opening the action dialog, whose reply chooses the new record |
 | R13 | A table filter on a link column | `tables.Col(c).Filter().Remote(search, labeler)`, `Eq` on a `Text` or `Integer` column | A kind of its own in models' `column` (`Link`, with its target), a models amendment |
@@ -755,14 +789,14 @@ All stand on their defaults until epistemer answers. Each is API design.
 | R18 | Drag and drop | The native file input is the drop zone; the script only highlights | A script drop handler on a larger zone |
 | R19 | Upload progress | A `<progress>` per upload field with files chosen, fed by `htmx:xhr:progress`, hidden at the answer, never announced; nothing without htmx | None |
 | R20 | Files chosen in a form that fails | A note asking for them again, through `Control.Lost()`. `hx-preserve` is rejected (§4.4) | No note: the browser's empty file input says it |
-| R21 | A larger body for an upload route | Ask handlers for `//h:body <size>` per route | The app raises its surface's limit |
+| R21 | A larger body for an upload route | A per-route limit in handlers (D8.3); a 413 is answered on the form's upload fields by the script | The app raises its surface's limit, and a 413 shows nothing with htmx |
 | R22 | Checking size and type before sending | Yes, in the script, with the server's translated message | Server only |
 | R23 | An item's legend | "Item %d", one key for every list | `List.ItemLabel(i18n.Ter)` on forms, "Line 2" (a forms amendment) |
 | R24 | Adding and removing rows without script | Not possible; the buttons are hidden until the script shows them | Submit buttons the handler recognises, with a forms amendment for adding and removing items while binding without validating |
 | R25 | Reordering rows | None | Move up and Move down buttons that renumber |
 | R26 | `Upload` inside a list | Panics: an item built during `Bind` has no record to take stored files from. `File` and `Files` work there | Stored files keyed by a row id field the item declares |
 | R27 | A new form's list with `MinItems(n)` | forms fills an unbound list without items to `n` blank items | The app calls `List.Add()` n times |
-| R28 | Names | `KindRemote`, `Remote`, `Upload`, `Uploads`, `StoredFile`, `KindUpload(s)`, `Control.Stored`, `Control.Lost`, `rule.Files`, `MinFiles`, `MaxFiles`, `components.Suggestions`, `Suggestion` (a struct), `SuggestionLimit`, `Control.Bounds`, `data-ui-texts`, `<ui-combobox>`, `<ui-repeat>` | epistemer's choice at the lock |
+| R28 | Names | `KindRemote`, `Remote`, `Upload`, `Uploads`, `StoredFile`, `KindUpload(s)`, `Control.Stored`, `Control.Lost`, `rule.Files`, `MinFiles`, `MaxFiles`, `components.Suggestions`, `Suggestion` (a struct), `SuggestionLimit`, `Control.Bounds`, `inputs.WithLabelCache`, `data-ui-texts`, `<ui-combobox>`, `<ui-repeat>` | epistemer's choice at the lock |
 
 ## 10. Out of this round
 
