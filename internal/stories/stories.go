@@ -65,6 +65,14 @@ func All() []catalog.Story {
 			variant("in-a-card", actionCard()),
 			variant("htmx", withItems(true, func(it []actions.Item) templ.Component { return actionsHtmx(it) })),
 		}},
+		{Name: "components/table", Variants: []catalog.Variant{
+			variant("orders", ordersTable("")),
+			variant("filtered", ordersTable("q=layla&status=paid&sort=-total&size=25")),
+			variant("no-match", ordersTable("q=nobody")),
+			variant("past-end", ordersTable("page=9")),
+			variant("rejected", ordersTable("placed_at.from=2026-11-15&placed_at.to=2026-11-02")),
+		}},
+		{Name: "components/pagination", Variants: []catalog.Variant{variant("middle", pager("page=3"))}},
 		{Name: "components/detail-list", Variants: []catalog.Variant{variant("in-a-card", detailStory())}},
 		{Name: "layout/app", Variants: []catalog.Variant{
 			variant("shell", appShell(layout.SystemScheme, true)),

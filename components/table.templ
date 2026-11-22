@@ -1,0 +1,192 @@
+package components
+
+import (
+	"strconv"
+
+	"github.com/epistemer/i18n"
+	"github.com/epistemer/models/column"
+
+	"github.com/epistemer/ui/elements"
+	"github.com/epistemer/ui/icons"
+	"github.com/epistemer/ui/inputs"
+	"github.com/epistemer/ui/tables"
+)
+
+templ tableTmpl(d tableData) {
+	<ui-table { elements.Merge(templ.Attributes{"id": d.ids.table, "class": "ui-table", "data-ui-own": d.own, "data-ui-selected": tableSelected.T(ctx)}, []string{"id", "data-ui-own"}, d.attrs)... }>
+		<p class="ui-table-status ui-visually-hidden" id={ d.ids.status } role="status"></p>
+		<form id={ d.ids.state } class="ui-table-tools" method="get" action={ templ.SafeURL(d.path) } { swapAttrs(d.ids.table, d.ids.table, d.path)... }>
+			<div class="ui-table-search">
+				<label class="ui-visually-hidden" for={ d.ids.table + "-q" }>{ tableSearch.T(ctx) }</label>
+				@icons.Search()
+				<input class="ui-input" type="search" id={ d.ids.table + "-q" } name={ d.search.Name } value={ d.search.Text } autocomplete="off" { d.searchAttrs()... }/>
+			</div>
+			if len(d.filters) > 0 {
+				<div class="ui-table-filters">
+					for _, c := range d.filters {
+						@inputs.Field(c)
+					}
+				</div>
+			}
+			for _, h := range d.hidden {
+				<input type="hidden" name={ h[0] } value={ h[1] }/>
+			}
+			@elements.Button().Submit().Variant(elements.Outline).Tone(elements.Neutral).Attrs(templ.Attributes{"id": d.ids.table + "-apply"}) {
+				{ tableApply.T(ctx) }
+			}
+		</form>
+		if d.selectable {
+			<form id={ d.ids.sel } method="post" hidden></form>
+		}
+		@resultsTmpl(d)
+	</ui-table>
+}
+
+templ resultsTmpl(d tableData) {
+	<div id={ d.ids.results } class="ui-table-results" data-ui-status={ d.status } data-ui-url={ d.url }>
+		if d.sort[1] != "" {
+			<input type="hidden" name={ d.sort[0] } value={ d.sort[1] } form={ d.ids.state }/>
+		}
+		if d.size[1] != "" {
+			<input type="hidden" name={ d.size[0] } value={ d.size[1] } form={ d.ids.state }/>
+		}
+		if len(d.chips) > 0 {
+			<ul class="ui-table-chips">
+				for i, c := range d.chips {
+					<li>
+						<a class="ui-table-chip" id={ d.ids.table + "-chip-" + strconv.Itoa(i+1) } href={ c.Remove } { d.link(c.Remove)... }>
+							{ c.Label.T(ctx) }: { c.Value }
+							<span class="ui-visually-hidden">{ tableRemove.T(ctx) }</span>
+							@icons.X()
+						</a>
+					</li>
+				}
+				<li><a class="ui-table-clear" id={ d.ids.table + "-clear" } href={ d.clear } { d.link(d.clear)... }>{ tableClear.T(ctx) }</a></li>
+			</ul>
+		}
+		if !d.rejected {
+			switch d.empty {
+				case tables.NoRows:
+					<p class="ui-table-empty">{ tableEmpty.T(ctx) }</p>
+				case tables.NoMatch:
+					<p class="ui-table-empty">{ tableNoMatch.T(ctx) } <a id={ d.ids.table + "-empty-link" } href={ d.emptyLink } { d.link(d.emptyLink)... }>{ tableClear.T(ctx) }</a></p>
+				case tables.PastEnd:
+					<p class="ui-table-empty">{ tablePastEnd.T(ctx) } <a id={ d.ids.table + "-empty-link" } href={ d.emptyLink } { d.link(d.emptyLink)... }>{ tableGoLast.T(ctx) }</a></p>
+				default:
+					@gridTmpl(d)
+					if len(d.bulk) > 0 && d.selectable {
+						<div class="ui-table-bulk" role="group" aria-label={ tableBulk.T(ctx) }>
+							for i, it := range d.bulk {
+								@bulkButton(ctx, d, it, i+1) {
+									@itemContent(it)
+								}
+							}
+						</div>
+					}
+					@paginationTmpl(d.pager, nil)
+			}
+		}
+	</div>
+}
+
+templ gridTmpl(d tableData) {
+	<div class="ui-table-scroll" role="region" tabindex="0" aria-labelledby={ d.ids.caption }>
+		<table class="ui-table-grid">
+			<caption id={ d.ids.caption }>{ d.label.T(ctx) }</caption>
+			<thead>
+				<tr>
+					if d.selectable {
+						<th scope="col" class="ui-table-check">
+							<span class="ui-visually-hidden" id={ d.ids.table + "-select-label" }>{ tableSelect.T(ctx) }</span>
+							<input type="checkbox" class="ui-table-all" aria-label={ tableSelectAll.T(ctx) } data-ui-select-all hidden/>
+						</th>
+					}
+					for _, h := range d.heads {
+						<th { headAttrs(h)... }>
+							if h.Sortable {
+								<a class="ui-table-sort" id={ h.ID } href={ h.Link } { d.link(h.Link)... }>
+									{ h.Label.T(ctx) }
+									if h.Sorted && h.Desc {
+										@icons.ChevronDown()
+									} else if h.Sorted {
+										@icons.ChevronUp()
+									}
+								</a>
+							} else {
+								{ h.Label.T(ctx) }
+							}
+						</th>
+					}
+					if d.hasActions {
+						<th scope="col" class="ui-table-actions"><span class="ui-visually-hidden" id={ d.ids.table + "-actions-label" }>{ actionsLabel.T(ctx) }</span></th>
+					}
+				</tr>
+			</thead>
+			<tbody>
+				for _, r := range d.rows {
+					@rowTmpl(d.ids, r, d.selectable, d.hasActions)
+				}
+			</tbody>
+		</table>
+	</div>
+}
+
+templ rowTmpl(x tableIDs, r rowData, selectable, hasActions bool) {
+	<tr id={ r.id }>
+		if selectable {
+			<td class="ui-table-check">
+				<input type="checkbox" name={ x.selection } value={ r.key } form={ x.sel } aria-labelledby={ x.table + "-select-label " + r.labelID }/>
+			</td>
+		}
+		for _, c := range r.cells {
+			<td { cellAttrs(c)... }>
+				@cellTmpl(c)
+			</td>
+		}
+		if hasActions {
+			<td class="ui-table-actions">
+				@rowMenu(r)
+			</td>
+		}
+	</tr>
+}
+
+templ cellTmpl(c cellData) {
+	{{ v := c.c.Value }}
+	switch {
+		case c.custom != nil:
+			@c.custom
+		case v.Null:
+			@elements.Empty()
+		case (c.c.Kind == column.Date || c.c.Kind == column.Time) && v.Time.IsZero() && v.Text != "":
+			@elements.Text(i18n.Static(v.Text))
+		case c.c.Link != "":
+			@elements.Link(imageLink(c.c.Link), i18n.Static(v.Text))
+		case c.c.Src != "":
+			@elements.Image(imageLink(c.c.Src), c.c.Alt)
+		case c.c.Amount != nil:
+			@elements.Amount(c.c.Amount)
+		case c.c.Kind == column.Text && c.c.Mark != "":
+			<span class="ui-text">
+				for _, p := range marked(v.Text, c.c.Mark) {
+					if p.Hit {
+						<mark>{ p.Text }</mark>
+					} else {
+						{ p.Text }
+					}
+				}
+			</span>
+		case c.c.Kind == column.Integer || c.c.Kind == column.Number:
+			@elements.Text(i18n.Static(numberText(c.c)))
+		case c.c.Kind == column.Bool:
+			@elements.Bool(v.Bool)
+		case c.c.Kind == column.Date:
+			@elements.Date(v.Time)
+		case c.c.Kind == column.Time:
+			@elements.DateTime(v.Time)
+		case c.c.Kind == column.Enum:
+			@elements.Enum(v.Enum)
+		default:
+			@elements.Text(i18n.Static(v.Text))
+	}
+}

@@ -1,0 +1,82 @@
+<ui-table class="ui-table" data-ui-own="q sort page size status placed_at.from placed_at.to" data-ui-selected="%d selected" id="orders">
+  <p class="ui-table-status ui-visually-hidden" id="orders-status" role="status"></p>
+  <form action="/shop/orders" class="ui-table-tools" hx-get="/shop/orders" hx-push-url="true" hx-select="#orders" hx-swap="outerHTML" hx-sync="#orders:replace" hx-target="#orders" id="orders-state" method="get">
+    <div class="ui-table-search">
+      <label class="ui-visually-hidden" for="orders-q">
+        Search
+      </label>
+      <svg aria-hidden="true" class="ui-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+        <path d="m21 21-4.34-4.34"></path>
+        <circle cx="11" cy="11" r="8"></circle>
+      </svg>
+      <input autocomplete="off" class="ui-input" hx-get="/shop/orders" hx-include="#orders-state" hx-push-url="true" hx-select="#orders-results" hx-swap="outerHTML" hx-sync="#orders:replace" hx-target="#orders-results" hx-trigger="input changed delay:300ms, search" id="orders-q" name="q" type="search" value="">
+    </div>
+    <div class="ui-table-filters">
+      <div class="ui-field">
+        <label class="ui-field-label" for="field--t-1">
+          Status
+        </label>
+        <select aria-describedby="field--t-1-error" aria-invalid="true" class="ui-input" id="field--t-1" name="status">
+          <option value="">
+            Choose…
+          </option>
+          <option value="pending">
+            pending
+          </option>
+          <option value="paid">
+            paid
+          </option>
+          <option value="shipped">
+            shipped
+          </option>
+          <option value="refunded">
+            refunded
+          </option>
+        </select>
+        <p class="ui-field-error" id="field--t-1-error">
+          <svg aria-hidden="true" class="ui-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="10"></circle>
+            <path d="m15 9-6 6"></path>
+            <path d="m9 9 6 6"></path>
+          </svg>
+          <span class="ui-visually-hidden">
+            Error:
+          </span>
+          is not one of the choices
+        </p>
+      </div>
+      <fieldset aria-describedby="field--t-2-error" class="ui-group">
+        <legend class="ui-group-legend">
+          Placed
+        </legend>
+        <div class="ui-field">
+          <label class="ui-field-label" for="field--t-3">
+            From
+          </label>
+          <input class="ui-input" id="field--t-3" name="placed_at.from" type="date" value="2026-11-15">
+        </div>
+        <div class="ui-field">
+          <label class="ui-field-label" for="field--t-4">
+            To
+          </label>
+          <input class="ui-input" id="field--t-4" name="placed_at.to" type="date" value="2026-11-02">
+        </div>
+        <p class="ui-field-error" id="field--t-2-error">
+          <svg aria-hidden="true" class="ui-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="10"></circle>
+            <path d="m15 9-6 6"></path>
+            <path d="m9 9 6 6"></path>
+          </svg>
+          <span class="ui-visually-hidden">
+            Error:
+          </span>
+          the start is after the end
+        </p>
+      </fieldset>
+    </div>
+    <button class="ui-button" data-tone="neutral" data-variant="outline" id="orders-apply" type="submit">
+      Apply
+    </button>
+  </form>
+  <div class="ui-table-results" data-ui-status="No results" data-ui-url="/shop/orders?placed_at.from=2026-11-15&amp;placed_at.to=2026-11-02&amp;status=lost" id="orders-results"></div>
+</ui-table>

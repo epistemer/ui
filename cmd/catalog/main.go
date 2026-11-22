@@ -3,6 +3,7 @@ package main
 
 import (
 	"flag"
+	"github.com/a-h/templ"
 	"log"
 	"net/http"
 
@@ -12,6 +13,7 @@ import (
 	"github.com/epistemer/ui/components"
 	"github.com/epistemer/ui/elements"
 	"github.com/epistemer/ui/internal/stories"
+	"github.com/epistemer/ui/internal/toyshop"
 	"github.com/epistemer/ui/theme"
 )
 
@@ -33,6 +35,10 @@ func main() {
 		components.ToastSwap(components.Toast(i18n.Static("Three toys are almost out of stock.")).Tone(elements.Warning)).Render(r.Context(), w)
 	})
 	stories.Demo(mux)
+	// The toy shop's tables and actions, a page of their own with htmx.
+	shop := &toyshop.App{Store: toyshop.NewStore(), Theme: t, Scripts: templ.Raw(`<meta name="htmx-config" content='{"includeIndicatorStyles":false,"historyCacheSize":0}'><script src="/assets/htmx.min.js"></script>`)}
+	shop.Mount(mux)
+	log.Printf("toy shop on http://%s%s/orders", *addr, toyshop.Prefix)
 	mux.Handle("/", catalog.New(t, stories.All()...))
 	log.Fatal(http.ListenAndServe(*addr, mux))
 }

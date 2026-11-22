@@ -11,17 +11,6 @@
         "localhost:7331"
       ],
       "port": 7331
-    },
-    {
-      "name": "shop",
-      "runtimeExecutable": "go",
-      "runtimeArgs": [
-        "run",
-        "./internal/spike/cmd/shop",
-        "-addr",
-        "localhost:7332"
-      ],
-      "port": 7332
     }
   ]
 }

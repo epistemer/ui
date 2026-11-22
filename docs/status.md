@@ -9,6 +9,42 @@ taken for epistemer, what's next, and what's waiting on epistemer.
 
 
 
+## 2026-11-22 — T3: the table's rendering
+
+**Landed** (Claude), to server-state-interface.md §4.1, §6 and §7:
+- `TableOf` and `Pagination` in `ui/components`:
+  - the state form, results, grid, cells by kind, `<mark>`ed hits, chips,
+    empty states;
+  - the bulk bar of keyed submit buttons of the selection form;
+  - row menus keyed `<table>-row-<key>-actions`, named with the row's
+    label.
+- The table's CSS in components.css, the spike's draft under ADR 0004's
+  checks. The filter row is aligned (finding 17).
+- `theme/js/table.js`: `<ui-table>`, the live-address merge, the refresh.
+- `internal/toyshop`, the spike's shop on the real packages, mounted by
+  `cmd/catalog` at /shop/orders, with goldens, checks and every answer
+  tested.
+- Stories `components/table` and `components/pagination`.
+- `internal/spike` removed.
+
+**Review** ([0018](reviews/0018-t3-table-view.md)): Gemini 4 Argon
+(Medium), about 36k tokens. Nine of 13 findings fixed:
+- status and focus after a whole-table swap;
+- only state requests mark the results busy;
+- keyed ids on chips, clear, size, empty and Apply links;
+- a status region that is never hidden;
+- `marked` checking the query and invalid UTF-8.
+
+**Checked in the pane**, at /shop/orders:
+- two tables keeping each other's state through a filter, a search and a
+  sort;
+- the size kept by a search;
+- a rejected search taking the whole table;
+- a row's refund replacing its row, the trigger named with the row;
+- Reassign's focus coming back to the keyed trigger after the refresh;
+- a bulk Mark shipped, with focus falling back to the scroll region once
+  the selection cleared.
+
 ## 2026-11-22 — T2: tables
 
 **Landed** (Claude), to server-state-interface.md §3:

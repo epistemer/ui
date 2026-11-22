@@ -316,3 +316,216 @@
 		gap: var(--ui-space-3);
 	}
 }
+
+/* Tables (server-state-interface.md §4.1, §6): the tools, the results,
+   the grid, the bulk bar. */
+.ui-table {
+	display: flex;
+	flex-direction: column;
+	gap: var(--ui-space-3);
+}
+
+.ui-table-tools {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: end;
+	gap: var(--ui-space-3);
+}
+
+.ui-table-search {
+	display: flex;
+	flex: 1 1 16em;
+	align-items: center;
+	gap: var(--ui-space-2);
+}
+
+/* The filters sit on one line, a range's fieldset beside a select. */
+.ui-table-filters {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: end;
+	gap: var(--ui-space-3);
+
+	& fieldset {
+		display: flex;
+		align-items: end;
+		gap: var(--ui-space-2);
+		margin: 0;
+	}
+}
+
+.ui-table-results {
+	display: flex;
+	flex-direction: column;
+	gap: var(--ui-space-3);
+	transition: opacity var(--ui-duration-s) var(--ui-ease);
+
+	&[aria-busy="true"] {
+		opacity: 0.6;
+	}
+}
+
+/* The status a table says after a change: visually hidden (with
+   ui-visually-hidden), never display: none, which would silence it. */
+.ui-table-status {
+	margin: 0;
+}
+
+.ui-table-chips {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: var(--ui-space-2);
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.ui-table-chip {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--ui-space-1);
+	padding-block: var(--ui-space-1);
+	padding-inline: var(--ui-space-2);
+	border-radius: var(--ui-radius-full);
+	color: var(--ui-color-brand-text);
+	background-color: var(--ui-color-brand-subtle);
+	text-decoration: none;
+}
+
+.ui-table-clear {
+	font-size: var(--ui-text-s);
+}
+
+/* A named, focusable scroll region, so a keyboard scrolls a wide table;
+   its headers stick. */
+.ui-table-scroll {
+	max-block-size: 70dvb;
+	overflow: auto;
+	border: 1px solid var(--ui-color-border);
+	border-radius: var(--ui-radius-m);
+}
+
+.ui-table-grid {
+	inline-size: 100%;
+	border-collapse: collapse;
+
+	& caption {
+		padding: var(--ui-space-2);
+		font-weight: 600;
+		text-align: start;
+	}
+
+	& th,
+	& td {
+		padding-block: var(--ui-space-2);
+		padding-inline: var(--ui-space-3);
+		border-block-end: 1px solid var(--ui-color-border);
+		text-align: start;
+		white-space: nowrap;
+	}
+
+	& thead th {
+		position: sticky;
+		inset-block-start: 0;
+		z-index: 1;
+		font-weight: 600;
+		background-color: var(--ui-color-surface-raised);
+	}
+
+	& [data-kind="number"] {
+		text-align: end;
+		font-variant-numeric: tabular-nums;
+	}
+
+	& mark {
+		color: inherit;
+		background-color: var(--ui-color-warning-subtle);
+	}
+}
+
+.ui-table-sort {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--ui-space-1);
+	color: inherit;
+	text-decoration: none;
+}
+
+.ui-table-check {
+	inline-size: 1%;
+}
+
+/* Shown once <ui-table> can run it. */
+.ui-table-all[hidden] {
+	display: none;
+}
+
+.ui-table-actions {
+	inline-size: 1%;
+	text-align: end;
+}
+
+.ui-table-empty {
+	margin: 0;
+	padding: var(--ui-space-4);
+	color: var(--ui-color-text-muted);
+}
+
+/* The bulk bar shows while a row is checked. */
+.ui-table-bulk {
+	display: none;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: var(--ui-space-2);
+}
+
+.ui-table:has(td.ui-table-check input[type="checkbox"]:checked) .ui-table-bulk {
+	display: flex;
+}
+
+/* Pagination (§4.1). */
+.ui-pagination {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: space-between;
+	gap: var(--ui-space-3);
+}
+
+.ui-pagination-range,
+.ui-pagination-sizes {
+	display: flex;
+	gap: var(--ui-space-2);
+	margin: 0;
+	color: var(--ui-color-text-muted);
+}
+
+.ui-pagination-pages {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--ui-space-1);
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.ui-pagination-page,
+.ui-pagination-end,
+.ui-pagination-size {
+	display: inline-flex;
+	padding-block: var(--ui-space-1);
+	padding-inline: var(--ui-space-2);
+	border-radius: var(--ui-radius-s);
+	color: inherit;
+	text-decoration: none;
+
+	&[aria-current] {
+		color: var(--ui-color-on-brand);
+		background-color: var(--ui-color-brand);
+	}
+
+	&[aria-disabled="true"] {
+		color: var(--ui-color-text-muted);
+	}
+}

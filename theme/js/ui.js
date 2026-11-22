@@ -6,6 +6,7 @@ import "./confirm.js";
 import "./toast.js";
 import "./layout.js";
 import "./actions.js";
+import "./table.js";
 
 // A disabled link (aria-disabled, no href) and anything inside it: no
 // click reaches htmx or any other listener. A capturing listener on the
