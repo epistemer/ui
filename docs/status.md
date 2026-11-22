@@ -47,12 +47,17 @@ sending rows out of band.
 ones most worth a look:
 - S7: ui doesn't import handlers. It owns `Link` and the gate's type.
 - S8: `Src` and `Image` take a link too.
-- S21: a disabled action must be reachable to say why, which needs a
-  Button that is `aria-disabled` and a menu that stops on disabled items.
-  Both change locked text.
 - S22: a column's page options sit on `tables.Col`, not on models'
   column. This differs from the brainstorm's sketch
   (`c.Email.Searchable()`); the review argued it and Claude agrees.
+  Either way the table a page declares decides which columns show and
+  which are searched, sorted or filtered, which is what epistemer asked
+  for; S22 is only which package's type carries the options.
+
+**S21, decided by epistemer** later the same day: a disabled action must
+be reachable to say why. At D7.5, after the spike, the lock gains a
+second Button state that is `aria-disabled` and focusable (`Disabled`
+stays native), and menus stop on disabled items.
 
 **Amendment A5 is locked** (epistemer, the same day): the kernel's
 `Link` and `URL`, and eight signatures of the visual packages, with
@@ -62,7 +67,7 @@ ones most worth a look:
 it**; release PR #28 is open, and its API review will not match the
 contract before then.
 
-**Waiting on epistemer:** S7 and S9–S22, or their defaults.
+**Waiting on epistemer:** S7, S9–S20 and S22, or their defaults.
 
 **Next**, in a coding session: build A5; then the slice spike
 (D7.2), whose findings amend the design; then the handlers and models

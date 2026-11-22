@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | Draft. epistemer decided S1–S6 in the brainstorm of 2026-11-22; S7–S22 stand on their defaults, open to change until the lock (D7.5) |
+| Status | Draft. epistemer decided S1–S6 in the brainstorm of 2026-11-22, and S21 the same day; S7–S20 and S22 stand on their defaults, open to change until the lock (D7.5) |
 | Date | 2026-11-22 |
 | Roadmap item | D7.1 |
 | Review | [0012](reviews/0012-server-state-design.md): 16 findings, 15 of which changed this text |
@@ -329,10 +329,12 @@ In `ui/components`, all reading `[]actions.Item`:
   no request attribute, so it is inert without script too. It stays
   focusable, carries `aria-disabled="true"`, and its reason is its
   description: a Tooltip on a button, a second line in a menu item.
-- That asks two things of the locked elements (S21): a Button that is
-  `aria-disabled` and focusable instead of natively `disabled`, and a
-  menu whose arrow keys stop on disabled items, as the APG recommends,
-  where §7.3 now skips them.
+- That asks two things of the locked elements (S21, decided): a second
+  Button state, apart from `Disabled`, that is `aria-disabled` and
+  focusable, and a menu whose arrow keys stop on disabled items, where
+  §7.3 now skips them. `Disabled` stays native, because an
+  `aria-disabled` submit button would still submit without script. The
+  spike tries both before the contract writes them.
 - An app with another placement reads the items itself; nothing in a
   placement is private.
 
@@ -751,6 +753,7 @@ Decided by epistemer on 2026-11-22:
 | S4 | Transport | one handler, one response; a GET form and links; htmx swaps the region; no SSE for rows |
 | S5 | Route links | handlers' builders return a link; every ui element or helper that takes an href takes `interface{ URL() string }`. Its amendment, A5, is locked (§11) |
 | S6 | Scope and the tag | this round is tables, pagination, filters, bulk and actions; v0.2.0 is tagged after this design is reviewed |
+| S21 | A disabled action that can be reached and read | Amend the lock, at D7.5 and after the spike has shown both working: a second Button state, apart from `Disabled`, that is `aria-disabled`, focusable and carries a reason; and a menu whose arrow keys stop on disabled items (§7.3 skips them today). `Disabled` itself stays native. The new state's name and shape come to epistemer with the contract |
 
 Standing on their defaults:
 
@@ -770,7 +773,6 @@ Standing on their defaults:
 | S18 | Row actions' placement in a table | one menu per row | the first action as a button beside the menu |
 | S19 | A second level in an action menu | none: it becomes an `Open` action or a page | submenus in `Menu` |
 | S20 | A client-side table | none: a short list is `Unpaged()` | a second component |
-| S21 | A disabled action that can be reached and read | amend the lock: a Button state that is `aria-disabled` and focusable, and a menu whose arrow keys stop on disabled items (§7.3 skips them today) | keep both as locked; a disabled action's reason is then out of a keyboard's reach |
 | S22 | Where a column's page options are set | on `tables.Col(column)`, all of them; models' column holds only what the schema knows | `Searchable`, `Sortable` and `Filter` on models' column (`c.Email.Searchable()`), as the brainstorm's sketch had it: shorter for a plain column, but the options then live in two packages and models carries what a page decides |
 
 ## 10. What other packages are asked for
@@ -797,8 +799,8 @@ to epistemer.
 - ADR 0005's list of what emits `hx-*` (the server table, the remote
   select, the command palette, `ToastSwap`) gains action controls and
   `Reply`; its "streamed rows" goes (ADR 0010);
-- the contract of actions and tables, and what S21 asks of Button and
-  Menu, as a later amendment after the spike (D7.5).
+- the contract of actions and tables, and S21's two changes to Button
+  and Menu, as a later amendment after the spike (D7.5).
 
 ## 11. Amendment A5: links
 
@@ -854,7 +856,8 @@ first. The toy shop's orders:
   a cell that still navigates;
 - a second table on the page, to see that neither loses its state;
 - row actions: a link, a request with a confirmation gated by a state
-  rule (disabled, reachable, inert without script), an `Open` action
+  rule (disabled, reachable by keyboard in a button and in a menu, inert
+  without script: S21), an `Open` action
   whose form fails once with a 422 and then succeeds, one action the gate
   refuses;
 - the action form: a request item in a menu and in a card posting with
