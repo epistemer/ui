@@ -1,6 +1,7 @@
 package stories
 
 import (
+	"github.com/epistemer/ui"
 	"github.com/epistemer/i18n"
 	"github.com/epistemer/ui/components"
 	"github.com/epistemer/ui/elements"
@@ -67,13 +68,13 @@ templ confirmHtmx() {
 templ menuBasic() {
 	@components.Menu(i18n.Static("Actions")) {
 		@components.MenuItems {
-			@components.MenuItem().Href("/stores/1/edit") {
+			@components.MenuItem().Href(ui.URL("/stores/1/edit")) {
 				Edit
 			}
 			@components.MenuItem() {
 				Duplicate
 			}
-			@components.MenuItem().Href("/stores/1/archive").Disabled(true) {
+			@components.MenuItem().Href(ui.URL("/stores/1/archive")).Disabled(true) {
 				Archive
 			}
 			@components.MenuItem().Danger().Submit("delete-store").Attrs(components.Confirm(ctx, i18n.Static("Delete this store?"))) {
@@ -113,7 +114,7 @@ templ menuInTable() {
 					<td>
 						@components.Menu(i18n.Static("Actions")) {
 							@components.MenuItems {
-								@components.MenuItem().Href("/stores/edit") {
+								@components.MenuItem().Href(ui.URL("/stores/edit")) {
 									Edit
 								}
 								@components.MenuItem().Danger() {
@@ -130,16 +131,16 @@ templ menuInTable() {
 
 templ tabsStory() {
 	@components.Tabs(i18n.Static("Store sections")) {
-		@components.Tab("/stores/1").Current(true) {
+		@components.Tab(ui.URL("/stores/1")).Current(true) {
 			Details
 		}
-		@components.Tab("/stores/1/orders") {
+		@components.Tab(ui.URL("/stores/1/orders")) {
 			Orders
 			@elements.Badge() {
 				12
 			}
 		}
-		@components.Tab("/stores/1/stock") {
+		@components.Tab(ui.URL("/stores/1/stock")) {
 			Stock
 		}
 	}

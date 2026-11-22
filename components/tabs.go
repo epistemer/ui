@@ -8,15 +8,17 @@ import (
 	"github.com/a-h/templ"
 	"github.com/epistemer/i18n"
 
+	"github.com/epistemer/ui"
 	"github.com/epistemer/ui/elements"
+	"github.com/epistemer/ui/internal/links"
 )
 
 // TabsSpec is a row of navigation tabs (§7.4): the navigation pattern,
 // links with aria-current, not APG Tabs. Children are Tab components.
 //
 //	@components.Tabs(label) {
-//		@components.Tab("/stores/1").Current(here == "info") { Details }
-//		@components.Tab("/stores/1/orders") { Orders @elements.Badge() { 12 } }
+//		@components.Tab(ui.URL("/stores/1")).Current(here == "info") { Details }
+//		@components.Tab(ui.URL("/stores/1/orders")) { Orders @elements.Badge() { 12 } }
 //	}
 type TabsSpec struct {
 	label i18n.Ter
@@ -48,8 +50,8 @@ type TabSpec struct {
 	attrs   templ.Attributes
 }
 
-// Tab starts a tab leading to href.
-func Tab(href templ.SafeURL) TabSpec { return TabSpec{href: href} }
+// Tab starts a tab leading to to. Rendering one with no address panics.
+func Tab(to ui.Link) TabSpec { return TabSpec{href: links.Href(to)} }
 
 // Current marks the tab of the page shown (aria-current="page").
 func (t TabSpec) Current(c bool) TabSpec { t.current = c; return t }
@@ -62,6 +64,9 @@ func (t TabSpec) Attrs(a templ.Attributes) TabSpec {
 }
 
 func (t TabSpec) Render(ctx context.Context, w io.Writer) error {
+	if t.href == "" {
+		panic("components: Tab with no address: a tab is a link")
+	}
 	own := templ.Attributes{"class": "ui-tab", "href": t.href}
 	if t.current {
 		own["aria-current"] = "page"

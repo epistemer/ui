@@ -14,7 +14,7 @@ import (
 	"github.com/epistemer/ui/icons"
 )
 
-func pageHeader(p PageHeaderSpec, actions templ.Component, hasActions, hasDescription bool) templ.Component {
+func pageHeader(p PageHeaderSpec, hrefs []templ.SafeURL, actions templ.Component, hasActions, hasDescription bool) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -87,15 +87,15 @@ func pageHeader(p PageHeaderSpec, actions templ.Component, hasActions, hasDescri
 					}
 				}
 				if i == len(p.crumbs)-1 {
-					if c.Href != "" {
+					if hrefs[i] != "" {
 						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "<a href=\"")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
 						var templ_7745c5c3_Var3 string
-						templ_7745c5c3_Var3, templ_7745c5c3_Err = templruntime.NewAttributeExpression(c.Href).ResolveURL(ctx)
+						templ_7745c5c3_Var3, templ_7745c5c3_Err = templruntime.NewAttributeExpression(hrefs[i]).ResolveURL(ctx)
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `layout/page.templ`, Line: 20, Col: 25}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `layout/page.templ`, Line: 20, Col: 27}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var3)
 						if templ_7745c5c3_Err != nil {
@@ -108,7 +108,7 @@ func pageHeader(p PageHeaderSpec, actions templ.Component, hasActions, hasDescri
 						var templ_7745c5c3_Var4 string
 						templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(c.Text.T(ctx))
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `layout/page.templ`, Line: 20, Col: 63}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `layout/page.templ`, Line: 20, Col: 65}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 						if templ_7745c5c3_Err != nil {
@@ -143,9 +143,9 @@ func pageHeader(p PageHeaderSpec, actions templ.Component, hasActions, hasDescri
 						return templ_7745c5c3_Err
 					}
 					var templ_7745c5c3_Var6 string
-					templ_7745c5c3_Var6, templ_7745c5c3_Err = templruntime.NewAttributeExpression(c.Href).ResolveURL(ctx)
+					templ_7745c5c3_Var6, templ_7745c5c3_Err = templruntime.NewAttributeExpression(hrefs[i]).ResolveURL(ctx)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `layout/page.templ`, Line: 25, Col: 24}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `layout/page.templ`, Line: 25, Col: 26}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var6)
 					if templ_7745c5c3_Err != nil {
@@ -158,7 +158,7 @@ func pageHeader(p PageHeaderSpec, actions templ.Component, hasActions, hasDescri
 					var templ_7745c5c3_Var7 string
 					templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(c.Text.T(ctx))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `layout/page.templ`, Line: 25, Col: 42}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `layout/page.templ`, Line: 25, Col: 44}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
 					if templ_7745c5c3_Err != nil {

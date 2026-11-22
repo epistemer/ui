@@ -11,11 +11,14 @@ import (
 	"github.com/epistemer/i18n"
 
 	"github.com/epistemer/ui/elements"
+
+	"github.com/epistemer/ui"
+	"github.com/epistemer/ui/internal/links"
 )
 
 // Crumb is one step of a page's breadcrumbs.
 type Crumb struct {
-	Href templ.SafeURL // empty only for the current page, the last crumb
+	Href ui.Link // no address (visual-interface.md §2.7) only for the current page, the last crumb
 	Text i18n.Ter
 }
 
@@ -52,12 +55,15 @@ func (p PageHeaderSpec) Render(ctx context.Context, w io.Writer) error {
 	if p.title == nil || strings.TrimSpace(p.title.T(ctx)) == "" {
 		panic("layout: PageHeader with no title: a page needs its heading")
 	}
+	// Each crumb's address is resolved once, before anything is written.
+	hrefs := make([]templ.SafeURL, len(p.crumbs))
 	for i, c := range p.crumbs {
 		if c.Text == nil || strings.TrimSpace(c.Text.T(ctx)) == "" {
 			panic("layout: PageHeader with a crumb that has no text")
 		}
-		if c.Href == "" && i < len(p.crumbs)-1 {
-			panic("layout: PageHeader with a crumb above the page that has no href: only the last crumb, the page itself, may have none")
+		hrefs[i] = links.Href(c.Href)
+		if hrefs[i] == "" && i < len(p.crumbs)-1 {
+			panic("layout: PageHeader with a crumb above the page that has no address: only the last crumb, the page itself, may have none")
 		}
 	}
 	// The actions render only when the children write something, so an
@@ -71,5 +77,5 @@ func (p PageHeaderSpec) Render(ctx context.Context, w io.Writer) error {
 		actions.Reset()
 	}
 	hasDescription := p.description != nil && strings.TrimSpace(p.description.T(ctx)) != ""
-	return pageHeader(p, templ.Raw(actions.String()), actions.Len() > 0, hasDescription).Render(ctx, w)
+	return pageHeader(p, hrefs, templ.Raw(actions.String()), actions.Len() > 0, hasDescription).Render(ctx, w)
 }

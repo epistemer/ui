@@ -9,6 +9,36 @@ taken for epistemer, what's next, and what's waiting on epistemer.
 
 
 
+## 2026-11-22 — A5: links
+
+**Landed** (Claude), to interface.md §4A and visual-interface.md §2.7 and
+§13.4:
+- `ui.Link` and `ui.URL` in the kernel, which still imports only templ and
+  the standard library.
+- `internal/links.Href` resolves a link: through `templ.URL`, and `""` for
+  no address (nil, empty, or refused).
+- The eight signatures take a `ui.Link`. Every golden is unchanged.
+- Callers pass `ui.URL("…")` for literal addresses: stories, tests,
+  examples, doc comments.
+- No address keeps what an empty `templ.SafeURL` did before, with tests
+  for each case:
+  - Button and MenuItem stay buttons;
+  - Link and Image render `Empty`;
+  - Avatar shows the initials;
+  - the last Crumb is the current page as text;
+  - NavItem panics, as it did on an empty href.
+- One addition the contract doesn't name: `Tab` with no address now panics,
+  as `NavItem` does, under §2's rule that programmer mistakes panic at
+  render. Before, it rendered `href=""`.
+
+**Review** ([0013](reviews/0013-a5-links.md)): Gemini 3.8 Flash (High),
+about 207k tokens. Five findings; four changed the code: typed nil
+pointers are nil links, crumbs and value links resolve once, and more
+no-address tests. Rejected: keeping `data:` and `blob:` images, which A5
+gives up on purpose (ADR 0008); review 0008's allowance is superseded.
+
+**Next.** V7: the release, on top of this.
+
 ## 2026-11-22 — D7.1: the design of links, actions and tables
 
 A design session with epistemer: a reading of zp's server table and

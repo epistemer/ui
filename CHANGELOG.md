@@ -8,6 +8,13 @@ All notable changes to this module. The format follows
 ## Unreleased
 
 ### Added
+- The kernel's `Link`, an alias of `interface{ URL() string }`, and
+  `URL(s)` for a literal or external address (amendment A5, ADR 0008).
+  Everything in the visual packages that takes an address takes a
+  `ui.Link` (`ButtonSpec.Href`, `AvatarSpec.Src`, `elements.Link`,
+  `elements.Image`, `MenuItemSpec.Href`, `Tab`, `NavItem`, `Crumb.Href`)
+  and renders it through `templ.URL`. A nil link, an empty one, or one
+  `templ.URL` refuses is no address (visual-interface.md §2.7).
 - `ui/theme`: the token table, `Config` with `Defaults` and the checks
   `CheckColor`, `CheckFont` and `CheckRadius` (errors `errors.theme.*`),
   and `Theme`. `Theme` serves ui's stylesheet and script under one release

@@ -2,6 +2,7 @@ package elements
 
 import (
 	"context"
+	"github.com/epistemer/ui"
 	"strings"
 	"testing"
 
@@ -83,5 +84,5 @@ func TestButtonHrefSubmitPanics(t *testing.T) {
 			t.Error("a submitting link rendered")
 		}
 	}()
-	render(t, Button().Href("/x").Submit())
+	render(t, Button().Href(ui.URL("/x")).Submit())
 }
