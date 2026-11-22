@@ -93,4 +93,18 @@ func Demo(mux *http.ServeMux) {
 	mux.HandleFunc("POST /demo/fail", func(w http.ResponseWriter, r *http.Request) {
 		components.Reply(w, r).Fail(errNotPaid).Else(ui.URL("/"))
 	})
+	mux.HandleFunc("GET /demo/customers/search", searchDemo(toyCustomers))
+	mux.HandleFunc("GET /demo/products/search", searchDemo(toyProducts))
+}
+
+func searchDemo(rs toyRecords) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		rows := rs.search(r.URL.Query().Get("q"), components.SuggestionLimit+1)
+		opts := make([]components.Suggestion, len(rows))
+		for i, c := range rows {
+			opts[i] = components.Suggestion{Value: c.id, Label: i18n.Static(c.name)}
+		}
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		components.Suggestions(opts...).Render(r.Context(), w)
+	}
 }

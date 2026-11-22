@@ -1,6 +1,9 @@
 package stories
 
 import (
+	"net/http"
+	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"github.com/epistemer/ui/catalog/catalogtest"
@@ -14,4 +17,23 @@ func TestStories(t *testing.T) {
 	themehook.ReverseCheck = true
 	defer func() { themehook.ReverseCheck = false }()
 	catalogtest.Check(t, All())
+}
+
+func TestDemoCustomerSearch(t *testing.T) {
+	mux := http.NewServeMux()
+	Demo(mux)
+
+	// Substring, case-insensitive.
+	w := httptest.NewRecorder()
+	mux.ServeHTTP(w, httptest.NewRequest(http.MethodGet, "/demo/customers/search?q=ANN", nil))
+	if w.Code != http.StatusOK || !strings.Contains(w.Body.String(), `data-value="7"`) || !strings.Contains(w.Body.String(), "Ann Lee") || strings.Contains(w.Body.String(), "data-ui-more") {
+		t.Errorf("q=ANN: %d\n%s", w.Code, w.Body.String())
+	}
+
+	// Empty q fetches SuggestionLimit+1 so data-ui-more is rendered.
+	w = httptest.NewRecorder()
+	mux.ServeHTTP(w, httptest.NewRequest(http.MethodGet, "/demo/customers/search", nil))
+	if w.Code != http.StatusOK || !strings.Contains(w.Body.String(), "data-ui-more") {
+		t.Errorf("empty q should include data-ui-more: %d\n%s", w.Code, w.Body.String())
+	}
 }

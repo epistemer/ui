@@ -7,6 +7,9 @@ import "./toast.js";
 import "./layout.js";
 import "./actions.js";
 import "./table.js";
+import "./combobox.js";
+import "./repeat.js";
+import "./upload.js";
 
 // A disabled link (aria-disabled, no href) and anything inside it: no
 // click reaches htmx or any other listener. A capturing listener on the

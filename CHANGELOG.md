@@ -22,6 +22,16 @@ All notable changes to this module. The format follows
   with its item groups and `<template>` row).
 - `ui/components` (U2, amendment A7): `Suggestion`, `SuggestionLimit` and
   `Suggestions`, with CSS for comboboxes, uploads and list fields.
+- The ui script (U3, amendment A7): `<ui-combobox>` (`theme/js/combobox.js`,
+  searching through htmx with script-side debouncing, `htmx:beforeSwap`
+  origin/path/suggestions verification, keyboard and focus rules, and
+  `.ui-combobox-clear`), `<ui-repeat>` (`theme/js/repeat.js`, cloning
+  template rows, rewriting own path prefixes and suffixing ids at every
+  depth, calling `htmx.process`, renumbering, and enforcing bounds with
+  `aria-disabled`), and upload behaviours (`theme/js/upload.js`, keep cards,
+  chosen file list with `DataTransfer` removal and optional `blob:` image
+  previews, client size/type checks with a capturing submit guard, upload
+  progress from `xhr.upload`, and 413 handling).
 
 ### Changed
 - `inputs.Field` renders `KindList` with `<ui-repeat>` instead of returning
