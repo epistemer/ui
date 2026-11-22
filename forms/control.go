@@ -5,6 +5,8 @@ import (
 	"slices"
 
 	"github.com/epistemer/i18n"
+	"github.com/epistemer/models/listing"
+	"github.com/epistemer/ui/forms/files"
 	"github.com/epistemer/ui/forms/internal/hook"
 )
 
@@ -172,8 +174,9 @@ func (c Control) Options() iter.Seq[Choice] {
 }
 
 // Attrs yields the HTML attributes a field's rules imply (maxlength, min,
-// max, pattern, accept, type). When two rules give one attribute, the
-// later rule's value wins; attributes come in the order they first appear.
+// max, pattern, accept, type, data-ui-max-size) and inputmode="numeric" for
+// an integer remote field. When two rules give one attribute, the later
+// rule's value wins; attributes come in the order they first appear.
 func (c Control) Attrs() iter.Seq2[string, string] {
 	return func(yield func(string, string) bool) {
 		if c.fd == nil {
@@ -181,6 +184,10 @@ func (c Control) Attrs() iter.Seq2[string, string] {
 		}
 		var names []string
 		last := map[string]string{}
+		if c.fd.kind == KindRemote && c.fd.base.integer {
+			names = append(names, "inputmode")
+			last["inputmode"] = "numeric"
+		}
 		for _, st := range c.fd.stages {
 			for _, a := range st.attrs {
 				if _, ok := last[a[0]]; !ok {
@@ -197,6 +204,55 @@ func (c Control) Attrs() iter.Seq2[string, string] {
 	}
 }
 
+// Remote gives a remote field's search link and Labeler, and id: the
+// value formatted, or "" when the field is absent or its text didn't
+// convert. ok is false for any other field.
+func (c Control) Remote() (search interface{ URL() string }, l listing.Labeler, id string, ok bool) {
+	if c.fd == nil || c.fd.kind != KindRemote {
+		return nil, nil, "", false
+	}
+	if c.fd.present && c.fd.convAt < 0 && len(c.fd.vals) > 0 {
+		if t := c.fd.base.format(c.fd.vals[0]); len(t) > 0 {
+			id = t[0]
+		}
+	}
+	return c.fd.search, c.fd.labeler, id, true
+}
+
+// Stored yields each stored file with its keep state: posted, after Bind;
+// true before. It is an empty iterator, never nil, for any other control.
+func (c Control) Stored() iter.Seq2[files.Stored, bool] {
+	return func(yield func(files.Stored, bool) bool) {
+		if c.fd == nil || !c.fd.base.upload {
+			return
+		}
+		for _, s := range c.fd.stored {
+			kept := c.fd.keep == nil || c.fd.keep[s.Key]
+			if !yield(s, kept) {
+				return
+			}
+		}
+	}
+}
+
+// Lost is true for a file field (File, Files, Upload, Uploads) that was
+// posted files in a form that failed: the browser won't send them again.
+func (c Control) Lost() bool {
+	if c.fd == nil || !c.fd.base.files || !c.fd.postedFiles || c.fd.err != nil {
+		return false
+	}
+	return c.Active() && c.fd.form.root().hasError()
+}
+
+// Bounds gives a list's effective bounds: max is DefaultMaxItems when
+// MaxItems wasn't set. Zero for any other control.
+func (c Control) Bounds() (min, max int) {
+	if c.l == nil {
+		return 0, 0
+	}
+	return c.l.min, c.l.max
+}
+
 // Err is the node's own error.
 func (c Control) Err() error {
 	switch {
@@ -210,12 +266,14 @@ func (c Control) Err() error {
 	return nil
 }
 
-// Children yields a group's members, or a list's items as groups.
+// Children yields a group's members, or a list's items as groups. For a
+// list that was neither bound nor given items by Add, it yields MinItems
+// blank items built at indices 0..MinItems-1.
 func (c Control) Children() iter.Seq[Control] {
 	return func(yield func(Control) bool) {
 		switch {
 		case c.l != nil:
-			for _, it := range c.l.items {
+			for _, it := range c.l.displayItems() {
 				if !yield(Control{f: it.form}) {
 					return
 				}

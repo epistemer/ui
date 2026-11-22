@@ -8,7 +8,10 @@ import (
 	"mime/multipart"
 	"net/http"
 	"slices"
+	"strconv"
 	"strings"
+
+	"github.com/epistemer/ui/forms/files"
 )
 
 // MinSize checks that the uploaded file's size is at least bytes.
@@ -28,6 +31,7 @@ func MinSize(bytes int64) Rule[*multipart.FileHeader] {
 
 // MaxSize checks that the uploaded file's size is at most bytes.
 // The error argument is formatted using the largest whole unit of B, KB, MB, or GB.
+// It implies the data-ui-max-size attribute (in bytes).
 func MaxSize(bytes int64) Rule[*multipart.FileHeader] {
 	mustNotBeNegative("MaxSize", bytes)
 	formatted := formatFileSize(bytes)
@@ -38,7 +42,7 @@ func MaxSize(bytes int64) Rule[*multipart.FileHeader] {
 			}
 			return nil
 		},
-	}
+	}.with("data-ui-max-size", strconv.FormatInt(bytes, 10))
 }
 
 // ContentType sniffs up to 512 bytes of the file and validates its media type against types.
@@ -98,6 +102,64 @@ func ContentType(types ...string) Rule[*multipart.FileHeader] {
 			return ErrContentType.With(msgArg)
 		},
 	}.with("accept", acceptAttr)
+}
+
+// Files checks each added file of an upload against rules, returning the
+// first failing file's error. It passes its rules' HTML attributes on.
+func Files(rules ...Rule[*multipart.FileHeader]) Rule[files.Upload] {
+	copied := slices.Clone(rules)
+	var names []string
+	last := map[string]string{}
+	for _, r := range copied {
+		for _, a := range r.attrs {
+			if _, ok := last[a.name]; !ok {
+				names = append(names, a.name)
+			}
+			last[a.name] = a.value
+		}
+	}
+	out := Rule[files.Upload]{
+		check: func(ctx context.Context, v files.Upload) error {
+			for _, fh := range v.Added {
+				if err := Check(ctx, fh, copied...); err != nil {
+					return err
+				}
+			}
+			return nil
+		},
+	}
+	for _, n := range names {
+		out = out.with(n, last[n])
+	}
+	return out
+}
+
+// MinFiles checks that an upload holds at least n files in all (kept plus
+// added).
+func MinFiles(n int) Rule[files.Upload] {
+	mustNotBeNegative("MinFiles", int64(n))
+	return Rule[files.Upload]{
+		check: func(_ context.Context, v files.Upload) error {
+			if len(v.Kept)+len(v.Added) < n {
+				return ErrMinFiles.With(n)
+			}
+			return nil
+		},
+	}
+}
+
+// MaxFiles checks that an upload holds at most n files in all (kept plus
+// added).
+func MaxFiles(n int) Rule[files.Upload] {
+	mustNotBeNegative("MaxFiles", int64(n))
+	return Rule[files.Upload]{
+		check: func(_ context.Context, v files.Upload) error {
+			if len(v.Kept)+len(v.Added) > n {
+				return ErrMaxFiles.With(n)
+			}
+			return nil
+		},
+	}
 }
 
 func formatFileSize(b int64) string {

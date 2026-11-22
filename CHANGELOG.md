@@ -5,7 +5,20 @@ All notable changes to this module. The format follows
 [Semantic Versioning](https://semver.org/).
 
 
-## Unreleased
+## [Unreleased]
+
+### Added
+- `ui/forms/files` (U1, amendment A7): `Stored` and `Upload`.
+- `ui/forms` (U1, amendment A7): `Form.Upload` (`KindUpload`) and
+  `Form.Uploads` (`KindUploads`), `Field[T].Remote` (`KindRemote`),
+  `Control.Remote`, `Control.Stored`, `Control.Lost` and `Control.Bounds`;
+  `Control.Children` on a new list yields `MinItems` blank items.
+- `ui/forms/rule` (U1, amendment A7): `Files`, `MinFiles` (`ErrMinFiles`),
+  `MaxFiles` (`ErrMaxFiles`), and `MaxSize`'s `data-ui-max-size` attribute.
+
+### Changed
+- `Form.List` builds its template row when declared, not on first use, so a mistake in an item's build function (such as `Upload` in a list) panics at declaration (I10). A build function runs once more, at declaration, and must not read the list's own handle.
+
 
 ## [v0.3.0] - 2026-11-22
 

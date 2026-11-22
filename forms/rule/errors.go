@@ -27,6 +27,8 @@ var (
 	ErrMinSize      = errors.Key1[string]("errors.forms.rule.min_size", "must be at least %s", errors.Invalid)
 	ErrMaxSize      = errors.Key1[string]("errors.forms.rule.max_size", "must be at most %s", errors.Invalid)
 	ErrContentType  = errors.Key1[string]("errors.forms.rule.content_type", "must be one of these file types: %s", errors.Invalid)
+	ErrMinFiles     = errors.Key1[int]("errors.forms.rule.min_files", "choose at least %d", errors.Invalid)
+	ErrMaxFiles     = errors.Key1[int]("errors.forms.rule.max_files", "choose at most %d", errors.Invalid)
 	ErrMinItems     = errors.Key1[int]("errors.forms.rule.min_items", "choose at least %d", errors.Invalid)
 	ErrMaxItems     = errors.Key1[int]("errors.forms.rule.max_items", "choose at most %d", errors.Invalid)
 )

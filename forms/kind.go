@@ -22,6 +22,9 @@ const (
 	KindFiles
 	KindGroup
 	KindList
+	KindRemote
+	KindUpload
+	KindUploads
 )
 
 var kindNames = [...]string{
@@ -30,6 +33,7 @@ var kindNames = [...]string{
 	KindToggle: "toggle", KindDate: "date", KindDateTime: "datetime",
 	KindSelect: "select", KindMultiSelect: "multiselect", KindFile: "file",
 	KindFiles: "files", KindGroup: "group", KindList: "list",
+	KindRemote: "remote", KindUpload: "upload", KindUploads: "uploads",
 }
 
 // String returns the kind's name without its prefix, in lower case, such

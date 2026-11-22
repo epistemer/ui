@@ -9,6 +9,31 @@ taken for epistemer, what's next, and what's waiting on epistemer.
 
 
 
+## 2026-11-23 — U1: forms for the remote select, uploads and lists
+
+**Landed**, to rich-inputs-interface.md §2:
+- `ui/forms/files` (`Stored`, `Upload`); `Form.Upload`/`Uploads` with the
+  stored files, their binding, presence and panics;
+- `Field[T].Remote` and `KindRemote`, `KindUpload`, `KindUploads`;
+  `Control.Remote`, `Stored`, `Lost`, `Bounds`; `inputmode` for an
+  integer remote field;
+- a new list's control yields `MinItems` blank items; `List`'s doc
+  comment says which rows bind drops (L7);
+- `rule.Files`, `MinFiles`, `MaxFiles`, `ErrMinFiles`, `ErrMaxFiles`;
+  `MaxSize` gives `data-ui-max-size`;
+- an oversized body's `*http.MaxBytesError` is found through `f.Err()`.
+
+One choice the contract left open: `Form.List` builds its template row at
+declaration, so `Upload` in a list panics there (I10); a build function
+runs once at declaration and mustn't read the list's own handle
+(CHANGELOG).
+
+Gemini 4 Argon (Medium) wrote it in a worktree from a brief naming
+contract §2, about 323k tokens; Claude reviewed the diff and ran build,
+vet, race tests, tidy and staticcheck.
+
+**Next.** U2: inputs and components.
+
 ## 2026-11-22 — A7 locked
 
 **Locked** by epistemer: [rich-inputs-interface.md](rich-inputs-interface.md),

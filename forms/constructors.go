@@ -5,10 +5,12 @@ import (
 	"fmt"
 	"math"
 	"mime/multipart"
+	"slices"
 	"strconv"
 	"time"
 
 	"github.com/epistemer/models/option"
+	"github.com/epistemer/ui/forms/files"
 )
 
 // Text declares a text field. White space around the value is trimmed
@@ -35,8 +37,9 @@ func (f *Form) Texts(name string) *Field[[]string] {
 // infers int; for other widths use Number.
 func (f *Form) Int(name string) *Field[int] {
 	return newField[int](f, name, KindNumber, codec{
-		parse:  func(in input) (any, error) { return strconv.Atoi(in.texts[0]) },
-		format: func(v any) []string { return []string{strconv.Itoa(v.(int))} },
+		integer: true,
+		parse:   func(in input) (any, error) { return strconv.Atoi(in.texts[0]) },
+		format:  func(v any) []string { return []string{strconv.Itoa(v.(int))} },
 	})
 }
 
@@ -138,6 +141,59 @@ func (f *Form) Files(name string) *Field[[]*multipart.FileHeader] {
 		parse:  func(in input) (any, error) { return append([]*multipart.FileHeader(nil), in.files...), nil },
 		format: func(any) []string { return nil },
 	})
+}
+
+// Upload declares a single-file upload field (KindUpload) with the file
+// the record already has (at most one). Kept files post as <path>.keep=<key>
+// and a new file under <path>; an added file replaces the stored one in the
+// value while the control still reports the posted keep state. It panics in
+// a list item, with len(stored) > 1, or on an empty or repeated Key or an
+// empty Name.
+func (f *Form) Upload(name string, stored []files.Stored) *Field[files.Upload] {
+	if len(stored) > 1 {
+		panic(fmt.Sprintf("forms: Upload %q takes at most one stored file, got %d; use Uploads", name, len(stored)))
+	}
+	return f.newUpload("Upload", name, KindUpload, false, stored)
+}
+
+// Uploads declares a multiple-file upload field (KindUploads) with the
+// files the record already has. Kept files post as <path>.keep=<key> and
+// new files under <path>. It panics in a list item, or on an empty or
+// repeated Key or an empty Name.
+func (f *Form) Uploads(name string, stored []files.Stored) *Field[files.Upload] {
+	return f.newUpload("Uploads", name, KindUploads, true, stored)
+}
+
+func (f *Form) newUpload(what, name string, kind Kind, multi bool, stored []files.Stored) *Field[files.Upload] {
+	if f.inListItem() {
+		panic(fmt.Sprintf("forms: %s %q inside a list item; use File or Files", what, name))
+	}
+	seen := make(map[string]bool, len(stored))
+	for i, s := range stored {
+		if s.Key == "" {
+			panic(fmt.Sprintf("forms: %s %q: stored file %d has an empty Key", what, name, i))
+		}
+		if s.Name == "" {
+			panic(fmt.Sprintf("forms: %s %q: stored file %q has an empty Name", what, name, s.Key))
+		}
+		if seen[s.Key] {
+			panic(fmt.Sprintf("forms: %s %q lists the stored file key %q twice", what, name, s.Key))
+		}
+		seen[s.Key] = true
+	}
+	h := newField[files.Upload](f, name, kind, codec{
+		files:  true,
+		upload: true,
+		multi:  multi,
+		format: func(any) []string { return nil },
+	})
+	fd := h.f
+	fd.stored = slices.Clone(stored)
+	if len(fd.stored) > 0 {
+		fd.present = true
+		fd.vals = []any{files.Upload{Kept: slices.Clone(fd.stored)}}
+	}
+	return h
 }
 
 // EnumValue is what Enum takes: a string type whose values are choices, as
