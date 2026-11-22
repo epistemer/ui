@@ -1,0 +1,68 @@
+<ui-table class="ui-table" data-ui-own="q sort page size status placed_at.from placed_at.to" data-ui-selected="%d selected" id="orders">
+  <p class="ui-table-status ui-visually-hidden" id="orders-status" role="status"></p>
+  <form action="/orders" class="ui-table-tools" hx-get="/orders" hx-push-url="true" hx-select="#orders" hx-swap="outerHTML" hx-sync="#orders:replace" hx-target="#orders" id="orders-state" method="get">
+    <div class="ui-table-search">
+      <label class="ui-visually-hidden" for="orders-q">
+        Search
+      </label>
+      <svg aria-hidden="true" class="ui-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+        <path d="m21 21-4.34-4.34"></path>
+        <circle cx="11" cy="11" r="8"></circle>
+      </svg>
+      <input autocomplete="off" class="ui-input" hx-get="/orders" hx-include="#orders-state" hx-push-url="true" hx-select="#orders-results" hx-swap="outerHTML" hx-sync="#orders:replace" hx-target="#orders-results" hx-trigger="input changed delay:300ms, search" id="orders-q" name="q" type="search" value="">
+    </div>
+    <div class="ui-table-filters">
+      <div class="ui-field">
+        <label class="ui-field-label" for="field--t-1">
+          Status
+        </label>
+        <select class="ui-input" id="field--t-1" name="status">
+          <option value="">
+            Choose…
+          </option>
+          <option value="pending">
+            pending
+          </option>
+          <option value="paid">
+            paid
+          </option>
+          <option value="shipped">
+            shipped
+          </option>
+          <option value="refunded">
+            refunded
+          </option>
+        </select>
+      </div>
+      <fieldset class="ui-group">
+        <legend class="ui-group-legend">
+          Placed
+        </legend>
+        <div class="ui-field">
+          <label class="ui-field-label" for="field--t-3">
+            From
+          </label>
+          <input class="ui-input" id="field--t-3" name="placed_at.from" type="date">
+        </div>
+        <div class="ui-field">
+          <label class="ui-field-label" for="field--t-4">
+            To
+          </label>
+          <input class="ui-input" id="field--t-4" name="placed_at.to" type="date">
+        </div>
+      </fieldset>
+    </div>
+    <button class="ui-button" data-tone="neutral" data-variant="outline" type="submit">
+      Apply
+    </button>
+  </form>
+  <form hidden="" id="orders-select" method="post"></form>
+  <div class="ui-table-results" data-ui-status="No results" data-ui-url="/orders?page=9" id="orders-results">
+    <p class="ui-table-empty">
+      This page is past the last one.
+      <a href="/orders?page=6" hx-get="/orders?page=6" hx-push-url="true" hx-select="#orders-results" hx-swap="outerHTML" hx-sync="#orders:replace" hx-target="#orders-results">
+        Go to the last page
+      </a>
+    </p>
+  </div>
+</ui-table>

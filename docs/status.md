@@ -9,6 +9,68 @@ taken for epistemer, what's next, and what's waiting on epistemer.
 
 
 
+## 2026-11-22 — D7.2: the slice spike of links, actions and tables
+
+**Landed** (Claude), in `internal/spike`:
+- the column shape models would generate (`col`);
+- `actions` and `actionstest`, `tables` and `tablestest`;
+- `tableui`: what `ui/components` would gain (`TableOf`, `Pagination`,
+  `ActionButtons`, `ActionMenu`, `ActionForm`, `ActionDialog`,
+  `InActionDialog`, `Reply`);
+- a stylesheet and script of its own;
+- the toy shop: orders and toys in memory, their handlers, `cmd/shop`.
+
+Run it with `go run ./internal/spike/cmd/shop` (localhost:7332).
+
+**Checked in the browser pane**, with htmx and without (`/plain`), every
+item of design §12:
+- search, filters, sort, paging and sizes;
+- the 422, Back, two tables;
+- row actions in a menu and a card: a link, a confirmed request, an
+  `Open` action failing once then succeeding, one the gate refuses, one
+  disabled by a state rule and still reachable;
+- two bulk actions, one of them `Open`;
+- `Reply`'s replace, remove, refresh, toast and close.
+
+**Tests:**
+- goldens, `CheckIDs`, `CheckNames` and `CheckSelectors` on seven table
+  states and an order's card;
+- both test kits;
+- every answer over HTTP, with and without htmx.
+
+The spike ran in its own server, not the catalogue as D7.2's row said,
+because a table needs handlers and an address (finding 14).
+
+**Findings** ([server-state-design.md](server-state-design.md) §12.1):
+20 of them. Those that reach D7.5's contract:
+- the live address merged into a table's state requests;
+- `HX-Trigger-After-Settle` for `Reply`;
+- keyed ids for action triggers and bulk buttons, which asks `Menu` for
+  an id;
+- `Reply.Fail`;
+- the action dialog's own markup and name;
+- S21's shapes, and a menu item named by its label alone;
+- pagers named after their tables;
+- the selection's parameter name;
+- enum filters as strings;
+- a number renderer.
+
+**Review** ([0014](reviews/0014-d7-2-spike.md)): Gemini 4 Argon (High),
+about 246k tokens. 17 findings:
+- twelve changed the spike or a fix, among them the redirect check, a
+  rejected search taking the whole table, focus after a refresh, and the
+  toast fix's second modal;
+- four were rejected, after checking the pane and htmx's behaviour;
+- three are new findings, 18–20.
+
+**Fixed on the way**, outside the spike:
+- forms' `FromRequest` read a spent body as a blank form;
+- `toast.js` lost a toast that arrived as its dialog closed.
+
+**Next.** D7.3, the handlers amendment (builders return a link, `Gate`),
+drafted in handlers for epistemer, and D7.4, the models amendment (the
+column and value types).
+
 ## 2026-11-22 — V7: v0.2.0
 
 **Landed** (Claude):

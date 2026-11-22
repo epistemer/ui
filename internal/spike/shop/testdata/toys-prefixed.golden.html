@@ -1,0 +1,180 @@
+<ui-table class="ui-table" data-ui-own="toys.q toys.sort toys.page toys.size toys.stock.from toys.stock.to toys.electric" data-ui-selected="%d selected" id="toys">
+  <p class="ui-table-status ui-visually-hidden" id="toys-status" role="status"></p>
+  <form action="/orders" class="ui-table-tools" hx-get="/orders" hx-push-url="true" hx-select="#toys" hx-swap="outerHTML" hx-sync="#toys:replace" hx-target="#toys" id="toys-state" method="get">
+    <div class="ui-table-search">
+      <label class="ui-visually-hidden" for="toys-q">
+        Search
+      </label>
+      <svg aria-hidden="true" class="ui-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+        <path d="m21 21-4.34-4.34"></path>
+        <circle cx="11" cy="11" r="8"></circle>
+      </svg>
+      <input autocomplete="off" class="ui-input" hx-get="/orders" hx-include="#toys-state" hx-push-url="true" hx-select="#toys-results" hx-swap="outerHTML" hx-sync="#toys:replace" hx-target="#toys-results" hx-trigger="input changed delay:300ms, search" id="toys-q" name="toys.q" type="search" value="r">
+    </div>
+    <div class="ui-table-filters">
+      <fieldset class="ui-group">
+        <legend class="ui-group-legend">
+          Stock
+        </legend>
+        <div class="ui-field">
+          <label class="ui-field-label" for="field--t-2">
+            From
+          </label>
+          <input class="ui-input" id="field--t-2" name="toys.stock.from" type="number" value="10">
+        </div>
+        <div class="ui-field">
+          <label class="ui-field-label" for="field--t-3">
+            To
+          </label>
+          <input class="ui-input" id="field--t-3" name="toys.stock.to" type="number">
+        </div>
+      </fieldset>
+      <div class="ui-field">
+        <label class="ui-field-label" for="field--t-4">
+          Electric
+        </label>
+        <select class="ui-input" id="field--t-4" name="toys.electric">
+          <option value="">
+            Choose…
+          </option>
+          <option selected="" value="true">
+            Yes
+          </option>
+          <option value="false">
+            No
+          </option>
+        </select>
+      </div>
+    </div>
+    <input name="q" type="hidden" value="layla">
+    <button class="ui-button" data-tone="neutral" data-variant="outline" type="submit">
+      Apply
+    </button>
+  </form>
+  <div class="ui-table-results" data-ui-status="1–2 of 2" data-ui-url="/orders?q=layla&amp;toys.electric=true&amp;toys.q=r&amp;toys.stock.from=10" id="toys-results">
+    <ul class="ui-table-chips">
+      <li>
+        <a class="ui-table-chip" href="/orders?q=layla&amp;toys.electric=true&amp;toys.q=r" hx-get="/orders?q=layla&amp;toys.electric=true&amp;toys.q=r" hx-push-url="true" hx-select="#toys-results" hx-swap="outerHTML" hx-sync="#toys:replace" hx-target="#toys-results">
+          Stock: ≥ 10
+          <span class="ui-visually-hidden">
+            Remove filter
+          </span>
+          <svg aria-hidden="true" class="ui-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+            <path d="M18 6 6 18"></path>
+            <path d="m6 6 12 12"></path>
+          </svg>
+        </a>
+      </li>
+      <li>
+        <a class="ui-table-chip" href="/orders?q=layla&amp;toys.q=r&amp;toys.stock.from=10" hx-get="/orders?q=layla&amp;toys.q=r&amp;toys.stock.from=10" hx-push-url="true" hx-select="#toys-results" hx-swap="outerHTML" hx-sync="#toys:replace" hx-target="#toys-results">
+          Electric: true
+          <span class="ui-visually-hidden">
+            Remove filter
+          </span>
+          <svg aria-hidden="true" class="ui-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+            <path d="M18 6 6 18"></path>
+            <path d="m6 6 12 12"></path>
+          </svg>
+        </a>
+      </li>
+      <li>
+        <a class="ui-table-clear" href="/orders?q=layla" hx-get="/orders?q=layla" hx-push-url="true" hx-select="#toys-results" hx-swap="outerHTML" hx-sync="#toys:replace" hx-target="#toys-results">
+          Clear filters
+        </a>
+      </li>
+    </ul>
+    <div aria-labelledby="toys-caption" class="ui-table-scroll" role="region" tabindex="0">
+      <table class="ui-table-grid">
+        <caption id="toys-caption">
+          Toys
+        </caption>
+        <thead>
+          <tr>
+            <th data-kind="text" scope="col">
+              <a class="ui-table-sort" href="/orders?q=layla&amp;toys.electric=true&amp;toys.q=r&amp;toys.sort=name&amp;toys.stock.from=10" hx-get="/orders?q=layla&amp;toys.electric=true&amp;toys.q=r&amp;toys.sort=name&amp;toys.stock.from=10" hx-push-url="true" hx-select="#toys-results" hx-swap="outerHTML" hx-sync="#toys:replace" hx-target="#toys-results" id="toys-sort-name">
+                Name
+              </a>
+            </th>
+            <th data-kind="number" scope="col">
+              <a class="ui-table-sort" href="/orders?q=layla&amp;toys.electric=true&amp;toys.q=r&amp;toys.sort=stock&amp;toys.stock.from=10" hx-get="/orders?q=layla&amp;toys.electric=true&amp;toys.q=r&amp;toys.sort=stock&amp;toys.stock.from=10" hx-push-url="true" hx-select="#toys-results" hx-swap="outerHTML" hx-sync="#toys:replace" hx-target="#toys-results" id="toys-sort-stock">
+                Stock
+              </a>
+            </th>
+            <th data-kind="bool" scope="col">
+              Electric
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr id="toys-row-2">
+            <td data-kind="text" id="toys-row-2-label">
+              <span class="ui-text">
+                T
+                <mark>
+                  r
+                </mark>
+                ain
+              </span>
+            </td>
+            <td data-kind="number">
+              <span class="ui-text">
+                37
+              </span>
+            </td>
+            <td data-kind="bool">
+              <span class="ui-bool" data-value="true">
+                <svg aria-hidden="true" class="ui-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+                  <path d="M20 6 9 17l-5-5"></path>
+                </svg>
+                <span class="ui-visually-hidden">
+                  Yes
+                </span>
+              </span>
+            </td>
+          </tr>
+          <tr id="toys-row-11">
+            <td data-kind="text" id="toys-row-11-label">
+              <span class="ui-text">
+                <mark>
+                  R
+                </mark>
+                ocket
+              </span>
+            </td>
+            <td data-kind="number">
+              <span class="ui-text">
+                10
+              </span>
+            </td>
+            <td data-kind="bool">
+              <span class="ui-bool" data-value="true">
+                <svg aria-hidden="true" class="ui-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+                  <path d="M20 6 9 17l-5-5"></path>
+                </svg>
+                <span class="ui-visually-hidden">
+                  Yes
+                </span>
+              </span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <nav aria-label="Pages of Toys" class="ui-pagination">
+      <p class="ui-pagination-range">
+        1–2 of 2
+      </p>
+      <p class="ui-pagination-sizes">
+        <span aria-hidden="true">
+          Rows a page
+        </span>
+        <a aria-current="true" aria-label="5 rows a page" class="ui-pagination-size" href="/orders?q=layla&amp;toys.electric=true&amp;toys.q=r&amp;toys.stock.from=10" hx-get="/orders?q=layla&amp;toys.electric=true&amp;toys.q=r&amp;toys.stock.from=10" hx-push-url="true" hx-select="#toys-results" hx-swap="outerHTML" hx-sync="#toys:replace" hx-target="#toys-results">
+          5
+        </a>
+        <a aria-label="10 rows a page" class="ui-pagination-size" href="/orders?q=layla&amp;toys.electric=true&amp;toys.q=r&amp;toys.size=10&amp;toys.stock.from=10" hx-get="/orders?q=layla&amp;toys.electric=true&amp;toys.q=r&amp;toys.size=10&amp;toys.stock.from=10" hx-push-url="true" hx-select="#toys-results" hx-swap="outerHTML" hx-sync="#toys:replace" hx-target="#toys-results">
+          10
+        </a>
+      </p>
+    </nav>
+  </div>
+</ui-table>

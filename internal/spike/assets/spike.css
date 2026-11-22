@@ -1,0 +1,242 @@
+/* The spike's styles for tables, pagination and actions (design §7):
+   table.css, pagination.css and actions.css to be, in the components
+   layer, under ADR 0004's rules. */
+@layer ui.components {
+	.ui-table {
+		display: flex;
+		flex-direction: column;
+		gap: var(--ui-space-3);
+	}
+
+	.ui-table-tools {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: end;
+		gap: var(--ui-space-3);
+	}
+
+	.ui-table-search {
+		display: flex;
+		align-items: center;
+		gap: var(--ui-space-2);
+		flex: 1 1 16em;
+	}
+
+	.ui-table-filters {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--ui-space-3);
+
+		& fieldset {
+			display: flex;
+			gap: var(--ui-space-2);
+		}
+	}
+
+	.ui-table-results {
+		display: flex;
+		flex-direction: column;
+		gap: var(--ui-space-3);
+		transition: opacity var(--ui-duration-s) var(--ui-ease);
+
+		&[aria-busy="true"], .htmx-request > & {
+			opacity: 0.6;
+		}
+	}
+
+	.ui-table-chips {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--ui-space-2);
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+
+	.ui-table-chip {
+		display: inline-flex;
+		align-items: center;
+		gap: var(--ui-space-1);
+		padding-block: var(--ui-space-1);
+		padding-inline: var(--ui-space-2);
+		border-radius: var(--ui-radius-full);
+		color: var(--ui-color-brand-text);
+		background-color: var(--ui-color-brand-subtle);
+		text-decoration: none;
+	}
+
+	.ui-table-scroll {
+		overflow: auto;
+		max-block-size: 70dvb;
+		border: 1px solid var(--ui-color-border);
+		border-radius: var(--ui-radius-m);
+	}
+
+	.ui-table-grid {
+		inline-size: 100%;
+		border-collapse: collapse;
+
+		& caption {
+			padding: var(--ui-space-2);
+			text-align: start;
+			font-weight: 600;
+		}
+
+		& th, & td {
+			padding-block: var(--ui-space-2);
+			padding-inline: var(--ui-space-3);
+			border-block-end: 1px solid var(--ui-color-border);
+			text-align: start;
+			white-space: nowrap;
+		}
+
+		& thead th {
+			position: sticky;
+			inset-block-start: 0;
+			z-index: 1;
+			background-color: var(--ui-color-surface-raised);
+			font-weight: 600;
+		}
+
+		& [data-kind="number"] {
+			text-align: end;
+			font-variant-numeric: tabular-nums;
+		}
+
+		& mark {
+			color: inherit;
+			background-color: var(--ui-color-warning-subtle);
+		}
+	}
+
+	.ui-table-sort {
+		display: inline-flex;
+		align-items: center;
+		gap: var(--ui-space-1);
+		color: inherit;
+	}
+
+	/* Shown once <ui-table> can run it. */
+	.ui-table-all[hidden] {
+		display: none;
+	}
+
+	.ui-table-status:empty {
+		display: none;
+	}
+
+	.ui-table-clear {
+		align-self: center;
+		font-size: var(--ui-text-s);
+	}
+
+	.ui-table-check {
+		inline-size: 1%;
+	}
+
+	.ui-table-actions {
+		inline-size: 1%;
+		text-align: end;
+	}
+
+	.ui-table-empty {
+		margin: 0;
+		padding: var(--ui-space-4);
+		color: var(--ui-color-text-muted);
+	}
+
+	/* The bulk bar shows while a row is checked. */
+	.ui-table-bulk {
+		display: none;
+		gap: var(--ui-space-2);
+		align-items: center;
+	}
+
+	.ui-table:has(.ui-table-grid input[name="id"]:checked) .ui-table-bulk {
+		display: flex;
+	}
+
+	.ui-pagination {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		justify-content: space-between;
+		gap: var(--ui-space-3);
+	}
+
+	.ui-pagination-range, .ui-pagination-sizes {
+		display: flex;
+		gap: var(--ui-space-2);
+		margin: 0;
+		color: var(--ui-color-text-muted);
+	}
+
+	.ui-pagination-pages {
+		display: flex;
+		gap: var(--ui-space-1);
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+
+	.ui-pagination-page, .ui-pagination-end, .ui-pagination-size {
+		display: inline-flex;
+		padding-block: var(--ui-space-1);
+		padding-inline: var(--ui-space-2);
+		border-radius: var(--ui-radius-s);
+		color: inherit;
+
+		&[aria-current] {
+			color: var(--ui-color-on-brand);
+			background-color: var(--ui-color-brand);
+		}
+
+		&[aria-disabled="true"] {
+			color: var(--ui-color-text-muted);
+		}
+	}
+
+	.ui-action-buttons {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--ui-space-2);
+	}
+
+	/* A disabled item that can be reached (S21). */
+	.ui-button[aria-disabled="true"] {
+		cursor: not-allowed;
+		opacity: 0.55;
+	}
+
+	.ui-action-reason {
+		display: block;
+		font-size: var(--ui-text-xs);
+		color: var(--ui-color-text-muted);
+	}
+
+	.ui-menu-item[data-ui-reachable] {
+		flex-wrap: wrap;
+	}
+
+	.ui-action-dialog-close {
+		display: flex;
+		justify-content: end;
+	}
+
+	.ui-action-dialog-body {
+		display: flex;
+		flex-direction: column;
+		gap: var(--ui-space-3);
+	}
+}
+
+/* The spike's own page. */
+.spike-section {
+	margin-block-end: var(--ui-space-6);
+}
+
+.spike-form {
+	display: flex;
+	flex-direction: column;
+	gap: var(--ui-space-3);
+}

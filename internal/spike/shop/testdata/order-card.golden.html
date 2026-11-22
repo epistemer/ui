@@ -1,0 +1,83 @@
+<header class="ui-page-header">
+  <nav aria-label="Breadcrumb" class="ui-breadcrumbs">
+    <ol class="ui-breadcrumbs-list">
+      <li class="ui-breadcrumbs-item">
+        <a href="/orders">
+          Orders
+        </a>
+      </li>
+      <li class="ui-breadcrumbs-item">
+        <svg aria-hidden="true" class="ui-icon" data-mirror="" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+          <path d="m9 18 6-6-6-6"></path>
+        </svg>
+        <span aria-current="page">
+          #1002
+        </span>
+      </li>
+    </ol>
+  </nav>
+  <h1 class="ui-page-title">
+    omar2@example.com
+  </h1>
+</header>
+<section class="ui-card">
+  <div class="ui-card-body">
+    <dl class="ui-detail-list">
+      <div class="ui-detail-row">
+        <dt class="ui-detail-label">
+          Customer
+        </dt>
+        <dd class="ui-detail-value">
+          <a class="ui-link" href="/customers/2">
+            Omar Nabil
+          </a>
+        </dd>
+      </div>
+      <div class="ui-detail-row">
+        <dt class="ui-detail-label">
+          Status
+        </dt>
+        <dd class="ui-detail-value">
+          <span class="ui-badge" data-tone="warning">
+            pending
+          </span>
+        </dd>
+      </div>
+      <div class="ui-detail-row">
+        <dt class="ui-detail-label">
+          Total
+        </dt>
+        <dd class="ui-detail-value">
+          <bdi class="ui-amount">
+            EGP 104.19
+          </bdi>
+        </dd>
+      </div>
+    </dl>
+  </div>
+  <div class="ui-card-footer">
+    <div class="ui-action-buttons">
+      <a class="ui-button" data-tone="neutral" data-variant="outline" href="/orders/1002">
+        <svg aria-hidden="true" class="ui-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+          <path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"></path>
+          <circle cx="12" cy="12" r="3"></circle>
+        </svg>
+        View
+      </a>
+      <a class="ui-button" data-tone="neutral" data-variant="outline" href="/orders/1002/reassign" hx-get="/orders/1002/reassign" hx-push-url="false" hx-swap="innerHTML" hx-target="#ui-action-dialog-body">
+        Reassign
+      </a>
+      <span class="ui-tooltip">
+        <button aria-describedby="tooltip--t-1" aria-disabled="true" class="ui-button" data-tone="danger" data-variant="outline" type="button">
+          Refund
+        </button>
+        <span class="ui-tooltip-text" id="tooltip--t-1" role="tooltip">
+          only a paid order can be refunded
+        </span>
+      </span>
+      <button class="ui-button" data-tone="danger" data-ui-confirm="Delete this order?" data-variant="outline" form="ui-action-form" formaction="/orders/1002/delete" hx-post="/orders/1002/delete" hx-swap="none" type="submit">
+        Delete
+      </button>
+    </div>
+  </div>
+</section>

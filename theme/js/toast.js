@@ -52,6 +52,22 @@ function topModal() {
 	return document.activeElement?.closest("dialog:modal") ?? modals.at(-1) ?? null;
 }
 
+// deliver adds toasts to home, a later task after it was shown. If home
+// was a dialog's region and the dialog closed meanwhile (an answer that
+// closes the dialog it came from), the region is gone: the toasts go to
+// the page's region instead, or they would be lost with it.
+function deliver(home, region, ...toasts) {
+	const gone = home !== region && !(home.isConnected && home.closest("dialog")?.open);
+	if (gone) {
+		// Wherever people can reach now: another modal opened meanwhile,
+		// or the page.
+		const modal = topModal();
+		home = modal ? dialogRegion(modal, region) : region;
+		if (home === region) region.open();
+	}
+	home.append(...toasts);
+}
+
 // dialogRegion is the region inside an open modal dialog, made on demand;
 // when the dialog closes, its toasts go back to the page's region.
 function dialogRegion(dialog, region) {
@@ -113,7 +129,7 @@ class UIToast extends HTMLElement {
 			this.remove();
 			if (from === region) region.sync();
 			if (home === region) region.open();
-			setTimeout(() => home.append(this), 50);
+			setTimeout(() => deliver(home, region, this), 50);
 			return;
 		}
 		if (this.#timer) return; // moved between regions: keep its timeout
@@ -169,7 +185,7 @@ new MutationObserver((records) => {
 	region.replaceChildren();
 	region.sync();
 	const inner = dialogRegion(modal, region);
-	setTimeout(() => inner.append(...moving), 50);
+	setTimeout(() => deliver(inner, region, ...moving), 50);
 }).observe(document.documentElement, { attributes: true, attributeFilter: ["open"], subtree: true });
 
 if (!customElements.get("ui-toasts")) customElements.define("ui-toasts", UIToasts);

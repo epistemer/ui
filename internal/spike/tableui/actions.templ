@@ -1,0 +1,153 @@
+package tableui
+
+import (
+	"github.com/epistemer/i18n"
+
+	"github.com/epistemer/ui"
+	"github.com/epistemer/ui/components"
+	"github.com/epistemer/ui/elements"
+	"github.com/epistemer/ui/icons"
+	"github.com/epistemer/ui/internal/spike/actions"
+)
+
+// ActionForm is the page's one empty form that Request controls post
+// through (§5.4); the shells would render it.
+templ ActionForm() {
+	<form id={ ActionFormID } method="post" hidden></form>
+}
+
+// ActionDialog is the page's one dialog that Open actions load into. Its
+// title comes with the content loaded, an element with id
+// ui-action-dialog-title, which the script names it by; until then, and
+// for content without one, its name is a generic one (a spike finding).
+templ ActionDialog() {
+	<dialog id={ ActionDialogID } class="ui-dialog ui-action-dialog" aria-label={ dialogLabel.T(ctx) }>
+		<div class="ui-action-dialog-close">
+			@elements.Button().Variant(elements.Ghost).Tone(elements.Neutral).Size(elements.Small).Label(closeLabel).Attrs(templ.Attributes{"commandfor": ActionDialogID, "command": "close"}) {
+				@icons.X()
+			}
+		</div>
+		<div id={ ActionDialogBodyID } class="ui-action-dialog-body"></div>
+	</dialog>
+}
+
+// ActionButtons is a row of buttons: the primary one filled, a danger one
+// in the danger tone, the rest outlined (§5.5).
+templ ActionButtons(items []actions.Item) {
+	if len(items) > 0 {
+		<div class="ui-action-buttons">
+			for i, it := range items {
+				@actionButton(it, i)
+			}
+		</div>
+	}
+}
+
+templ actionButton(it actions.Item, i int) {
+	{{ b := buttonSpec(it) }}
+	if it.Disabled {
+		// S21's second state: aria-disabled, focusable, inert, with its reason.
+		@elements.Tooltip(i18n.Static(it.ReasonText(ctx))) {
+			@elements.TooltipTrigger {
+				<button type="button" { merge(templ.Attributes{"class": buttonClass(it), "aria-disabled": "true"}, buttonData(it), elements.TooltipTrigger.Value(ctx))... }>
+					if it.Icon != nil {
+						@it.Icon
+					}
+					{ it.Label.T(ctx) }
+				</button>
+			}
+		}
+	} else {
+		switch it.Kind {
+			case actions.Navigate:
+				@b.Href(ui.URL(string(it.URL))).Attrs(it.Attrs) {
+					@buttonContent(it)
+				}
+			case actions.Open:
+				@b.Href(ui.URL(string(it.URL))).Attrs(htmxAttrs(ctx, it)) {
+					@buttonContent(it)
+				}
+			default:
+				@b.Submit().Attrs(merge(requestAttrs(it, ActionFormID), htmxAttrs(ctx, it))) {
+					@buttonContent(it)
+				}
+		}
+	}
+}
+
+templ buttonContent(it actions.Item) {
+	if it.Icon != nil {
+		@it.Icon
+	}
+	{ it.Label.T(ctx) }
+}
+
+// ActionMenu is a menu of the items, danger ones last after a separator.
+// rowLabel, when not "", is the id of the element naming the record, so
+// each row's menu has a name of its own.
+templ ActionMenu(label string, items []actions.Item, rowLabel string) {
+	if len(items) > 0 {
+		@components.Menu(i18n.Static(label)) {
+			@components.MenuTrigger {
+				{{ tv := components.MenuTrigger.Value(ctx) }}
+				@elements.Button().Variant(elements.Ghost).Tone(elements.Neutral).Size(elements.Small).Attrs(merge(tv, labelledBy(tv, rowLabel))) {
+					@icons.More()
+					<span class="ui-visually-hidden">{ label }</span>
+				}
+			}
+			@components.MenuItems {
+				{{ plain, danger := split(items) }}
+				for _, it := range plain {
+					@menuItem(it)
+				}
+				if len(danger) > 0 && len(plain) > 0 {
+					@elements.Separator()
+				}
+				for _, it := range danger {
+					@menuItem(it)
+				}
+			}
+		}
+	}
+}
+
+templ menuItem(it actions.Item) {
+	{{ m := components.MenuItem() }}
+	if it.Danger {
+		{{ m = m.Danger() }}
+	}
+	if it.Disabled {
+		@ui.Scope(reasonID) {
+			// Named by its label alone; the reason only describes it.
+			@m.Disabled(true).Attrs(templ.Attributes{"aria-labelledby": reasonID.Part(ctx, "label"), "aria-describedby": reasonID.Get(ctx), "data-ui-reachable": true}) {
+				if it.Icon != nil {
+					@it.Icon
+				}
+				<span id={ reasonID.Part(ctx, "label") }>{ it.Label.T(ctx) }</span>
+				<span class="ui-action-reason" id={ reasonID.Get(ctx) }>{ it.ReasonText(ctx) }</span>
+			}
+		}
+	} else {
+		switch it.Kind {
+			case actions.Navigate:
+				@m.Href(ui.URL(string(it.URL))).Attrs(it.Attrs) {
+					@menuContent(it)
+				}
+			case actions.Open:
+				@m.Href(ui.URL(string(it.URL))).Attrs(htmxAttrs(ctx, it)) {
+					@menuContent(it)
+				}
+			default:
+				@m.Submit(ActionFormID).Attrs(merge(requestAttrs(it, ActionFormID), htmxAttrs(ctx, it))) {
+					@menuContent(it)
+				}
+		}
+	}
+}
+
+templ menuContent(it actions.Item) {
+	if it.Icon != nil {
+		@it.Icon
+	}
+	<span>{ it.Label.T(ctx) }</span>
+}

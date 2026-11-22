@@ -1,0 +1,203 @@
+package tableui
+
+import (
+	"strconv"
+
+	"github.com/epistemer/i18n"
+
+	"github.com/epistemer/ui"
+	"github.com/epistemer/ui/elements"
+	"github.com/epistemer/ui/icons"
+	"github.com/epistemer/ui/inputs"
+	"github.com/epistemer/ui/internal/spike/actions"
+	"github.com/epistemer/ui/internal/spike/col"
+	"github.com/epistemer/ui/internal/spike/tables"
+)
+
+templ tableTmpl(d data) {
+	<ui-table id={ d.ids.table } class="ui-table" data-ui-own={ d.own } data-ui-selected={ selectedText.T(ctx) }>
+		<p class="ui-table-status ui-visually-hidden" id={ d.ids.status } role="status"></p>
+		<form id={ d.ids.state } class="ui-table-tools" method="get" action={ templ.SafeURL(d.path) } { swap(d, d.ids.table, d.path)... }>
+			<div class="ui-table-search">
+				<label class="ui-visually-hidden" for={ d.ids.table + "-q" }>{ searchLabel.T(ctx) }</label>
+				@icons.Search()
+				<input class="ui-input" type="search" id={ d.ids.table + "-q" } name={ d.search.Name } value={ d.search.Text } autocomplete="off" { searchAttrs(d)... }/>
+			</div>
+			if len(d.filters) > 0 {
+				<div class="ui-table-filters">
+					for _, c := range d.filters {
+						@inputs.Field(c)
+					}
+				</div>
+			}
+			for _, h := range d.hidden {
+				<input type="hidden" name={ h[0] } value={ h[1] }/>
+			}
+			@elements.Button().Submit().Variant(elements.Outline).Tone(elements.Neutral) {
+				{ applyLabel.T(ctx) }
+			}
+		</form>
+		if len(d.bulk) > 0 {
+			<form id={ d.ids.sel } method="post" hidden></form>
+		}
+		@resultsTmpl(d)
+	</ui-table>
+}
+
+templ resultsTmpl(d data) {
+	<div id={ d.ids.results } class="ui-table-results" data-ui-status={ d.status } data-ui-url={ d.url }>
+		if d.sort[1] != "" {
+			<input type="hidden" name={ d.sort[0] } value={ d.sort[1] } form={ d.ids.state }/>
+		}
+		if len(d.chips) > 0 {
+			<ul class="ui-table-chips">
+				for _, c := range d.chips {
+					<li>
+						<a class="ui-table-chip" href={ c.Remove } { linkSwap(d, c.Remove)... }>
+							{ c.Label.T(ctx) }: { c.Value }
+							<span class="ui-visually-hidden">{ removeLabel.T(ctx) }</span>
+							@icons.X()
+						</a>
+					</li>
+				}
+				<li><a class="ui-table-clear" href={ d.clear } { linkSwap(d, d.clear)... }>{ clearLabel.T(ctx) }</a></li>
+			</ul>
+		}
+		if !d.rejected {
+			switch d.empty {
+				case tables.NoRows:
+					<p class="ui-table-empty">{ noRows.T(ctx) }</p>
+				case tables.NoMatch:
+					<p class="ui-table-empty">{ noMatch.T(ctx) } <a href={ d.emptyLink } { linkSwap(d, d.emptyLink)... }>{ clearLabel.T(ctx) }</a></p>
+				case tables.PastEnd:
+					<p class="ui-table-empty">{ pastEnd.T(ctx) } <a href={ d.emptyLink } { linkSwap(d, d.emptyLink)... }>{ goLast.T(ctx) }</a></p>
+				default:
+					@gridTmpl(d)
+					if len(d.bulk) > 0 {
+						<div class="ui-table-bulk" role="group" aria-label={ bulkLabel.T(ctx) }>
+							for _, it := range d.bulk {
+								@bulkButton(d, it)
+							}
+						</div>
+					}
+					@paginationTmpl(d.pager, func(u templ.SafeURL) templ.Attributes { return linkSwap(d, u) })
+			}
+		}
+	</div>
+}
+
+templ gridTmpl(d data) {
+	<div class="ui-table-scroll" role="region" tabindex="0" aria-labelledby={ d.ids.caption }>
+		<table class="ui-table-grid">
+			<caption id={ d.ids.caption }>{ d.label.T(ctx) }</caption>
+			<thead>
+				<tr>
+					if len(d.bulk) > 0 {
+						<th scope="col" class="ui-table-check">
+							<span class="ui-visually-hidden" id={ d.ids.table + "-select-label" }>{ selectLabel.T(ctx) }</span>
+							<input type="checkbox" class="ui-table-all" aria-label={ selectAll.T(ctx) } data-ui-select-all hidden/>
+						</th>
+					}
+					for _, h := range d.heads {
+						<th scope="col" data-kind={ kindName(h.Kind) } { headAttrs(h)... }>
+							if h.Sortable {
+								<a class="ui-table-sort" id={ h.ID } href={ h.Link } { linkSwap(d, h.Link)... }>
+									{ h.Label.T(ctx) }
+									if h.Sorted && h.Desc {
+										@icons.ChevronDown()
+									} else if h.Sorted {
+										@icons.ChevronUp()
+									}
+								</a>
+							} else {
+								{ h.Label.T(ctx) }
+							}
+						</th>
+					}
+					if d.hasActions {
+						<th scope="col" class="ui-table-actions"><span class="ui-visually-hidden" id={ d.ids.table + "-actions-label" }>{ actionsLabel.T(ctx) }</span></th>
+					}
+				</tr>
+			</thead>
+			<tbody>
+				for _, r := range d.rows {
+					@rowTmpl(d.ids, r, len(d.bulk) > 0, d.hasActions)
+				}
+			</tbody>
+		</table>
+	</div>
+}
+
+templ rowTmpl(x ids, r rowData, check, hasActions bool) {
+	<tr id={ r.id }>
+		if check {
+			<td class="ui-table-check">
+				<input type="checkbox" name="id" value={ r.key } form={ x.sel } aria-labelledby={ x.table + "-select-label " + r.labelID }/>
+			</td>
+		}
+		for _, c := range r.cells {
+			<td data-kind={ kindName(c.c.Kind) } { cellAttrs(c)... }>
+				@cellTmpl(c)
+			</td>
+		}
+		if hasActions {
+			<td class="ui-table-actions">
+				@ActionMenu(actionsLabel.T(ctx), r.actions, r.labelID)
+			</td>
+		}
+	</tr>
+}
+
+templ cellTmpl(c cellData) {
+	{{ v := c.c.Value }}
+	switch {
+		case c.custom != nil:
+			@c.custom
+		case v.Null:
+			@elements.Empty()
+		case c.c.Link != "":
+			@elements.Link(ui.URL(string(c.c.Link)), i18n.Static(v.Text))
+		case c.c.Amount != nil:
+			@elements.Amount(c.c.Amount)
+		case c.c.Kind == col.Text && c.c.Mark != "":
+			<span class="ui-text">
+				for _, p := range marked(v.Text, c.c.Mark) {
+					if p.Hit {
+						<mark>{ p.Text }</mark>
+					} else {
+						{ p.Text }
+					}
+				}
+			</span>
+		case c.c.Kind == col.Text:
+			@elements.Text(i18n.Static(v.Text))
+		case c.c.Kind == col.Integer:
+			@elements.Text(i18n.Static(strconv.FormatInt(v.Int, 10)))
+		case c.c.Kind == col.Number:
+			@elements.Text(i18n.Static(strconv.FormatFloat(v.Num, 'f', -1, 64)))
+		case c.c.Kind == col.Bool:
+			@elements.Bool(v.Bool)
+		case c.c.Kind == col.Date:
+			@elements.Date(v.Time)
+		case c.c.Kind == col.Time:
+			@elements.DateTime(v.Time)
+		case c.c.Kind == col.Enum:
+			@elements.Enum(v.Enum)
+	}
+}
+
+templ bulkButton(d data, it actions.Item) {
+	{{ b := buttonSpec(it) }}
+	switch it.Kind {
+		case actions.Open:
+			// Submits the selection with GET: a page holding the form, the ids
+			// in its address; with htmx, the same request into the dialog.
+			@b.Submit().Attrs(merge(templ.Attributes{"form": d.ids.sel, "formaction": string(it.URL), "formmethod": "get", "hx-include": "#" + d.ids.sel}, htmxAttrs(ctx, it))) {
+				@buttonContent(it)
+			}
+		default:
+			@b.Submit().Attrs(merge(templ.Attributes{"form": d.ids.sel, "formaction": string(it.URL), "hx-include": "#" + d.ids.sel}, htmxAttrs(ctx, it))) {
+				@buttonContent(it)
+			}
+	}
+}

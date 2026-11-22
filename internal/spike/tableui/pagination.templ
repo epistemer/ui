@@ -1,0 +1,75 @@
+package tableui
+
+import (
+	"strconv"
+
+	"github.com/epistemer/i18n"
+
+	"github.com/epistemer/ui/internal/spike/tables"
+)
+
+var (
+	firstLabel = i18n.Key("ui.components.pagination.first", "First")
+	prevLabel  = i18n.Key("ui.components.pagination.previous", "Previous")
+	nextLabel  = i18n.Key("ui.components.pagination.next", "Next")
+	lastLabel  = i18n.Key("ui.components.pagination.last", "Last")
+	pageLabel  = i18n.Key("ui.components.pagination.page", "Page %d")
+	rowsLabel  = i18n.Key("ui.components.pagination.size", "Rows a page")
+	sizeLabel  = i18n.Key("ui.components.pagination.size_n", "%d rows a page")
+	rangeLabel = i18n.Key("ui.components.pagination.range", "%d–%d of %d")
+)
+
+// Pagination is a pager of its own, usable without a table.
+templ Pagination(p tables.Pager) {
+	@paginationTmpl(p, func(templ.SafeURL) templ.Attributes { return nil })
+}
+
+templ paginationTmpl(p tables.Pager, attrs func(templ.SafeURL) templ.Attributes) {
+	<nav class="ui-pagination" aria-label={ p.Label.T(ctx) }>
+		<p class="ui-pagination-range">{ rangeLabel.T(ctx, p.From, p.To, p.Total) }</p>
+		if !p.Unpaged && p.Pages > 1 {
+			<ul class="ui-pagination-pages">
+				@pageEnd(p.First, p.FirstID, firstLabel.T(ctx), attrs)
+				@pageEnd(p.Prev, p.PrevID, prevLabel.T(ctx), attrs)
+				for _, n := range p.Window {
+					<li>
+						if n.Current {
+							<a class="ui-pagination-page" id={ n.ID } aria-current="page" href={ n.URL } { attrs(n.URL)... }>
+								<span class="ui-visually-hidden">{ pageLabel.T(ctx, n.N) }</span>
+								<span aria-hidden="true">{ strconv.Itoa(n.N) }</span>
+							</a>
+						} else {
+							<a class="ui-pagination-page" id={ n.ID } href={ n.URL } { attrs(n.URL)... }>
+								<span class="ui-visually-hidden">{ pageLabel.T(ctx, n.N) }</span>
+								<span aria-hidden="true">{ strconv.Itoa(n.N) }</span>
+							</a>
+						}
+					</li>
+				}
+				@pageEnd(p.Next, p.NextID, nextLabel.T(ctx), attrs)
+				@pageEnd(p.Last, p.LastID, lastLabel.T(ctx), attrs)
+			</ul>
+		}
+		if len(p.Sizes) > 0 {
+			<p class="ui-pagination-sizes">
+				<span aria-hidden="true">{ rowsLabel.T(ctx) }</span>
+				for _, s := range p.Sizes {
+					// Each named in words ("25 rows a page"), not a bare number
+					// beside the page links (review 0014).
+					<a class="ui-pagination-size" aria-label={ sizeLabel.T(ctx, s.N) } href={ s.URL } { merge(current(s.Current), attrs(s.URL))... }>{ strconv.Itoa(s.N) }</a>
+				}
+			</p>
+		}
+	</nav>
+}
+
+// A disabled end is not a link.
+templ pageEnd(u templ.SafeURL, id, text string, attrs func(templ.SafeURL) templ.Attributes) {
+	<li>
+		if u == "" {
+			<span class="ui-pagination-end" aria-disabled="true">{ text }</span>
+		} else {
+			<a class="ui-pagination-end" id={ id } href={ u } { attrs(u)... }>{ text }</a>
+		}
+	</li>
+}

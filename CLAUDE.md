@@ -20,6 +20,9 @@ this module.
   [docs/server-state-design.md](docs/server-state-design.md), a draft with
   ADRs 0008–0010. Its amendment A5 (links: `ui.Link`, `ui.URL`, eight
   signatures) is locked, in both contracts, and built (2026-11-22).
+- `internal/spike` holds D7.2's slice spike of actions and tables (not
+  API; its findings are design §12.1). Run it with
+  `go run ./internal/spike/cmd/shop`. It goes when T3 lands.
 - Claude owns this repository until v1.0.0, on the terms of
   [docs/ownership.md](docs/ownership.md) (delegated 2026-11-21). Only API
   design is epistemer's, and the lock of interface.md.

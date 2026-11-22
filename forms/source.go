@@ -25,6 +25,10 @@ type Source interface {
 // HEAD reads the query; any other method is an error. The multipart form is
 // left on r, so net/http removes its temporary files after the handler
 // returns. Limiting the body's size is the app's (http.MaxBytesReader).
+//
+// A body something already parsed (r.ParseForm, r.ParseMultipartForm, or
+// a middleware that called them) is read from what net/http kept,
+// r.PostForm or r.MultipartForm, since the body itself is spent.
 func FromRequest(r *http.Request) (Source, error) {
 	switch r.Method {
 	case http.MethodPost, http.MethodPut, http.MethodPatch:
@@ -43,6 +47,9 @@ func FromRequest(r *http.Request) (Source, error) {
 	}
 	switch ct {
 	case "application/x-www-form-urlencoded":
+		if r.PostForm != nil {
+			return FromValues(r.PostForm), nil
+		}
 		const limit = 10 << 20
 		body, err := io.ReadAll(io.LimitReader(r.Body, limit+1))
 		if err != nil {
@@ -57,6 +64,9 @@ func FromRequest(r *http.Request) (Source, error) {
 		}
 		return FromValues(v), nil
 	case "multipart/form-data":
+		if r.MultipartForm != nil {
+			return &source{values: r.MultipartForm.Value, files: r.MultipartForm.File}, nil
+		}
 		mr, err := r.MultipartReader()
 		if err != nil {
 			return nil, fmt.Errorf("forms: %w", err)
