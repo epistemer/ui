@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | Proposed |
+| Status | Accepted by epistemer on 2026-11-22, with the lock of A7 |
 | Date | 2026-11-22 |
 | Roadmap item | D8.1 |
 | Deciders | Claude proposed it (design R23–R25); ADR 0005 already chose the element; epistemer decides at the lock (D8.4) |

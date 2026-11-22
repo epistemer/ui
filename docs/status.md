@@ -9,6 +9,20 @@ taken for epistemer, what's next, and what's waiting on epistemer.
 
 
 
+## 2026-11-22 — A7 locked
+
+**Locked** by epistemer: [rich-inputs-interface.md](rich-inputs-interface.md),
+amendment A7, with the answers recorded before and every other default
+(R3, R5, R6, R8, R10–R14, R17–R22, R25, R26, R28; L2–L6). handlers' A5
+accepted with H5 and H7–H9 on their defaults.
+
+Recorded in interface.md §10, visual-interface.md §13.6 and
+server-state-interface.md; ADRs 0012 and 0013 accepted; the roadmap's U
+milestones planned (U1 forms, U2 inputs and components, U3 the script,
+U4 tables and the toy shop, U5 v0.4.0).
+
+**Next.** handlers A5 built and released as v0.3.0, then U1.
+
 ## 2026-11-22 — D8: epistemer's first answers
 
 **Decided** by epistemer:

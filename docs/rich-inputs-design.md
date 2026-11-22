@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | Draft, amended by the D8.2 spike's findings (§8.1). Every question in §9 (R1–R28) has a default and stands on it until epistemer answers or the lock (D8.4) takes the defaults |
+| Status | Settled: its contract, [rich-inputs-interface.md](rich-inputs-interface.md), was locked by epistemer on 2026-11-22 as amendment A7, with the answers marked in §9 and the other defaults. Amended by the D8.2 spike (§8.1) and reviews 0019–0022 |
 | Date | 2026-11-22 |
 | Roadmap item | D8.1 |
 | Review | [0019](reviews/0019-rich-inputs-design.md) |

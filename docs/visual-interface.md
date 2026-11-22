@@ -1409,6 +1409,24 @@ locked parts (its §5):
 
 The roadmap's T milestones build it, through v0.3.0.
 
+### 13.6 The remote select, uploads and list fields (amendment A7)
+
+Locked by epistemer on 2026-11-22. The contract is
+[rich-inputs-interface.md](rich-inputs-interface.md). It changes these
+locked parts:
+
+- §6.1: `KindList` renders a repeatable list with `<ui-repeat>` instead of
+  returning an error; `KindFile` and `KindFiles` render the upload shape;
+  `KindRemote`, `KindUpload` and `KindUploads` join the table.
+- §6: `inputs.WithLabelCache` and `FieldSpec.Previews`.
+- §7: `components.Suggestion`, `SuggestionLimit` and `Suggestions`.
+- §10.6: `<ui-combobox>` and `<ui-repeat>` are built; §10 gains the
+  upload behaviours. The remote select stays on ADR 0005's list of what
+  emits `hx-*` (its search goes through htmx, R4).
+- §11 gains the `ui.inputs.combobox.*`, `upload.*` and `list.*` keys.
+
+The roadmap's U milestones build it.
+
 ## 14. Questions for epistemer
 
 epistemer took every default on 2026-11-22, so the text above is locked as written.

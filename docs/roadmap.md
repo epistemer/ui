@@ -164,11 +164,11 @@ the interface.
 | ☑ | D7.3 | The handlers amendment, drafted in handlers: builders return a link, `Gate` (design §10) | epistemer accepts or changes it; handlers releases it |
 | ☑ | D7.4 | The models amendment, drafted in models: the column and value types, a column set per `_view` relation (design §10) | epistemer accepts or changes it; models releases it |
 | ☑ | D7.5 | The contract of `ui/actions`, `ui/tables` and the new components, as an amendment to visual-interface.md, with a cross-model review | epistemer locks it; milestones T1… planned in this file |
-| ☐ | D8 | Second round: the remote select (`<ui-combobox>` over `listing.Labeler`, and with it filters on link columns), uploads, list fields (`<ui-repeat>`), in D8.1–D8.4 below | D8.4 is locked |
+| ☑ | D8 | Second round: the remote select (`<ui-combobox>` over `listing.Labeler`, and with it filters on link columns), uploads, list fields (`<ui-repeat>`), in D8.1–D8.4 below | D8.4 is locked |
 | ☑ | D8.1 | [rich-inputs-design.md](rich-inputs-design.md) with ADRs [0011](adr/0011-remote-select.md) (remote select), [0012](adr/0012-uploads.md) (uploads) and [0013](adr/0013-list-fields.md) (list fields); questions R1–R28 stand on their defaults | Reviewed by the other model family (review 0019) |
 | ☑ | D8.2 | Slice spike in `internal/spike` (design §8): the toy shop's order form with a customer, a receipt and lines, and every pairing of the parts | Runs with script on and its markup without; ids, names and selectors pass (goldens move to the build: the spike's ids are random per request); its findings amend the design |
 | ☐ | D8.3 | The handlers amendment: a per-route body limit (design R21), drafted as handlers' ADR 0006 with questions H5–H9 (handlers PR #18, review 0007) | epistemer accepts or changes it; handlers releases it |
-| ☐ | D8.4 | The contract, amendment A7, drafted in [rich-inputs-interface.md](rich-inputs-interface.md) with questions L1–L7, reviewed (review 0021) | epistemer locks it, with R1–R28; build milestones planned in this file |
+| ☑ | D8.4 | The contract, amendment A7, drafted in [rich-inputs-interface.md](rich-inputs-interface.md) with questions L1–L7, reviewed (review 0021) | epistemer locks it, with R1–R28; build milestones planned in this file |
 
 ## V — Building the visual packages
 
@@ -192,6 +192,22 @@ A finding that changes locked text is an amendment, brought to epistemer.
 | ☑ | V6 | `ui/layout`: document, app shell with the drawer and the colour scheme menu, auth shell, page header; `internal/spike` removed | §8 holds; a full page of the toy shop renders in the catalogue |
 | ☑ | A5 | Links (ADR 0008; locked by epistemer on 2026-11-22, interface.md §4A, visual-interface.md §2.7 and §13.4): the kernel's `Link` and `URL`; `Href`, `Link`, `Tab`, `NavItem`, `Crumb.Href`, `Src` and `Image` take a `ui.Link`. **Before V7**, so the tag doesn't carry signatures already replaced | The eight signatures and the kernel's two identifiers are built with no golden changed; stories and examples pass links; the `ui` skill, CHANGELOG and the API review follow |
 | ☑ | V7 | Release v0.2.0: an API review of every exported identifier against visual-interface.md, CHANGELOG, the `ui` skill updated, the tag | `go get github.com/epistemer/ui@v0.2.0` works through the proxy. In this order: tag ui `v0.2.0`, point `theme/themeschema/go.mod` at it and drop its `replace`, then tag `theme/themeschema/v0.2.0`, so the nested module never requires an unpublished ui |
+
+## U — Building the remote select, uploads and list fields
+
+To [rich-inputs-interface.md](rich-inputs-interface.md), locked 2026-11-22
+(amendment A7). Each milestone has stories, goldens on a fixed id
+sequence, the checks of section V and a browser check in the pane, with
+htmx and without; the D8.2 spike (`internal/spike`) is its draft, and goes
+when U3 lands.
+
+| ✓ | ID | Item | Done when |
+|---|---|---|---|
+| ☐ | U1 | forms: `ui/forms/files`, `Upload`/`Uploads`, `Remote`, `Control.Remote`/`Stored`/`Lost`/`Bounds`, a new list's blank items, `rule.Files`/`MinFiles`/`MaxFiles`, `MaxSize`'s attribute, the 413 pattern; formstest | Contract §2 holds, in tests |
+| ☐ | U2 | inputs and components: the shapes of §3.1 (remote, upload for all four file kinds, list), `WithLabelCache`, `Previews`, `Suggestion(s)`; CSS; keys | §3, §4 and §7 hold, with goldens; ids, names, selectors |
+| ☐ | U3 | The script: `<ui-combobox>` through htmx, `<ui-repeat>`, the upload behaviours; the actions script's `isAction` guard; `internal/spike` removed | §6 holds in the pane with real keys, LTR and RTL, light and dark, with htmx and without |
+| ☐ | U4 | tables: `Column.Remote` and its chip; the toy shop's order form and a link filter | §5 holds; the toy shop runs end to end |
+| ☐ | U5 | Release v0.4.0 | As V7 |
 
 ## T — Building actions and tables
 

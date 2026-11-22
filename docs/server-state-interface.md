@@ -401,6 +401,10 @@ func Errors[R any](st *tables.State[R]) []string // "<path>: <key>"
 func Check[R any](tb testing.TB, t *tables.Table[R])
 ```
 
+Amendment A7 ([rich-inputs-interface.md](rich-inputs-interface.md) §5,
+locked 2026-11-22) adds `Column.Remote`: a filter on a link column through
+a remote select.
+
 ## 4. Components (`ui/components`) (spiked)
 
 ### 4.1 The table and its pager
