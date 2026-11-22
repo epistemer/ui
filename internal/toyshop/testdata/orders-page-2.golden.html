@@ -1,0 +1,2073 @@
+<ui-table class="ui-table" data-ui-own="q sort page size status placed_at.from placed_at.to" data-ui-selected="%d selected" id="orders">
+  <p class="ui-table-status ui-visually-hidden" id="orders-status" role="status"></p>
+  <form action="/shop/orders" class="ui-table-tools" hx-get="/shop/orders" hx-push-url="true" hx-select="#orders" hx-swap="outerHTML" hx-sync="#orders:replace" hx-target="#orders" id="orders-state" method="get">
+    <div class="ui-table-search">
+      <label class="ui-visually-hidden" for="orders-q">
+        Search
+      </label>
+      <svg aria-hidden="true" class="ui-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+        <path d="m21 21-4.34-4.34"></path>
+        <circle cx="11" cy="11" r="8"></circle>
+      </svg>
+      <input autocomplete="off" class="ui-input" hx-get="/shop/orders" hx-include="#orders-state" hx-push-url="true" hx-select="#orders-results" hx-swap="outerHTML" hx-sync="#orders:replace" hx-target="#orders-results" hx-trigger="input changed delay:300ms, search" id="orders-q" name="q" type="search" value="">
+    </div>
+    <div class="ui-table-filters">
+      <div class="ui-field">
+        <label class="ui-field-label" for="field--t-1">
+          Status
+        </label>
+        <select class="ui-input" id="field--t-1" name="status">
+          <option value="">
+            Choose…
+          </option>
+          <option value="pending">
+            pending
+          </option>
+          <option value="paid">
+            paid
+          </option>
+          <option value="shipped">
+            shipped
+          </option>
+          <option value="refunded">
+            refunded
+          </option>
+        </select>
+      </div>
+      <fieldset class="ui-group">
+        <legend class="ui-group-legend">
+          Placed
+        </legend>
+        <div class="ui-field">
+          <label class="ui-field-label" for="field--t-3">
+            From
+          </label>
+          <input class="ui-input" id="field--t-3" name="placed_at.from" type="date">
+        </div>
+        <div class="ui-field">
+          <label class="ui-field-label" for="field--t-4">
+            To
+          </label>
+          <input class="ui-input" id="field--t-4" name="placed_at.to" type="date">
+        </div>
+      </fieldset>
+    </div>
+    <button class="ui-button" data-tone="neutral" data-variant="outline" id="orders-apply" type="submit">
+      Apply
+    </button>
+  </form>
+  <form hidden="" id="orders-select" method="post"></form>
+  <div class="ui-table-results" data-ui-status="26–50 of 57" data-ui-url="/shop/orders?page=2&amp;size=25" id="orders-results">
+    <input form="orders-state" name="size" type="hidden" value="25">
+    <div aria-labelledby="orders-caption" class="ui-table-scroll" role="region" tabindex="0">
+      <table class="ui-table-grid">
+        <caption id="orders-caption">
+          Orders
+        </caption>
+        <thead>
+          <tr>
+            <th class="ui-table-check" scope="col">
+              <span class="ui-visually-hidden" id="orders-select-label">
+                Select
+              </span>
+              <input aria-label="Select every row on this page" class="ui-table-all" data-ui-select-all="" hidden="" type="checkbox">
+            </th>
+            <th data-kind="text" scope="col">
+              <a class="ui-table-sort" href="/shop/orders?size=25&amp;sort=email" hx-get="/shop/orders?size=25&amp;sort=email" hx-push-url="true" hx-select="#orders-results" hx-swap="outerHTML" hx-sync="#orders:replace" hx-target="#orders-results" id="orders-sort-email">
+                Email
+              </a>
+            </th>
+            <th data-kind="text" scope="col">
+              Customer
+            </th>
+            <th data-kind="enum" scope="col">
+              Status
+            </th>
+            <th data-kind="number" scope="col">
+              <a class="ui-table-sort" href="/shop/orders?size=25&amp;sort=total" hx-get="/shop/orders?size=25&amp;sort=total" hx-push-url="true" hx-select="#orders-results" hx-swap="outerHTML" hx-sync="#orders:replace" hx-target="#orders-results" id="orders-sort-total">
+                Total
+              </a>
+            </th>
+            <th aria-sort="descending" data-kind="date" scope="col">
+              <a class="ui-table-sort" href="/shop/orders?size=25&amp;sort=placed_at" hx-get="/shop/orders?size=25&amp;sort=placed_at" hx-push-url="true" hx-select="#orders-results" hx-swap="outerHTML" hx-sync="#orders:replace" hx-target="#orders-results" id="orders-sort-placed_5fat">
+                Placed
+                <svg aria-hidden="true" class="ui-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+                  <path d="m6 9 6 6 6-6"></path>
+                </svg>
+              </a>
+            </th>
+            <th data-kind="text" scope="col">
+              Assignee
+            </th>
+            <th class="ui-table-actions" scope="col">
+              <span class="ui-visually-hidden" id="orders-actions-label">
+                Actions
+              </span>
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr id="orders-row-1032">
+            <td class="ui-table-check">
+              <input aria-labelledby="orders-select-label orders-row-1032-label" form="orders-select" name="selected" type="checkbox" value="1032">
+            </td>
+            <td data-kind="text" id="orders-row-1032-label">
+              <span class="ui-text">
+                hana32@example.com
+              </span>
+            </td>
+            <td data-kind="text">
+              <a class="ui-link" href="/shop/customers/8">
+                Hana Mostafa
+              </a>
+            </td>
+            <td data-kind="enum">
+              <span class="ui-badge" data-tone="success">
+                paid
+              </span>
+            </td>
+            <td data-kind="number">
+              <bdi class="ui-amount">
+                EGP 79.89
+              </bdi>
+            </td>
+            <td data-kind="date">
+              <time class="ui-date" datetime="2026-11-11">
+                2026-11-11
+              </time>
+            </td>
+            <td data-kind="text">
+              <span class="ui-empty">
+                <span aria-hidden="true">
+                  —
+                </span>
+                <span class="ui-visually-hidden">
+                  None
+                </span>
+              </span>
+            </td>
+            <td class="ui-table-actions">
+              <ui-menu class="ui-menu">
+                <button aria-controls="orders-row-1032-actions-menu" aria-haspopup="menu" aria-labelledby="orders-row-1032-actions orders-row-1032-label" class="ui-button" data-size="s" data-tone="neutral" data-variant="ghost" id="orders-row-1032-actions" popovertarget="orders-row-1032-actions-menu" type="button">
+                  <svg aria-hidden="true" class="ui-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="1"></circle>
+                    <circle cx="19" cy="12" r="1"></circle>
+                    <circle cx="5" cy="12" r="1"></circle>
+                  </svg>
+                  <span class="ui-visually-hidden">
+                    Actions
+                  </span>
+                </button>
+                <div aria-labelledby="orders-row-1032-actions" class="ui-menu-popover" id="orders-row-1032-actions-menu" popover="" role="menu">
+                  <a class="ui-menu-item" href="/shop/orders/1032" role="menuitem" tabindex="-1">
+                    <svg aria-hidden="true" class="ui-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+                      <path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"></path>
+                      <circle cx="12" cy="12" r="3"></circle>
+                    </svg>
+                    View
+                  </a>
+                  <a class="ui-menu-item" href="/shop/orders/1032/reassign" hx-get="/shop/orders/1032/reassign" hx-push-url="false" hx-swap="innerHTML" hx-target="#ui-action-dialog-body" role="menuitem" tabindex="-1">
+                    Reassign
+                  </a>
+                  <hr class="ui-separator">
+                  <button class="ui-menu-item" data-tone="danger" data-ui-confirm="Refund this order?" form="ui-action-form" formaction="/shop/orders/1032/refund" hx-post="/shop/orders/1032/refund" hx-swap="none" role="menuitem" tabindex="-1" type="submit">
+                    Refund
+                  </button>
+                  <button class="ui-menu-item" data-tone="danger" data-ui-confirm="Delete this order?" form="ui-action-form" formaction="/shop/orders/1032/delete" hx-post="/shop/orders/1032/delete" hx-swap="none" role="menuitem" tabindex="-1" type="submit">
+                    Delete
+                  </button>
+                </div>
+              </ui-menu>
+            </td>
+          </tr>
+          <tr id="orders-row-1011">
+            <td class="ui-table-check">
+              <input aria-labelledby="orders-select-label orders-row-1011-label" form="orders-select" name="selected" type="checkbox" value="1011">
+            </td>
+            <td data-kind="text" id="orders-row-1011-label">
+              <span class="ui-text">
+                mona11@example.com
+              </span>
+            </td>
+            <td data-kind="text">
+              <a class="ui-link" href="/shop/customers/3">
+                Mona Saeed
+              </a>
+            </td>
+            <td data-kind="enum">
+              <span class="ui-badge" data-tone="success">
+                paid
+              </span>
+            </td>
+            <td data-kind="number">
+              <bdi class="ui-amount">
+                EGP 416.90
+              </bdi>
+            </td>
+            <td data-kind="date">
+              <time class="ui-date" datetime="2026-11-11">
+                2026-11-11
+              </time>
+            </td>
+            <td data-kind="text">
+              <span class="ui-empty">
+                <span aria-hidden="true">
+                  —
+                </span>
+                <span class="ui-visually-hidden">
+                  None
+                </span>
+              </span>
+            </td>
+            <td class="ui-table-actions">
+              <ui-menu class="ui-menu">
+                <button aria-controls="orders-row-1011-actions-menu" aria-haspopup="menu" aria-labelledby="orders-row-1011-actions orders-row-1011-label" class="ui-button" data-size="s" data-tone="neutral" data-variant="ghost" id="orders-row-1011-actions" popovertarget="orders-row-1011-actions-menu" type="button">
+                  <svg aria-hidden="true" class="ui-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="1"></circle>
+                    <circle cx="19" cy="12" r="1"></circle>
+                    <circle cx="5" cy="12" r="1"></circle>
+                  </svg>
+                  <span class="ui-visually-hidden">
+                    Actions
+                  </span>
+                </button>
+                <div aria-labelledby="orders-row-1011-actions" class="ui-menu-popover" id="orders-row-1011-actions-menu" popover="" role="menu">
+                  <a class="ui-menu-item" href="/shop/orders/1011" role="menuitem" tabindex="-1">
+                    <svg aria-hidden="true" class="ui-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+                      <path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"></path>
+                      <circle cx="12" cy="12" r="3"></circle>
+                    </svg>
+                    View
+                  </a>
+                  <a class="ui-menu-item" href="/shop/orders/1011/reassign" hx-get="/shop/orders/1011/reassign" hx-push-url="false" hx-swap="innerHTML" hx-target="#ui-action-dialog-body" role="menuitem" tabindex="-1">
+                    Reassign
+                  </a>
+                  <hr class="ui-separator">
+                  <button class="ui-menu-item" data-tone="danger" data-ui-confirm="Refund this order?" form="ui-action-form" formaction="/shop/orders/1011/refund" hx-post="/shop/orders/1011/refund" hx-swap="none" role="menuitem" tabindex="-1" type="submit">
+                    Refund
+                  </button>
+                  <button class="ui-menu-item" data-tone="danger" data-ui-confirm="Delete this order?" form="ui-action-form" formaction="/shop/orders/1011/delete" hx-post="/shop/orders/1011/delete" hx-swap="none" role="menuitem" tabindex="-1" type="submit">
+                    Delete
+                  </button>
+                </div>
+              </ui-menu>
+            </td>
+          </tr>
+          <tr id="orders-row-1052">
+            <td class="ui-table-check">
+              <input aria-labelledby="orders-select-label orders-row-1052-label" form="orders-select" name="selected" type="checkbox" value="1052">
+            </td>
+            <td data-kind="text" id="orders-row-1052-label">
+              <span class="ui-text">
+                karim52@example.com
+              </span>
+            </td>
+            <td data-kind="text">
+              <a class="ui-link" href="/shop/customers/4">
+                Karim Fawzy
+              </a>
+            </td>
+            <td data-kind="enum">
+              <span class="ui-badge" data-tone="info">
+                shipped
+              </span>
+            </td>
+            <td data-kind="number">
+              <bdi class="ui-amount">
+                EGP 63.69
+              </bdi>
+            </td>
+            <td data-kind="date">
+              <time class="ui-date" datetime="2026-11-10">
+                2026-11-10
+              </time>
+            </td>
+            <td data-kind="text">
+              <span class="ui-empty">
+                <span aria-hidden="true">
+                  —
+                </span>
+                <span class="ui-visually-hidden">
+                  None
+                </span>
+              </span>
+            </td>
+            <td class="ui-table-actions">
+              <ui-menu class="ui-menu">
+                <button aria-controls="orders-row-1052-actions-menu" aria-haspopup="menu" aria-labelledby="orders-row-1052-actions orders-row-1052-label" class="ui-button" data-size="s" data-tone="neutral" data-variant="ghost" id="orders-row-1052-actions" popovertarget="orders-row-1052-actions-menu" type="button">
+                  <svg aria-hidden="true" class="ui-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="1"></circle>
+                    <circle cx="19" cy="12" r="1"></circle>
+                    <circle cx="5" cy="12" r="1"></circle>
+                  </svg>
+                  <span class="ui-visually-hidden">
+                    Actions
+                  </span>
+                </button>
+                <div aria-labelledby="orders-row-1052-actions" class="ui-menu-popover" id="orders-row-1052-actions-menu" popover="" role="menu">
+                  <a class="ui-menu-item" href="/shop/orders/1052" role="menuitem" tabindex="-1">
+                    <svg aria-hidden="true" class="ui-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+                      <path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"></path>
+                      <circle cx="12" cy="12" r="3"></circle>
+                    </svg>
+                    View
+                  </a>
+                  <a class="ui-menu-item" href="/shop/orders/1052/reassign" hx-get="/shop/orders/1052/reassign" hx-push-url="false" hx-swap="innerHTML" hx-target="#ui-action-dialog-body" role="menuitem" tabindex="-1">
+                    Reassign
+                  </a>
+                  <hr class="ui-separator">
+                  <button aria-describedby="menu-item--t-8-reason" aria-disabled="true" aria-labelledby="menu-item--t-8-label" class="ui-menu-item" data-tone="danger" data-ui-unavailable="" role="menuitem" tabindex="-1" type="button">
+                    <span class="ui-menu-item-label" id="menu-item--t-8-label">
+                      Refund
+                    </span>
+                    <span class="ui-action-reason" id="menu-item--t-8-reason">
+                      only a paid order can be refunded
+                    </span>
+                  </button>
+                </div>
+              </ui-menu>
+            </td>
+          </tr>
+          <tr id="orders-row-1031">
+            <td class="ui-table-check">
+              <input aria-labelledby="orders-select-label orders-row-1031-label" form="orders-select" name="selected" type="checkbox" value="1031">
+            </td>
+            <td data-kind="text" id="orders-row-1031-label">
+              <span class="ui-text">
+                salma31@example.com
+              </span>
+            </td>
+            <td data-kind="text">
+              <a class="ui-link" href="/shop/customers/7">
+                Salma Tarek
+              </a>
+            </td>
+            <td data-kind="enum">
+              <span class="ui-badge" data-tone="info">
+                shipped
+              </span>
+            </td>
+            <td data-kind="number">
+              <bdi class="ui-amount">
+                EGP 400.70
+              </bdi>
+            </td>
+            <td data-kind="date">
+              <time class="ui-date" datetime="2026-11-10">
+                2026-11-10
+              </time>
+            </td>
+            <td data-kind="text">
+              <span class="ui-empty">
+                <span aria-hidden="true">
+                  —
+                </span>
+                <span class="ui-visually-hidden">
+                  None
+                </span>
+              </span>
+            </td>
+            <td class="ui-table-actions">
+              <ui-menu class="ui-menu">
+                <button aria-controls="orders-row-1031-actions-menu" aria-haspopup="menu" aria-labelledby="orders-row-1031-actions orders-row-1031-label" class="ui-button" data-size="s" data-tone="neutral" data-variant="ghost" id="orders-row-1031-actions" popovertarget="orders-row-1031-actions-menu" type="button">
+                  <svg aria-hidden="true" class="ui-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="1"></circle>
+                    <circle cx="19" cy="12" r="1"></circle>
+                    <circle cx="5" cy="12" r="1"></circle>
+                  </svg>
+                  <span class="ui-visually-hidden">
+                    Actions
+                  </span>
+                </button>
+                <div aria-labelledby="orders-row-1031-actions" class="ui-menu-popover" id="orders-row-1031-actions-menu" popover="" role="menu">
+                  <a class="ui-menu-item" href="/shop/orders/1031" role="menuitem" tabindex="-1">
+                    <svg aria-hidden="true" class="ui-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+                      <path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"></path>
+                      <circle cx="12" cy="12" r="3"></circle>
+                    </svg>
+                    View
+                  </a>
+                  <a class="ui-menu-item" href="/shop/orders/1031/reassign" hx-get="/shop/orders/1031/reassign" hx-push-url="false" hx-swap="innerHTML" hx-target="#ui-action-dialog-body" role="menuitem" tabindex="-1">
+                    Reassign
+                  </a>
+                  <hr class="ui-separator">
+                  <button aria-describedby="menu-item--t-10-reason" aria-disabled="true" aria-labelledby="menu-item--t-10-label" class="ui-menu-item" data-tone="danger" data-ui-unavailable="" role="menuitem" tabindex="-1" type="button">
+                    <span class="ui-menu-item-label" id="menu-item--t-10-label">
+                      Refund
+                    </span>
+                    <span class="ui-action-reason" id="menu-item--t-10-reason">
+                      only a paid order can be refunded
+                    </span>
+                  </button>
+                </div>
+              </ui-menu>
+            </td>
+          </tr>
+          <tr id="orders-row-1010">
+            <td class="ui-table-check">
+              <input aria-labelledby="orders-select-label orders-row-1010-label" form="orders-select" name="selected" type="checkbox" value="1010">
+            </td>
+            <td data-kind="text" id="orders-row-1010-label">
+              <span class="ui-text">
+                omar10@example.com
+              </span>
+            </td>
+            <td data-kind="text">
+              <a class="ui-link" href="/shop/customers/2">
+                Omar Nabil
+              </a>
+            </td>
+            <td data-kind="enum">
+              <span class="ui-badge" data-tone="info">
+                shipped
+              </span>
+            </td>
+            <td data-kind="number">
+              <bdi class="ui-amount">
+                EGP 337.71
+              </bdi>
+            </td>
+            <td data-kind="date">
+              <time class="ui-date" datetime="2026-11-10">
+                2026-11-10
+              </time>
+            </td>
+            <td data-kind="text">
+              <span class="ui-empty">
+                <span aria-hidden="true">
+                  —
+                </span>
+                <span class="ui-visually-hidden">
+                  None
+                </span>
+              </span>
+            </td>
+            <td class="ui-table-actions">
+              <ui-menu class="ui-menu">
+                <button aria-controls="orders-row-1010-actions-menu" aria-haspopup="menu" aria-labelledby="orders-row-1010-actions orders-row-1010-label" class="ui-button" data-size="s" data-tone="neutral" data-variant="ghost" id="orders-row-1010-actions" popovertarget="orders-row-1010-actions-menu" type="button">
+                  <svg aria-hidden="true" class="ui-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="1"></circle>
+                    <circle cx="19" cy="12" r="1"></circle>
+                    <circle cx="5" cy="12" r="1"></circle>
+                  </svg>
+                  <span class="ui-visually-hidden">
+                    Actions
+                  </span>
+                </button>
+                <div aria-labelledby="orders-row-1010-actions" class="ui-menu-popover" id="orders-row-1010-actions-menu" popover="" role="menu">
+                  <a class="ui-menu-item" href="/shop/orders/1010" role="menuitem" tabindex="-1">
+                    <svg aria-hidden="true" class="ui-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+                      <path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"></path>
+                      <circle cx="12" cy="12" r="3"></circle>
+                    </svg>
+                    View
+                  </a>
+                  <a class="ui-menu-item" href="/shop/orders/1010/reassign" hx-get="/shop/orders/1010/reassign" hx-push-url="false" hx-swap="innerHTML" hx-target="#ui-action-dialog-body" role="menuitem" tabindex="-1">
+                    Reassign
+                  </a>
+                  <hr class="ui-separator">
+                  <button aria-describedby="menu-item--t-12-reason" aria-disabled="true" aria-labelledby="menu-item--t-12-label" class="ui-menu-item" data-tone="danger" data-ui-unavailable="" role="menuitem" tabindex="-1" type="button">
+                    <span class="ui-menu-item-label" id="menu-item--t-12-label">
+                      Refund
+                    </span>
+                    <span class="ui-action-reason" id="menu-item--t-12-reason">
+                      only a paid order can be refunded
+                    </span>
+                  </button>
+                </div>
+              </ui-menu>
+            </td>
+          </tr>
+          <tr id="orders-row-1051">
+            <td class="ui-table-check">
+              <input aria-labelledby="orders-select-label orders-row-1051-label" form="orders-select" name="selected" type="checkbox" value="1051">
+            </td>
+            <td data-kind="text" id="orders-row-1051-label">
+              <span class="ui-text">
+                mona51@example.com
+              </span>
+            </td>
+            <td data-kind="text">
+              <a class="ui-link" href="/shop/customers/3">
+                Mona Saeed
+              </a>
+            </td>
+            <td data-kind="enum">
+              <span class="ui-badge" data-tone="warning">
+                pending
+              </span>
+            </td>
+            <td data-kind="number">
+              <bdi class="ui-amount">
+                EGP 384.50
+              </bdi>
+            </td>
+            <td data-kind="date">
+              <time class="ui-date" datetime="2026-11-09">
+                2026-11-09
+              </time>
+            </td>
+            <td data-kind="text">
+              <span class="ui-empty">
+                <span aria-hidden="true">
+                  —
+                </span>
+                <span class="ui-visually-hidden">
+                  None
+                </span>
+              </span>
+            </td>
+            <td class="ui-table-actions">
+              <ui-menu class="ui-menu">
+                <button aria-controls="orders-row-1051-actions-menu" aria-haspopup="menu" aria-labelledby="orders-row-1051-actions orders-row-1051-label" class="ui-button" data-size="s" data-tone="neutral" data-variant="ghost" id="orders-row-1051-actions" popovertarget="orders-row-1051-actions-menu" type="button">
+                  <svg aria-hidden="true" class="ui-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="1"></circle>
+                    <circle cx="19" cy="12" r="1"></circle>
+                    <circle cx="5" cy="12" r="1"></circle>
+                  </svg>
+                  <span class="ui-visually-hidden">
+                    Actions
+                  </span>
+                </button>
+                <div aria-labelledby="orders-row-1051-actions" class="ui-menu-popover" id="orders-row-1051-actions-menu" popover="" role="menu">
+                  <a class="ui-menu-item" href="/shop/orders/1051" role="menuitem" tabindex="-1">
+                    <svg aria-hidden="true" class="ui-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+                      <path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"></path>
+                      <circle cx="12" cy="12" r="3"></circle>
+                    </svg>
+                    View
+                  </a>
+                  <a class="ui-menu-item" href="/shop/orders/1051/reassign" hx-get="/shop/orders/1051/reassign" hx-push-url="false" hx-swap="innerHTML" hx-target="#ui-action-dialog-body" role="menuitem" tabindex="-1">
+                    Reassign
+                  </a>
+                  <hr class="ui-separator">
+                  <button aria-describedby="menu-item--t-14-reason" aria-disabled="true" aria-labelledby="menu-item--t-14-label" class="ui-menu-item" data-tone="danger" data-ui-unavailable="" role="menuitem" tabindex="-1" type="button">
+                    <span class="ui-menu-item-label" id="menu-item--t-14-label">
+                      Refund
+                    </span>
+                    <span class="ui-action-reason" id="menu-item--t-14-reason">
+                      only a paid order can be refunded
+                    </span>
+                  </button>
+                  <button class="ui-menu-item" data-tone="danger" data-ui-confirm="Delete this order?" form="ui-action-form" formaction="/shop/orders/1051/delete" hx-post="/shop/orders/1051/delete" hx-swap="none" role="menuitem" tabindex="-1" type="submit">
+                    Delete
+                  </button>
+                </div>
+              </ui-menu>
+            </td>
+          </tr>
+          <tr id="orders-row-1030">
+            <td class="ui-table-check">
+              <input aria-labelledby="orders-select-label orders-row-1030-label" form="orders-select" name="selected" type="checkbox" value="1030">
+            </td>
+            <td data-kind="text" id="orders-row-1030-label">
+              <span class="ui-text">
+                youssef30@example.com
+              </span>
+            </td>
+            <td data-kind="text">
+              <a class="ui-link" href="/shop/customers/6">
+                Youssef Ali
+              </a>
+            </td>
+            <td data-kind="enum">
+              <span class="ui-badge" data-tone="warning">
+                pending
+              </span>
+            </td>
+            <td data-kind="number">
+              <bdi class="ui-amount">
+                EGP 321.51
+              </bdi>
+            </td>
+            <td data-kind="date">
+              <time class="ui-date" datetime="2026-11-09">
+                2026-11-09
+              </time>
+            </td>
+            <td data-kind="text">
+              <span class="ui-empty">
+                <span aria-hidden="true">
+                  —
+                </span>
+                <span class="ui-visually-hidden">
+                  None
+                </span>
+              </span>
+            </td>
+            <td class="ui-table-actions">
+              <ui-menu class="ui-menu">
+                <button aria-controls="orders-row-1030-actions-menu" aria-haspopup="menu" aria-labelledby="orders-row-1030-actions orders-row-1030-label" class="ui-button" data-size="s" data-tone="neutral" data-variant="ghost" id="orders-row-1030-actions" popovertarget="orders-row-1030-actions-menu" type="button">
+                  <svg aria-hidden="true" class="ui-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="1"></circle>
+                    <circle cx="19" cy="12" r="1"></circle>
+                    <circle cx="5" cy="12" r="1"></circle>
+                  </svg>
+                  <span class="ui-visually-hidden">
+                    Actions
+                  </span>
+                </button>
+                <div aria-labelledby="orders-row-1030-actions" class="ui-menu-popover" id="orders-row-1030-actions-menu" popover="" role="menu">
+                  <a class="ui-menu-item" href="/shop/orders/1030" role="menuitem" tabindex="-1">
+                    <svg aria-hidden="true" class="ui-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+                      <path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"></path>
+                      <circle cx="12" cy="12" r="3"></circle>
+                    </svg>
+                    View
+                  </a>
+                  <a class="ui-menu-item" href="/shop/orders/1030/reassign" hx-get="/shop/orders/1030/reassign" hx-push-url="false" hx-swap="innerHTML" hx-target="#ui-action-dialog-body" role="menuitem" tabindex="-1">
+                    Reassign
+                  </a>
+                  <hr class="ui-separator">
+                  <button aria-describedby="menu-item--t-16-reason" aria-disabled="true" aria-labelledby="menu-item--t-16-label" class="ui-menu-item" data-tone="danger" data-ui-unavailable="" role="menuitem" tabindex="-1" type="button">
+                    <span class="ui-menu-item-label" id="menu-item--t-16-label">
+                      Refund
+                    </span>
+                    <span class="ui-action-reason" id="menu-item--t-16-reason">
+                      only a paid order can be refunded
+                    </span>
+                  </button>
+                  <button class="ui-menu-item" data-tone="danger" data-ui-confirm="Delete this order?" form="ui-action-form" formaction="/shop/orders/1030/delete" hx-post="/shop/orders/1030/delete" hx-swap="none" role="menuitem" tabindex="-1" type="submit">
+                    Delete
+                  </button>
+                </div>
+              </ui-menu>
+            </td>
+          </tr>
+          <tr id="orders-row-1009">
+            <td class="ui-table-check">
+              <input aria-labelledby="orders-select-label orders-row-1009-label" form="orders-select" name="selected" type="checkbox" value="1009">
+            </td>
+            <td data-kind="text" id="orders-row-1009-label">
+              <span class="ui-text">
+                layla9@example.com
+              </span>
+            </td>
+            <td data-kind="text">
+              <a class="ui-link" href="/shop/customers/1">
+                Layla Adel
+              </a>
+            </td>
+            <td data-kind="enum">
+              <span class="ui-badge" data-tone="warning">
+                pending
+              </span>
+            </td>
+            <td data-kind="number">
+              <bdi class="ui-amount">
+                EGP 258.52
+              </bdi>
+            </td>
+            <td data-kind="date">
+              <time class="ui-date" datetime="2026-11-09">
+                2026-11-09
+              </time>
+            </td>
+            <td data-kind="text">
+              <span class="ui-empty">
+                <span aria-hidden="true">
+                  —
+                </span>
+                <span class="ui-visually-hidden">
+                  None
+                </span>
+              </span>
+            </td>
+            <td class="ui-table-actions">
+              <ui-menu class="ui-menu">
+                <button aria-controls="orders-row-1009-actions-menu" aria-haspopup="menu" aria-labelledby="orders-row-1009-actions orders-row-1009-label" class="ui-button" data-size="s" data-tone="neutral" data-variant="ghost" id="orders-row-1009-actions" popovertarget="orders-row-1009-actions-menu" type="button">
+                  <svg aria-hidden="true" class="ui-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="1"></circle>
+                    <circle cx="19" cy="12" r="1"></circle>
+                    <circle cx="5" cy="12" r="1"></circle>
+                  </svg>
+                  <span class="ui-visually-hidden">
+                    Actions
+                  </span>
+                </button>
+                <div aria-labelledby="orders-row-1009-actions" class="ui-menu-popover" id="orders-row-1009-actions-menu" popover="" role="menu">
+                  <a class="ui-menu-item" href="/shop/orders/1009" role="menuitem" tabindex="-1">
+                    <svg aria-hidden="true" class="ui-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+                      <path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"></path>
+                      <circle cx="12" cy="12" r="3"></circle>
+                    </svg>
+                    View
+                  </a>
+                  <a class="ui-menu-item" href="/shop/orders/1009/reassign" hx-get="/shop/orders/1009/reassign" hx-push-url="false" hx-swap="innerHTML" hx-target="#ui-action-dialog-body" role="menuitem" tabindex="-1">
+                    Reassign
+                  </a>
+                  <hr class="ui-separator">
+                  <button aria-describedby="menu-item--t-18-reason" aria-disabled="true" aria-labelledby="menu-item--t-18-label" class="ui-menu-item" data-tone="danger" data-ui-unavailable="" role="menuitem" tabindex="-1" type="button">
+                    <span class="ui-menu-item-label" id="menu-item--t-18-label">
+                      Refund
+                    </span>
+                    <span class="ui-action-reason" id="menu-item--t-18-reason">
+                      only a paid order can be refunded
+                    </span>
+                  </button>
+                  <button class="ui-menu-item" data-tone="danger" data-ui-confirm="Delete this order?" form="ui-action-form" formaction="/shop/orders/1009/delete" hx-post="/shop/orders/1009/delete" hx-swap="none" role="menuitem" tabindex="-1" type="submit">
+                    Delete
+                  </button>
+                </div>
+              </ui-menu>
+            </td>
+          </tr>
+          <tr id="orders-row-1050">
+            <td class="ui-table-check">
+              <input aria-labelledby="orders-select-label orders-row-1050-label" form="orders-select" name="selected" type="checkbox" value="1050">
+            </td>
+            <td data-kind="text" id="orders-row-1050-label">
+              <span class="ui-text">
+                omar50@example.com
+              </span>
+            </td>
+            <td data-kind="text">
+              <a class="ui-link" href="/shop/customers/2">
+                Omar Nabil
+              </a>
+            </td>
+            <td data-kind="enum">
+              <span class="ui-badge" data-tone="success">
+                paid
+              </span>
+            </td>
+            <td data-kind="number">
+              <bdi class="ui-amount">
+                EGP 305.31
+              </bdi>
+            </td>
+            <td data-kind="date">
+              <time class="ui-date" datetime="2026-11-08">
+                2026-11-08
+              </time>
+            </td>
+            <td data-kind="text">
+              <span class="ui-empty">
+                <span aria-hidden="true">
+                  —
+                </span>
+                <span class="ui-visually-hidden">
+                  None
+                </span>
+              </span>
+            </td>
+            <td class="ui-table-actions">
+              <ui-menu class="ui-menu">
+                <button aria-controls="orders-row-1050-actions-menu" aria-haspopup="menu" aria-labelledby="orders-row-1050-actions orders-row-1050-label" class="ui-button" data-size="s" data-tone="neutral" data-variant="ghost" id="orders-row-1050-actions" popovertarget="orders-row-1050-actions-menu" type="button">
+                  <svg aria-hidden="true" class="ui-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="1"></circle>
+                    <circle cx="19" cy="12" r="1"></circle>
+                    <circle cx="5" cy="12" r="1"></circle>
+                  </svg>
+                  <span class="ui-visually-hidden">
+                    Actions
+                  </span>
+                </button>
+                <div aria-labelledby="orders-row-1050-actions" class="ui-menu-popover" id="orders-row-1050-actions-menu" popover="" role="menu">
+                  <a class="ui-menu-item" href="/shop/orders/1050" role="menuitem" tabindex="-1">
+                    <svg aria-hidden="true" class="ui-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+                      <path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"></path>
+                      <circle cx="12" cy="12" r="3"></circle>
+                    </svg>
+                    View
+                  </a>
+                  <a class="ui-menu-item" href="/shop/orders/1050/reassign" hx-get="/shop/orders/1050/reassign" hx-push-url="false" hx-swap="innerHTML" hx-target="#ui-action-dialog-body" role="menuitem" tabindex="-1">
+                    Reassign
+                  </a>
+                  <hr class="ui-separator">
+                  <button class="ui-menu-item" data-tone="danger" data-ui-confirm="Refund this order?" form="ui-action-form" formaction="/shop/orders/1050/refund" hx-post="/shop/orders/1050/refund" hx-swap="none" role="menuitem" tabindex="-1" type="submit">
+                    Refund
+                  </button>
+                  <button class="ui-menu-item" data-tone="danger" data-ui-confirm="Delete this order?" form="ui-action-form" formaction="/shop/orders/1050/delete" hx-post="/shop/orders/1050/delete" hx-swap="none" role="menuitem" tabindex="-1" type="submit">
+                    Delete
+                  </button>
+                </div>
+              </ui-menu>
+            </td>
+          </tr>
+          <tr id="orders-row-1029">
+            <td class="ui-table-check">
+              <input aria-labelledby="orders-select-label orders-row-1029-label" form="orders-select" name="selected" type="checkbox" value="1029">
+            </td>
+            <td data-kind="text" id="orders-row-1029-label">
+              <span class="ui-text">
+                nour29@example.com
+              </span>
+            </td>
+            <td data-kind="text">
+              <a class="ui-link" href="/shop/customers/5">
+                Nour Hassan
+              </a>
+            </td>
+            <td data-kind="enum">
+              <span class="ui-badge" data-tone="success">
+                paid
+              </span>
+            </td>
+            <td data-kind="number">
+              <bdi class="ui-amount">
+                EGP 242.32
+              </bdi>
+            </td>
+            <td data-kind="date">
+              <time class="ui-date" datetime="2026-11-08">
+                2026-11-08
+              </time>
+            </td>
+            <td data-kind="text">
+              <span class="ui-empty">
+                <span aria-hidden="true">
+                  —
+                </span>
+                <span class="ui-visually-hidden">
+                  None
+                </span>
+              </span>
+            </td>
+            <td class="ui-table-actions">
+              <ui-menu class="ui-menu">
+                <button aria-controls="orders-row-1029-actions-menu" aria-haspopup="menu" aria-labelledby="orders-row-1029-actions orders-row-1029-label" class="ui-button" data-size="s" data-tone="neutral" data-variant="ghost" id="orders-row-1029-actions" popovertarget="orders-row-1029-actions-menu" type="button">
+                  <svg aria-hidden="true" class="ui-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="1"></circle>
+                    <circle cx="19" cy="12" r="1"></circle>
+                    <circle cx="5" cy="12" r="1"></circle>
+                  </svg>
+                  <span class="ui-visually-hidden">
+                    Actions
+                  </span>
+                </button>
+                <div aria-labelledby="orders-row-1029-actions" class="ui-menu-popover" id="orders-row-1029-actions-menu" popover="" role="menu">
+                  <a class="ui-menu-item" href="/shop/orders/1029" role="menuitem" tabindex="-1">
+                    <svg aria-hidden="true" class="ui-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+                      <path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"></path>
+                      <circle cx="12" cy="12" r="3"></circle>
+                    </svg>
+                    View
+                  </a>
+                  <a class="ui-menu-item" href="/shop/orders/1029/reassign" hx-get="/shop/orders/1029/reassign" hx-push-url="false" hx-swap="innerHTML" hx-target="#ui-action-dialog-body" role="menuitem" tabindex="-1">
+                    Reassign
+                  </a>
+                  <hr class="ui-separator">
+                  <button class="ui-menu-item" data-tone="danger" data-ui-confirm="Refund this order?" form="ui-action-form" formaction="/shop/orders/1029/refund" hx-post="/shop/orders/1029/refund" hx-swap="none" role="menuitem" tabindex="-1" type="submit">
+                    Refund
+                  </button>
+                  <button class="ui-menu-item" data-tone="danger" data-ui-confirm="Delete this order?" form="ui-action-form" formaction="/shop/orders/1029/delete" hx-post="/shop/orders/1029/delete" hx-swap="none" role="menuitem" tabindex="-1" type="submit">
+                    Delete
+                  </button>
+                </div>
+              </ui-menu>
+            </td>
+          </tr>
+          <tr id="orders-row-1008">
+            <td class="ui-table-check">
+              <input aria-labelledby="orders-select-label orders-row-1008-label" form="orders-select" name="selected" type="checkbox" value="1008">
+            </td>
+            <td data-kind="text" id="orders-row-1008-label">
+              <span class="ui-text">
+                hana8@example.com
+              </span>
+            </td>
+            <td data-kind="text">
+              <a class="ui-link" href="/shop/customers/8">
+                Hana Mostafa
+              </a>
+            </td>
+            <td data-kind="enum">
+              <span class="ui-badge" data-tone="success">
+                paid
+              </span>
+            </td>
+            <td data-kind="number">
+              <bdi class="ui-amount">
+                EGP 179.33
+              </bdi>
+            </td>
+            <td data-kind="date">
+              <time class="ui-date" datetime="2026-11-08">
+                2026-11-08
+              </time>
+            </td>
+            <td data-kind="text">
+              <span class="ui-empty">
+                <span aria-hidden="true">
+                  —
+                </span>
+                <span class="ui-visually-hidden">
+                  None
+                </span>
+              </span>
+            </td>
+            <td class="ui-table-actions">
+              <ui-menu class="ui-menu">
+                <button aria-controls="orders-row-1008-actions-menu" aria-haspopup="menu" aria-labelledby="orders-row-1008-actions orders-row-1008-label" class="ui-button" data-size="s" data-tone="neutral" data-variant="ghost" id="orders-row-1008-actions" popovertarget="orders-row-1008-actions-menu" type="button">
+                  <svg aria-hidden="true" class="ui-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="1"></circle>
+                    <circle cx="19" cy="12" r="1"></circle>
+                    <circle cx="5" cy="12" r="1"></circle>
+                  </svg>
+                  <span class="ui-visually-hidden">
+                    Actions
+                  </span>
+                </button>
+                <div aria-labelledby="orders-row-1008-actions" class="ui-menu-popover" id="orders-row-1008-actions-menu" popover="" role="menu">
+                  <a class="ui-menu-item" href="/shop/orders/1008" role="menuitem" tabindex="-1">
+                    <svg aria-hidden="true" class="ui-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+                      <path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"></path>
+                      <circle cx="12" cy="12" r="3"></circle>
+                    </svg>
+                    View
+                  </a>
+                  <a class="ui-menu-item" href="/shop/orders/1008/reassign" hx-get="/shop/orders/1008/reassign" hx-push-url="false" hx-swap="innerHTML" hx-target="#ui-action-dialog-body" role="menuitem" tabindex="-1">
+                    Reassign
+                  </a>
+                  <hr class="ui-separator">
+                  <button class="ui-menu-item" data-tone="danger" data-ui-confirm="Refund this order?" form="ui-action-form" formaction="/shop/orders/1008/refund" hx-post="/shop/orders/1008/refund" hx-swap="none" role="menuitem" tabindex="-1" type="submit">
+                    Refund
+                  </button>
+                  <button class="ui-menu-item" data-tone="danger" data-ui-confirm="Delete this order?" form="ui-action-form" formaction="/shop/orders/1008/delete" hx-post="/shop/orders/1008/delete" hx-swap="none" role="menuitem" tabindex="-1" type="submit">
+                    Delete
+                  </button>
+                </div>
+              </ui-menu>
+            </td>
+          </tr>
+          <tr id="orders-row-1049">
+            <td class="ui-table-check">
+              <input aria-labelledby="orders-select-label orders-row-1049-label" form="orders-select" name="selected" type="checkbox" value="1049">
+            </td>
+            <td data-kind="text" id="orders-row-1049-label">
+              <span class="ui-text">
+                layla49@example.com
+              </span>
+            </td>
+            <td data-kind="text">
+              <a class="ui-link" href="/shop/customers/1">
+                Layla Adel
+              </a>
+            </td>
+            <td data-kind="enum">
+              <span class="ui-badge" data-tone="warning">
+                pending
+              </span>
+            </td>
+            <td data-kind="number">
+              <bdi class="ui-amount">
+                EGP 226.12
+              </bdi>
+            </td>
+            <td data-kind="date">
+              <time class="ui-date" datetime="2026-11-07">
+                2026-11-07
+              </time>
+            </td>
+            <td data-kind="text">
+              <span class="ui-empty">
+                <span aria-hidden="true">
+                  —
+                </span>
+                <span class="ui-visually-hidden">
+                  None
+                </span>
+              </span>
+            </td>
+            <td class="ui-table-actions">
+              <ui-menu class="ui-menu">
+                <button aria-controls="orders-row-1049-actions-menu" aria-haspopup="menu" aria-labelledby="orders-row-1049-actions orders-row-1049-label" class="ui-button" data-size="s" data-tone="neutral" data-variant="ghost" id="orders-row-1049-actions" popovertarget="orders-row-1049-actions-menu" type="button">
+                  <svg aria-hidden="true" class="ui-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="1"></circle>
+                    <circle cx="19" cy="12" r="1"></circle>
+                    <circle cx="5" cy="12" r="1"></circle>
+                  </svg>
+                  <span class="ui-visually-hidden">
+                    Actions
+                  </span>
+                </button>
+                <div aria-labelledby="orders-row-1049-actions" class="ui-menu-popover" id="orders-row-1049-actions-menu" popover="" role="menu">
+                  <a class="ui-menu-item" href="/shop/orders/1049" role="menuitem" tabindex="-1">
+                    <svg aria-hidden="true" class="ui-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+                      <path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"></path>
+                      <circle cx="12" cy="12" r="3"></circle>
+                    </svg>
+                    View
+                  </a>
+                  <a class="ui-menu-item" href="/shop/orders/1049/reassign" hx-get="/shop/orders/1049/reassign" hx-push-url="false" hx-swap="innerHTML" hx-target="#ui-action-dialog-body" role="menuitem" tabindex="-1">
+                    Reassign
+                  </a>
+                  <hr class="ui-separator">
+                  <button aria-describedby="menu-item--t-23-reason" aria-disabled="true" aria-labelledby="menu-item--t-23-label" class="ui-menu-item" data-tone="danger" data-ui-unavailable="" role="menuitem" tabindex="-1" type="button">
+                    <span class="ui-menu-item-label" id="menu-item--t-23-label">
+                      Refund
+                    </span>
+                    <span class="ui-action-reason" id="menu-item--t-23-reason">
+                      only a paid order can be refunded
+                    </span>
+                  </button>
+                  <button class="ui-menu-item" data-tone="danger" data-ui-confirm="Delete this order?" form="ui-action-form" formaction="/shop/orders/1049/delete" hx-post="/shop/orders/1049/delete" hx-swap="none" role="menuitem" tabindex="-1" type="submit">
+                    Delete
+                  </button>
+                </div>
+              </ui-menu>
+            </td>
+          </tr>
+          <tr id="orders-row-1028">
+            <td class="ui-table-check">
+              <input aria-labelledby="orders-select-label orders-row-1028-label" form="orders-select" name="selected" type="checkbox" value="1028">
+            </td>
+            <td data-kind="text" id="orders-row-1028-label">
+              <span class="ui-text">
+                karim28@example.com
+              </span>
+            </td>
+            <td data-kind="text">
+              <a class="ui-link" href="/shop/customers/4">
+                Karim Fawzy
+              </a>
+            </td>
+            <td data-kind="enum">
+              <span class="ui-badge" data-tone="warning">
+                pending
+              </span>
+            </td>
+            <td data-kind="number">
+              <bdi class="ui-amount">
+                EGP 163.13
+              </bdi>
+            </td>
+            <td data-kind="date">
+              <time class="ui-date" datetime="2026-11-07">
+                2026-11-07
+              </time>
+            </td>
+            <td data-kind="text">
+              <span class="ui-empty">
+                <span aria-hidden="true">
+                  —
+                </span>
+                <span class="ui-visually-hidden">
+                  None
+                </span>
+              </span>
+            </td>
+            <td class="ui-table-actions">
+              <ui-menu class="ui-menu">
+                <button aria-controls="orders-row-1028-actions-menu" aria-haspopup="menu" aria-labelledby="orders-row-1028-actions orders-row-1028-label" class="ui-button" data-size="s" data-tone="neutral" data-variant="ghost" id="orders-row-1028-actions" popovertarget="orders-row-1028-actions-menu" type="button">
+                  <svg aria-hidden="true" class="ui-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="1"></circle>
+                    <circle cx="19" cy="12" r="1"></circle>
+                    <circle cx="5" cy="12" r="1"></circle>
+                  </svg>
+                  <span class="ui-visually-hidden">
+                    Actions
+                  </span>
+                </button>
+                <div aria-labelledby="orders-row-1028-actions" class="ui-menu-popover" id="orders-row-1028-actions-menu" popover="" role="menu">
+                  <a class="ui-menu-item" href="/shop/orders/1028" role="menuitem" tabindex="-1">
+                    <svg aria-hidden="true" class="ui-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+                      <path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"></path>
+                      <circle cx="12" cy="12" r="3"></circle>
+                    </svg>
+                    View
+                  </a>
+                  <a class="ui-menu-item" href="/shop/orders/1028/reassign" hx-get="/shop/orders/1028/reassign" hx-push-url="false" hx-swap="innerHTML" hx-target="#ui-action-dialog-body" role="menuitem" tabindex="-1">
+                    Reassign
+                  </a>
+                  <hr class="ui-separator">
+                  <button aria-describedby="menu-item--t-25-reason" aria-disabled="true" aria-labelledby="menu-item--t-25-label" class="ui-menu-item" data-tone="danger" data-ui-unavailable="" role="menuitem" tabindex="-1" type="button">
+                    <span class="ui-menu-item-label" id="menu-item--t-25-label">
+                      Refund
+                    </span>
+                    <span class="ui-action-reason" id="menu-item--t-25-reason">
+                      only a paid order can be refunded
+                    </span>
+                  </button>
+                  <button class="ui-menu-item" data-tone="danger" data-ui-confirm="Delete this order?" form="ui-action-form" formaction="/shop/orders/1028/delete" hx-post="/shop/orders/1028/delete" hx-swap="none" role="menuitem" tabindex="-1" type="submit">
+                    Delete
+                  </button>
+                </div>
+              </ui-menu>
+            </td>
+          </tr>
+          <tr id="orders-row-1007">
+            <td class="ui-table-check">
+              <input aria-labelledby="orders-select-label orders-row-1007-label" form="orders-select" name="selected" type="checkbox" value="1007">
+            </td>
+            <td data-kind="text" id="orders-row-1007-label">
+              <span class="ui-text">
+                salma7@example.com
+              </span>
+            </td>
+            <td data-kind="text">
+              <a class="ui-link" href="/shop/customers/7">
+                Salma Tarek
+              </a>
+            </td>
+            <td data-kind="enum">
+              <span class="ui-badge" data-tone="warning">
+                pending
+              </span>
+            </td>
+            <td data-kind="number">
+              <bdi class="ui-amount">
+                EGP 100.14
+              </bdi>
+            </td>
+            <td data-kind="date">
+              <time class="ui-date" datetime="2026-11-07">
+                2026-11-07
+              </time>
+            </td>
+            <td data-kind="text">
+              <span class="ui-empty">
+                <span aria-hidden="true">
+                  —
+                </span>
+                <span class="ui-visually-hidden">
+                  None
+                </span>
+              </span>
+            </td>
+            <td class="ui-table-actions">
+              <ui-menu class="ui-menu">
+                <button aria-controls="orders-row-1007-actions-menu" aria-haspopup="menu" aria-labelledby="orders-row-1007-actions orders-row-1007-label" class="ui-button" data-size="s" data-tone="neutral" data-variant="ghost" id="orders-row-1007-actions" popovertarget="orders-row-1007-actions-menu" type="button">
+                  <svg aria-hidden="true" class="ui-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="1"></circle>
+                    <circle cx="19" cy="12" r="1"></circle>
+                    <circle cx="5" cy="12" r="1"></circle>
+                  </svg>
+                  <span class="ui-visually-hidden">
+                    Actions
+                  </span>
+                </button>
+                <div aria-labelledby="orders-row-1007-actions" class="ui-menu-popover" id="orders-row-1007-actions-menu" popover="" role="menu">
+                  <a class="ui-menu-item" href="/shop/orders/1007" role="menuitem" tabindex="-1">
+                    <svg aria-hidden="true" class="ui-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+                      <path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"></path>
+                      <circle cx="12" cy="12" r="3"></circle>
+                    </svg>
+                    View
+                  </a>
+                  <a class="ui-menu-item" href="/shop/orders/1007/reassign" hx-get="/shop/orders/1007/reassign" hx-push-url="false" hx-swap="innerHTML" hx-target="#ui-action-dialog-body" role="menuitem" tabindex="-1">
+                    Reassign
+                  </a>
+                  <hr class="ui-separator">
+                  <button aria-describedby="menu-item--t-27-reason" aria-disabled="true" aria-labelledby="menu-item--t-27-label" class="ui-menu-item" data-tone="danger" data-ui-unavailable="" role="menuitem" tabindex="-1" type="button">
+                    <span class="ui-menu-item-label" id="menu-item--t-27-label">
+                      Refund
+                    </span>
+                    <span class="ui-action-reason" id="menu-item--t-27-reason">
+                      only a paid order can be refunded
+                    </span>
+                  </button>
+                  <button class="ui-menu-item" data-tone="danger" data-ui-confirm="Delete this order?" form="ui-action-form" formaction="/shop/orders/1007/delete" hx-post="/shop/orders/1007/delete" hx-swap="none" role="menuitem" tabindex="-1" type="submit">
+                    Delete
+                  </button>
+                </div>
+              </ui-menu>
+            </td>
+          </tr>
+          <tr id="orders-row-1048">
+            <td class="ui-table-check">
+              <input aria-labelledby="orders-select-label orders-row-1048-label" form="orders-select" name="selected" type="checkbox" value="1048">
+            </td>
+            <td data-kind="text" id="orders-row-1048-label">
+              <span class="ui-text">
+                hana48@example.com
+              </span>
+            </td>
+            <td data-kind="text">
+              <a class="ui-link" href="/shop/customers/8">
+                Hana Mostafa
+              </a>
+            </td>
+            <td data-kind="enum">
+              <span class="ui-badge" data-tone="success">
+                paid
+              </span>
+            </td>
+            <td data-kind="number">
+              <bdi class="ui-amount">
+                EGP 146.93
+              </bdi>
+            </td>
+            <td data-kind="date">
+              <time class="ui-date" datetime="2026-11-06">
+                2026-11-06
+              </time>
+            </td>
+            <td data-kind="text">
+              <span class="ui-empty">
+                <span aria-hidden="true">
+                  —
+                </span>
+                <span class="ui-visually-hidden">
+                  None
+                </span>
+              </span>
+            </td>
+            <td class="ui-table-actions">
+              <ui-menu class="ui-menu">
+                <button aria-controls="orders-row-1048-actions-menu" aria-haspopup="menu" aria-labelledby="orders-row-1048-actions orders-row-1048-label" class="ui-button" data-size="s" data-tone="neutral" data-variant="ghost" id="orders-row-1048-actions" popovertarget="orders-row-1048-actions-menu" type="button">
+                  <svg aria-hidden="true" class="ui-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="1"></circle>
+                    <circle cx="19" cy="12" r="1"></circle>
+                    <circle cx="5" cy="12" r="1"></circle>
+                  </svg>
+                  <span class="ui-visually-hidden">
+                    Actions
+                  </span>
+                </button>
+                <div aria-labelledby="orders-row-1048-actions" class="ui-menu-popover" id="orders-row-1048-actions-menu" popover="" role="menu">
+                  <a class="ui-menu-item" href="/shop/orders/1048" role="menuitem" tabindex="-1">
+                    <svg aria-hidden="true" class="ui-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+                      <path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"></path>
+                      <circle cx="12" cy="12" r="3"></circle>
+                    </svg>
+                    View
+                  </a>
+                  <a class="ui-menu-item" href="/shop/orders/1048/reassign" hx-get="/shop/orders/1048/reassign" hx-push-url="false" hx-swap="innerHTML" hx-target="#ui-action-dialog-body" role="menuitem" tabindex="-1">
+                    Reassign
+                  </a>
+                  <hr class="ui-separator">
+                  <button class="ui-menu-item" data-tone="danger" data-ui-confirm="Refund this order?" form="ui-action-form" formaction="/shop/orders/1048/refund" hx-post="/shop/orders/1048/refund" hx-swap="none" role="menuitem" tabindex="-1" type="submit">
+                    Refund
+                  </button>
+                  <button class="ui-menu-item" data-tone="danger" data-ui-confirm="Delete this order?" form="ui-action-form" formaction="/shop/orders/1048/delete" hx-post="/shop/orders/1048/delete" hx-swap="none" role="menuitem" tabindex="-1" type="submit">
+                    Delete
+                  </button>
+                </div>
+              </ui-menu>
+            </td>
+          </tr>
+          <tr id="orders-row-1027">
+            <td class="ui-table-check">
+              <input aria-labelledby="orders-select-label orders-row-1027-label" form="orders-select" name="selected" type="checkbox" value="1027">
+            </td>
+            <td data-kind="text" id="orders-row-1027-label">
+              <span class="ui-text">
+                mona27@example.com
+              </span>
+            </td>
+            <td data-kind="text">
+              <a class="ui-link" href="/shop/customers/3">
+                Mona Saeed
+              </a>
+            </td>
+            <td data-kind="enum">
+              <span class="ui-badge" data-tone="success">
+                paid
+              </span>
+            </td>
+            <td data-kind="number">
+              <bdi class="ui-amount">
+                EGP 83.94
+              </bdi>
+            </td>
+            <td data-kind="date">
+              <time class="ui-date" datetime="2026-11-06">
+                2026-11-06
+              </time>
+            </td>
+            <td data-kind="text">
+              <span class="ui-empty">
+                <span aria-hidden="true">
+                  —
+                </span>
+                <span class="ui-visually-hidden">
+                  None
+                </span>
+              </span>
+            </td>
+            <td class="ui-table-actions">
+              <ui-menu class="ui-menu">
+                <button aria-controls="orders-row-1027-actions-menu" aria-haspopup="menu" aria-labelledby="orders-row-1027-actions orders-row-1027-label" class="ui-button" data-size="s" data-tone="neutral" data-variant="ghost" id="orders-row-1027-actions" popovertarget="orders-row-1027-actions-menu" type="button">
+                  <svg aria-hidden="true" class="ui-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="1"></circle>
+                    <circle cx="19" cy="12" r="1"></circle>
+                    <circle cx="5" cy="12" r="1"></circle>
+                  </svg>
+                  <span class="ui-visually-hidden">
+                    Actions
+                  </span>
+                </button>
+                <div aria-labelledby="orders-row-1027-actions" class="ui-menu-popover" id="orders-row-1027-actions-menu" popover="" role="menu">
+                  <a class="ui-menu-item" href="/shop/orders/1027" role="menuitem" tabindex="-1">
+                    <svg aria-hidden="true" class="ui-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+                      <path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"></path>
+                      <circle cx="12" cy="12" r="3"></circle>
+                    </svg>
+                    View
+                  </a>
+                  <a class="ui-menu-item" href="/shop/orders/1027/reassign" hx-get="/shop/orders/1027/reassign" hx-push-url="false" hx-swap="innerHTML" hx-target="#ui-action-dialog-body" role="menuitem" tabindex="-1">
+                    Reassign
+                  </a>
+                  <hr class="ui-separator">
+                  <button class="ui-menu-item" data-tone="danger" data-ui-confirm="Refund this order?" form="ui-action-form" formaction="/shop/orders/1027/refund" hx-post="/shop/orders/1027/refund" hx-swap="none" role="menuitem" tabindex="-1" type="submit">
+                    Refund
+                  </button>
+                  <button class="ui-menu-item" data-tone="danger" data-ui-confirm="Delete this order?" form="ui-action-form" formaction="/shop/orders/1027/delete" hx-post="/shop/orders/1027/delete" hx-swap="none" role="menuitem" tabindex="-1" type="submit">
+                    Delete
+                  </button>
+                </div>
+              </ui-menu>
+            </td>
+          </tr>
+          <tr id="orders-row-1006">
+            <td class="ui-table-check">
+              <input aria-labelledby="orders-select-label orders-row-1006-label" form="orders-select" name="selected" type="checkbox" value="1006">
+            </td>
+            <td data-kind="text" id="orders-row-1006-label">
+              <span class="ui-text">
+                youssef6@example.com
+              </span>
+            </td>
+            <td data-kind="text">
+              <a class="ui-link" href="/shop/customers/6">
+                Youssef Ali
+              </a>
+            </td>
+            <td data-kind="enum">
+              <span class="ui-badge" data-tone="success">
+                paid
+              </span>
+            </td>
+            <td data-kind="number">
+              <bdi class="ui-amount">
+                EGP 420.95
+              </bdi>
+            </td>
+            <td data-kind="date">
+              <time class="ui-date" datetime="2026-11-06">
+                2026-11-06
+              </time>
+            </td>
+            <td data-kind="text">
+              <span class="ui-empty">
+                <span aria-hidden="true">
+                  —
+                </span>
+                <span class="ui-visually-hidden">
+                  None
+                </span>
+              </span>
+            </td>
+            <td class="ui-table-actions">
+              <ui-menu class="ui-menu">
+                <button aria-controls="orders-row-1006-actions-menu" aria-haspopup="menu" aria-labelledby="orders-row-1006-actions orders-row-1006-label" class="ui-button" data-size="s" data-tone="neutral" data-variant="ghost" id="orders-row-1006-actions" popovertarget="orders-row-1006-actions-menu" type="button">
+                  <svg aria-hidden="true" class="ui-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="1"></circle>
+                    <circle cx="19" cy="12" r="1"></circle>
+                    <circle cx="5" cy="12" r="1"></circle>
+                  </svg>
+                  <span class="ui-visually-hidden">
+                    Actions
+                  </span>
+                </button>
+                <div aria-labelledby="orders-row-1006-actions" class="ui-menu-popover" id="orders-row-1006-actions-menu" popover="" role="menu">
+                  <a class="ui-menu-item" href="/shop/orders/1006" role="menuitem" tabindex="-1">
+                    <svg aria-hidden="true" class="ui-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+                      <path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"></path>
+                      <circle cx="12" cy="12" r="3"></circle>
+                    </svg>
+                    View
+                  </a>
+                  <a class="ui-menu-item" href="/shop/orders/1006/reassign" hx-get="/shop/orders/1006/reassign" hx-push-url="false" hx-swap="innerHTML" hx-target="#ui-action-dialog-body" role="menuitem" tabindex="-1">
+                    Reassign
+                  </a>
+                  <hr class="ui-separator">
+                  <button class="ui-menu-item" data-tone="danger" data-ui-confirm="Refund this order?" form="ui-action-form" formaction="/shop/orders/1006/refund" hx-post="/shop/orders/1006/refund" hx-swap="none" role="menuitem" tabindex="-1" type="submit">
+                    Refund
+                  </button>
+                  <button class="ui-menu-item" data-tone="danger" data-ui-confirm="Delete this order?" form="ui-action-form" formaction="/shop/orders/1006/delete" hx-post="/shop/orders/1006/delete" hx-swap="none" role="menuitem" tabindex="-1" type="submit">
+                    Delete
+                  </button>
+                </div>
+              </ui-menu>
+            </td>
+          </tr>
+          <tr id="orders-row-1047">
+            <td class="ui-table-check">
+              <input aria-labelledby="orders-select-label orders-row-1047-label" form="orders-select" name="selected" type="checkbox" value="1047">
+            </td>
+            <td data-kind="text" id="orders-row-1047-label">
+              <span class="ui-text">
+                salma47@example.com
+              </span>
+            </td>
+            <td data-kind="text">
+              <a class="ui-link" href="/shop/customers/7">
+                Salma Tarek
+              </a>
+            </td>
+            <td data-kind="enum">
+              <span class="ui-badge">
+                refunded
+              </span>
+            </td>
+            <td data-kind="number">
+              <bdi class="ui-amount">
+                EGP 67.74
+              </bdi>
+            </td>
+            <td data-kind="date">
+              <time class="ui-date" datetime="2026-11-05">
+                2026-11-05
+              </time>
+            </td>
+            <td data-kind="text">
+              <span class="ui-empty">
+                <span aria-hidden="true">
+                  —
+                </span>
+                <span class="ui-visually-hidden">
+                  None
+                </span>
+              </span>
+            </td>
+            <td class="ui-table-actions">
+              <ui-menu class="ui-menu">
+                <button aria-controls="orders-row-1047-actions-menu" aria-haspopup="menu" aria-labelledby="orders-row-1047-actions orders-row-1047-label" class="ui-button" data-size="s" data-tone="neutral" data-variant="ghost" id="orders-row-1047-actions" popovertarget="orders-row-1047-actions-menu" type="button">
+                  <svg aria-hidden="true" class="ui-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="1"></circle>
+                    <circle cx="19" cy="12" r="1"></circle>
+                    <circle cx="5" cy="12" r="1"></circle>
+                  </svg>
+                  <span class="ui-visually-hidden">
+                    Actions
+                  </span>
+                </button>
+                <div aria-labelledby="orders-row-1047-actions" class="ui-menu-popover" id="orders-row-1047-actions-menu" popover="" role="menu">
+                  <a class="ui-menu-item" href="/shop/orders/1047" role="menuitem" tabindex="-1">
+                    <svg aria-hidden="true" class="ui-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+                      <path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"></path>
+                      <circle cx="12" cy="12" r="3"></circle>
+                    </svg>
+                    View
+                  </a>
+                  <a class="ui-menu-item" href="/shop/orders/1047/reassign" hx-get="/shop/orders/1047/reassign" hx-push-url="false" hx-swap="innerHTML" hx-target="#ui-action-dialog-body" role="menuitem" tabindex="-1">
+                    Reassign
+                  </a>
+                  <hr class="ui-separator">
+                  <button aria-describedby="menu-item--t-32-reason" aria-disabled="true" aria-labelledby="menu-item--t-32-label" class="ui-menu-item" data-tone="danger" data-ui-unavailable="" role="menuitem" tabindex="-1" type="button">
+                    <span class="ui-menu-item-label" id="menu-item--t-32-label">
+                      Refund
+                    </span>
+                    <span class="ui-action-reason" id="menu-item--t-32-reason">
+                      only a paid order can be refunded
+                    </span>
+                  </button>
+                  <button class="ui-menu-item" data-tone="danger" data-ui-confirm="Delete this order?" form="ui-action-form" formaction="/shop/orders/1047/delete" hx-post="/shop/orders/1047/delete" hx-swap="none" role="menuitem" tabindex="-1" type="submit">
+                    Delete
+                  </button>
+                </div>
+              </ui-menu>
+            </td>
+          </tr>
+          <tr id="orders-row-1026">
+            <td class="ui-table-check">
+              <input aria-labelledby="orders-select-label orders-row-1026-label" form="orders-select" name="selected" type="checkbox" value="1026">
+            </td>
+            <td data-kind="text" id="orders-row-1026-label">
+              <span class="ui-text">
+                omar26@example.com
+              </span>
+            </td>
+            <td data-kind="text">
+              <a class="ui-link" href="/shop/customers/2">
+                Omar Nabil
+              </a>
+            </td>
+            <td data-kind="enum">
+              <span class="ui-badge">
+                refunded
+              </span>
+            </td>
+            <td data-kind="number">
+              <bdi class="ui-amount">
+                EGP 404.75
+              </bdi>
+            </td>
+            <td data-kind="date">
+              <time class="ui-date" datetime="2026-11-05">
+                2026-11-05
+              </time>
+            </td>
+            <td data-kind="text">
+              <span class="ui-empty">
+                <span aria-hidden="true">
+                  —
+                </span>
+                <span class="ui-visually-hidden">
+                  None
+                </span>
+              </span>
+            </td>
+            <td class="ui-table-actions">
+              <ui-menu class="ui-menu">
+                <button aria-controls="orders-row-1026-actions-menu" aria-haspopup="menu" aria-labelledby="orders-row-1026-actions orders-row-1026-label" class="ui-button" data-size="s" data-tone="neutral" data-variant="ghost" id="orders-row-1026-actions" popovertarget="orders-row-1026-actions-menu" type="button">
+                  <svg aria-hidden="true" class="ui-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="1"></circle>
+                    <circle cx="19" cy="12" r="1"></circle>
+                    <circle cx="5" cy="12" r="1"></circle>
+                  </svg>
+                  <span class="ui-visually-hidden">
+                    Actions
+                  </span>
+                </button>
+                <div aria-labelledby="orders-row-1026-actions" class="ui-menu-popover" id="orders-row-1026-actions-menu" popover="" role="menu">
+                  <a class="ui-menu-item" href="/shop/orders/1026" role="menuitem" tabindex="-1">
+                    <svg aria-hidden="true" class="ui-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+                      <path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"></path>
+                      <circle cx="12" cy="12" r="3"></circle>
+                    </svg>
+                    View
+                  </a>
+                  <a class="ui-menu-item" href="/shop/orders/1026/reassign" hx-get="/shop/orders/1026/reassign" hx-push-url="false" hx-swap="innerHTML" hx-target="#ui-action-dialog-body" role="menuitem" tabindex="-1">
+                    Reassign
+                  </a>
+                  <hr class="ui-separator">
+                  <button aria-describedby="menu-item--t-34-reason" aria-disabled="true" aria-labelledby="menu-item--t-34-label" class="ui-menu-item" data-tone="danger" data-ui-unavailable="" role="menuitem" tabindex="-1" type="button">
+                    <span class="ui-menu-item-label" id="menu-item--t-34-label">
+                      Refund
+                    </span>
+                    <span class="ui-action-reason" id="menu-item--t-34-reason">
+                      only a paid order can be refunded
+                    </span>
+                  </button>
+                  <button class="ui-menu-item" data-tone="danger" data-ui-confirm="Delete this order?" form="ui-action-form" formaction="/shop/orders/1026/delete" hx-post="/shop/orders/1026/delete" hx-swap="none" role="menuitem" tabindex="-1" type="submit">
+                    Delete
+                  </button>
+                </div>
+              </ui-menu>
+            </td>
+          </tr>
+          <tr id="orders-row-1005">
+            <td class="ui-table-check">
+              <input aria-labelledby="orders-select-label orders-row-1005-label" form="orders-select" name="selected" type="checkbox" value="1005">
+            </td>
+            <td data-kind="text" id="orders-row-1005-label">
+              <span class="ui-text">
+                nour5@example.com
+              </span>
+            </td>
+            <td data-kind="text">
+              <a class="ui-link" href="/shop/customers/5">
+                Nour Hassan
+              </a>
+            </td>
+            <td data-kind="enum">
+              <span class="ui-badge">
+                refunded
+              </span>
+            </td>
+            <td data-kind="number">
+              <bdi class="ui-amount">
+                EGP 341.76
+              </bdi>
+            </td>
+            <td data-kind="date">
+              <time class="ui-date" datetime="2026-11-05">
+                2026-11-05
+              </time>
+            </td>
+            <td data-kind="text">
+              <span class="ui-empty">
+                <span aria-hidden="true">
+                  —
+                </span>
+                <span class="ui-visually-hidden">
+                  None
+                </span>
+              </span>
+            </td>
+            <td class="ui-table-actions">
+              <ui-menu class="ui-menu">
+                <button aria-controls="orders-row-1005-actions-menu" aria-haspopup="menu" aria-labelledby="orders-row-1005-actions orders-row-1005-label" class="ui-button" data-size="s" data-tone="neutral" data-variant="ghost" id="orders-row-1005-actions" popovertarget="orders-row-1005-actions-menu" type="button">
+                  <svg aria-hidden="true" class="ui-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="1"></circle>
+                    <circle cx="19" cy="12" r="1"></circle>
+                    <circle cx="5" cy="12" r="1"></circle>
+                  </svg>
+                  <span class="ui-visually-hidden">
+                    Actions
+                  </span>
+                </button>
+                <div aria-labelledby="orders-row-1005-actions" class="ui-menu-popover" id="orders-row-1005-actions-menu" popover="" role="menu">
+                  <a class="ui-menu-item" href="/shop/orders/1005" role="menuitem" tabindex="-1">
+                    <svg aria-hidden="true" class="ui-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+                      <path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"></path>
+                      <circle cx="12" cy="12" r="3"></circle>
+                    </svg>
+                    View
+                  </a>
+                  <a class="ui-menu-item" href="/shop/orders/1005/reassign" hx-get="/shop/orders/1005/reassign" hx-push-url="false" hx-swap="innerHTML" hx-target="#ui-action-dialog-body" role="menuitem" tabindex="-1">
+                    Reassign
+                  </a>
+                  <hr class="ui-separator">
+                  <button aria-describedby="menu-item--t-36-reason" aria-disabled="true" aria-labelledby="menu-item--t-36-label" class="ui-menu-item" data-tone="danger" data-ui-unavailable="" role="menuitem" tabindex="-1" type="button">
+                    <span class="ui-menu-item-label" id="menu-item--t-36-label">
+                      Refund
+                    </span>
+                    <span class="ui-action-reason" id="menu-item--t-36-reason">
+                      only a paid order can be refunded
+                    </span>
+                  </button>
+                  <button class="ui-menu-item" data-tone="danger" data-ui-confirm="Delete this order?" form="ui-action-form" formaction="/shop/orders/1005/delete" hx-post="/shop/orders/1005/delete" hx-swap="none" role="menuitem" tabindex="-1" type="submit">
+                    Delete
+                  </button>
+                </div>
+              </ui-menu>
+            </td>
+          </tr>
+          <tr id="orders-row-1046">
+            <td class="ui-table-check">
+              <input aria-labelledby="orders-select-label orders-row-1046-label" form="orders-select" name="selected" type="checkbox" value="1046">
+            </td>
+            <td data-kind="text" id="orders-row-1046-label">
+              <span class="ui-text">
+                youssef46@example.com
+              </span>
+            </td>
+            <td data-kind="text">
+              <a class="ui-link" href="/shop/customers/6">
+                Youssef Ali
+              </a>
+            </td>
+            <td data-kind="enum">
+              <span class="ui-badge" data-tone="success">
+                paid
+              </span>
+            </td>
+            <td data-kind="number">
+              <bdi class="ui-amount">
+                EGP 388.55
+              </bdi>
+            </td>
+            <td data-kind="date">
+              <time class="ui-date" datetime="2026-11-04">
+                2026-11-04
+              </time>
+            </td>
+            <td data-kind="text">
+              <span class="ui-empty">
+                <span aria-hidden="true">
+                  —
+                </span>
+                <span class="ui-visually-hidden">
+                  None
+                </span>
+              </span>
+            </td>
+            <td class="ui-table-actions">
+              <ui-menu class="ui-menu">
+                <button aria-controls="orders-row-1046-actions-menu" aria-haspopup="menu" aria-labelledby="orders-row-1046-actions orders-row-1046-label" class="ui-button" data-size="s" data-tone="neutral" data-variant="ghost" id="orders-row-1046-actions" popovertarget="orders-row-1046-actions-menu" type="button">
+                  <svg aria-hidden="true" class="ui-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="1"></circle>
+                    <circle cx="19" cy="12" r="1"></circle>
+                    <circle cx="5" cy="12" r="1"></circle>
+                  </svg>
+                  <span class="ui-visually-hidden">
+                    Actions
+                  </span>
+                </button>
+                <div aria-labelledby="orders-row-1046-actions" class="ui-menu-popover" id="orders-row-1046-actions-menu" popover="" role="menu">
+                  <a class="ui-menu-item" href="/shop/orders/1046" role="menuitem" tabindex="-1">
+                    <svg aria-hidden="true" class="ui-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+                      <path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"></path>
+                      <circle cx="12" cy="12" r="3"></circle>
+                    </svg>
+                    View
+                  </a>
+                  <a class="ui-menu-item" href="/shop/orders/1046/reassign" hx-get="/shop/orders/1046/reassign" hx-push-url="false" hx-swap="innerHTML" hx-target="#ui-action-dialog-body" role="menuitem" tabindex="-1">
+                    Reassign
+                  </a>
+                  <hr class="ui-separator">
+                  <button class="ui-menu-item" data-tone="danger" data-ui-confirm="Refund this order?" form="ui-action-form" formaction="/shop/orders/1046/refund" hx-post="/shop/orders/1046/refund" hx-swap="none" role="menuitem" tabindex="-1" type="submit">
+                    Refund
+                  </button>
+                  <button class="ui-menu-item" data-tone="danger" data-ui-confirm="Delete this order?" form="ui-action-form" formaction="/shop/orders/1046/delete" hx-post="/shop/orders/1046/delete" hx-swap="none" role="menuitem" tabindex="-1" type="submit">
+                    Delete
+                  </button>
+                </div>
+              </ui-menu>
+            </td>
+          </tr>
+          <tr id="orders-row-1025">
+            <td class="ui-table-check">
+              <input aria-labelledby="orders-select-label orders-row-1025-label" form="orders-select" name="selected" type="checkbox" value="1025">
+            </td>
+            <td data-kind="text" id="orders-row-1025-label">
+              <span class="ui-text">
+                layla25@example.com
+              </span>
+            </td>
+            <td data-kind="text">
+              <a class="ui-link" href="/shop/customers/1">
+                Layla Adel
+              </a>
+            </td>
+            <td data-kind="enum">
+              <span class="ui-badge" data-tone="success">
+                paid
+              </span>
+            </td>
+            <td data-kind="number">
+              <bdi class="ui-amount">
+                EGP 325.56
+              </bdi>
+            </td>
+            <td data-kind="date">
+              <time class="ui-date" datetime="2026-11-04">
+                2026-11-04
+              </time>
+            </td>
+            <td data-kind="text">
+              <span class="ui-empty">
+                <span aria-hidden="true">
+                  —
+                </span>
+                <span class="ui-visually-hidden">
+                  None
+                </span>
+              </span>
+            </td>
+            <td class="ui-table-actions">
+              <ui-menu class="ui-menu">
+                <button aria-controls="orders-row-1025-actions-menu" aria-haspopup="menu" aria-labelledby="orders-row-1025-actions orders-row-1025-label" class="ui-button" data-size="s" data-tone="neutral" data-variant="ghost" id="orders-row-1025-actions" popovertarget="orders-row-1025-actions-menu" type="button">
+                  <svg aria-hidden="true" class="ui-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="1"></circle>
+                    <circle cx="19" cy="12" r="1"></circle>
+                    <circle cx="5" cy="12" r="1"></circle>
+                  </svg>
+                  <span class="ui-visually-hidden">
+                    Actions
+                  </span>
+                </button>
+                <div aria-labelledby="orders-row-1025-actions" class="ui-menu-popover" id="orders-row-1025-actions-menu" popover="" role="menu">
+                  <a class="ui-menu-item" href="/shop/orders/1025" role="menuitem" tabindex="-1">
+                    <svg aria-hidden="true" class="ui-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+                      <path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"></path>
+                      <circle cx="12" cy="12" r="3"></circle>
+                    </svg>
+                    View
+                  </a>
+                  <a class="ui-menu-item" href="/shop/orders/1025/reassign" hx-get="/shop/orders/1025/reassign" hx-push-url="false" hx-swap="innerHTML" hx-target="#ui-action-dialog-body" role="menuitem" tabindex="-1">
+                    Reassign
+                  </a>
+                  <hr class="ui-separator">
+                  <button class="ui-menu-item" data-tone="danger" data-ui-confirm="Refund this order?" form="ui-action-form" formaction="/shop/orders/1025/refund" hx-post="/shop/orders/1025/refund" hx-swap="none" role="menuitem" tabindex="-1" type="submit">
+                    Refund
+                  </button>
+                  <button class="ui-menu-item" data-tone="danger" data-ui-confirm="Delete this order?" form="ui-action-form" formaction="/shop/orders/1025/delete" hx-post="/shop/orders/1025/delete" hx-swap="none" role="menuitem" tabindex="-1" type="submit">
+                    Delete
+                  </button>
+                </div>
+              </ui-menu>
+            </td>
+          </tr>
+          <tr id="orders-row-1004">
+            <td class="ui-table-check">
+              <input aria-labelledby="orders-select-label orders-row-1004-label" form="orders-select" name="selected" type="checkbox" value="1004">
+            </td>
+            <td data-kind="text" id="orders-row-1004-label">
+              <span class="ui-text">
+                karim4@example.com
+              </span>
+            </td>
+            <td data-kind="text">
+              <a class="ui-link" href="/shop/customers/4">
+                Karim Fawzy
+              </a>
+            </td>
+            <td data-kind="enum">
+              <span class="ui-badge" data-tone="success">
+                paid
+              </span>
+            </td>
+            <td data-kind="number">
+              <bdi class="ui-amount">
+                EGP 262.57
+              </bdi>
+            </td>
+            <td data-kind="date">
+              <time class="ui-date" datetime="2026-11-04">
+                2026-11-04
+              </time>
+            </td>
+            <td data-kind="text">
+              <span class="ui-empty">
+                <span aria-hidden="true">
+                  —
+                </span>
+                <span class="ui-visually-hidden">
+                  None
+                </span>
+              </span>
+            </td>
+            <td class="ui-table-actions">
+              <ui-menu class="ui-menu">
+                <button aria-controls="orders-row-1004-actions-menu" aria-haspopup="menu" aria-labelledby="orders-row-1004-actions orders-row-1004-label" class="ui-button" data-size="s" data-tone="neutral" data-variant="ghost" id="orders-row-1004-actions" popovertarget="orders-row-1004-actions-menu" type="button">
+                  <svg aria-hidden="true" class="ui-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="1"></circle>
+                    <circle cx="19" cy="12" r="1"></circle>
+                    <circle cx="5" cy="12" r="1"></circle>
+                  </svg>
+                  <span class="ui-visually-hidden">
+                    Actions
+                  </span>
+                </button>
+                <div aria-labelledby="orders-row-1004-actions" class="ui-menu-popover" id="orders-row-1004-actions-menu" popover="" role="menu">
+                  <a class="ui-menu-item" href="/shop/orders/1004" role="menuitem" tabindex="-1">
+                    <svg aria-hidden="true" class="ui-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+                      <path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"></path>
+                      <circle cx="12" cy="12" r="3"></circle>
+                    </svg>
+                    View
+                  </a>
+                  <a class="ui-menu-item" href="/shop/orders/1004/reassign" hx-get="/shop/orders/1004/reassign" hx-push-url="false" hx-swap="innerHTML" hx-target="#ui-action-dialog-body" role="menuitem" tabindex="-1">
+                    Reassign
+                  </a>
+                  <hr class="ui-separator">
+                  <button class="ui-menu-item" data-tone="danger" data-ui-confirm="Refund this order?" form="ui-action-form" formaction="/shop/orders/1004/refund" hx-post="/shop/orders/1004/refund" hx-swap="none" role="menuitem" tabindex="-1" type="submit">
+                    Refund
+                  </button>
+                  <button class="ui-menu-item" data-tone="danger" data-ui-confirm="Delete this order?" form="ui-action-form" formaction="/shop/orders/1004/delete" hx-post="/shop/orders/1004/delete" hx-swap="none" role="menuitem" tabindex="-1" type="submit">
+                    Delete
+                  </button>
+                </div>
+              </ui-menu>
+            </td>
+          </tr>
+          <tr id="orders-row-1045">
+            <td class="ui-table-check">
+              <input aria-labelledby="orders-select-label orders-row-1045-label" form="orders-select" name="selected" type="checkbox" value="1045">
+            </td>
+            <td data-kind="text" id="orders-row-1045-label">
+              <span class="ui-text">
+                nour45@example.com
+              </span>
+            </td>
+            <td data-kind="text">
+              <a class="ui-link" href="/shop/customers/5">
+                Nour Hassan
+              </a>
+            </td>
+            <td data-kind="enum">
+              <span class="ui-badge" data-tone="info">
+                shipped
+              </span>
+            </td>
+            <td data-kind="number">
+              <bdi class="ui-amount">
+                EGP 309.36
+              </bdi>
+            </td>
+            <td data-kind="date">
+              <time class="ui-date" datetime="2026-11-03">
+                2026-11-03
+              </time>
+            </td>
+            <td data-kind="text">
+              <span class="ui-empty">
+                <span aria-hidden="true">
+                  —
+                </span>
+                <span class="ui-visually-hidden">
+                  None
+                </span>
+              </span>
+            </td>
+            <td class="ui-table-actions">
+              <ui-menu class="ui-menu">
+                <button aria-controls="orders-row-1045-actions-menu" aria-haspopup="menu" aria-labelledby="orders-row-1045-actions orders-row-1045-label" class="ui-button" data-size="s" data-tone="neutral" data-variant="ghost" id="orders-row-1045-actions" popovertarget="orders-row-1045-actions-menu" type="button">
+                  <svg aria-hidden="true" class="ui-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="1"></circle>
+                    <circle cx="19" cy="12" r="1"></circle>
+                    <circle cx="5" cy="12" r="1"></circle>
+                  </svg>
+                  <span class="ui-visually-hidden">
+                    Actions
+                  </span>
+                </button>
+                <div aria-labelledby="orders-row-1045-actions" class="ui-menu-popover" id="orders-row-1045-actions-menu" popover="" role="menu">
+                  <a class="ui-menu-item" href="/shop/orders/1045" role="menuitem" tabindex="-1">
+                    <svg aria-hidden="true" class="ui-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+                      <path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"></path>
+                      <circle cx="12" cy="12" r="3"></circle>
+                    </svg>
+                    View
+                  </a>
+                  <a class="ui-menu-item" href="/shop/orders/1045/reassign" hx-get="/shop/orders/1045/reassign" hx-push-url="false" hx-swap="innerHTML" hx-target="#ui-action-dialog-body" role="menuitem" tabindex="-1">
+                    Reassign
+                  </a>
+                  <hr class="ui-separator">
+                  <button aria-describedby="menu-item--t-41-reason" aria-disabled="true" aria-labelledby="menu-item--t-41-label" class="ui-menu-item" data-tone="danger" data-ui-unavailable="" role="menuitem" tabindex="-1" type="button">
+                    <span class="ui-menu-item-label" id="menu-item--t-41-label">
+                      Refund
+                    </span>
+                    <span class="ui-action-reason" id="menu-item--t-41-reason">
+                      only a paid order can be refunded
+                    </span>
+                  </button>
+                </div>
+              </ui-menu>
+            </td>
+          </tr>
+          <tr id="orders-row-1024">
+            <td class="ui-table-check">
+              <input aria-labelledby="orders-select-label orders-row-1024-label" form="orders-select" name="selected" type="checkbox" value="1024">
+            </td>
+            <td data-kind="text" id="orders-row-1024-label">
+              <span class="ui-text">
+                hana24@example.com
+              </span>
+            </td>
+            <td data-kind="text">
+              <a class="ui-link" href="/shop/customers/8">
+                Hana Mostafa
+              </a>
+            </td>
+            <td data-kind="enum">
+              <span class="ui-badge" data-tone="info">
+                shipped
+              </span>
+            </td>
+            <td data-kind="number">
+              <bdi class="ui-amount">
+                EGP 246.37
+              </bdi>
+            </td>
+            <td data-kind="date">
+              <time class="ui-date" datetime="2026-11-03">
+                2026-11-03
+              </time>
+            </td>
+            <td data-kind="text">
+              <span class="ui-empty">
+                <span aria-hidden="true">
+                  —
+                </span>
+                <span class="ui-visually-hidden">
+                  None
+                </span>
+              </span>
+            </td>
+            <td class="ui-table-actions">
+              <ui-menu class="ui-menu">
+                <button aria-controls="orders-row-1024-actions-menu" aria-haspopup="menu" aria-labelledby="orders-row-1024-actions orders-row-1024-label" class="ui-button" data-size="s" data-tone="neutral" data-variant="ghost" id="orders-row-1024-actions" popovertarget="orders-row-1024-actions-menu" type="button">
+                  <svg aria-hidden="true" class="ui-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="1"></circle>
+                    <circle cx="19" cy="12" r="1"></circle>
+                    <circle cx="5" cy="12" r="1"></circle>
+                  </svg>
+                  <span class="ui-visually-hidden">
+                    Actions
+                  </span>
+                </button>
+                <div aria-labelledby="orders-row-1024-actions" class="ui-menu-popover" id="orders-row-1024-actions-menu" popover="" role="menu">
+                  <a class="ui-menu-item" href="/shop/orders/1024" role="menuitem" tabindex="-1">
+                    <svg aria-hidden="true" class="ui-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+                      <path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"></path>
+                      <circle cx="12" cy="12" r="3"></circle>
+                    </svg>
+                    View
+                  </a>
+                  <a class="ui-menu-item" href="/shop/orders/1024/reassign" hx-get="/shop/orders/1024/reassign" hx-push-url="false" hx-swap="innerHTML" hx-target="#ui-action-dialog-body" role="menuitem" tabindex="-1">
+                    Reassign
+                  </a>
+                  <hr class="ui-separator">
+                  <button aria-describedby="menu-item--t-43-reason" aria-disabled="true" aria-labelledby="menu-item--t-43-label" class="ui-menu-item" data-tone="danger" data-ui-unavailable="" role="menuitem" tabindex="-1" type="button">
+                    <span class="ui-menu-item-label" id="menu-item--t-43-label">
+                      Refund
+                    </span>
+                    <span class="ui-action-reason" id="menu-item--t-43-reason">
+                      only a paid order can be refunded
+                    </span>
+                  </button>
+                </div>
+              </ui-menu>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div aria-label="With the selected rows" class="ui-table-bulk" role="group">
+      <button class="ui-button" data-ui-confirm="Mark the selected orders shipped?" form="orders-select" formaction="/shop/orders/ship" hx-include="#orders-select" hx-post="/shop/orders/ship" hx-swap="none" id="orders-bulk-1" type="submit">
+        Mark shipped
+      </button>
+      <button class="ui-button" data-tone="neutral" data-variant="outline" form="orders-select" formaction="/shop/orders/tag" formmethod="get" hx-get="/shop/orders/tag" hx-include="#orders-select" hx-push-url="false" hx-swap="innerHTML" hx-target="#ui-action-dialog-body" id="orders-bulk-2" type="submit">
+        Tag
+      </button>
+    </div>
+    <nav aria-label="Pages of Orders" class="ui-pagination">
+      <p class="ui-pagination-range">
+        26–50 of 57
+      </p>
+      <ul class="ui-pagination-pages">
+        <li>
+          <a class="ui-pagination-end" href="/shop/orders?size=25" hx-get="/shop/orders?size=25" hx-push-url="true" hx-select="#orders-results" hx-swap="outerHTML" hx-sync="#orders:replace" hx-target="#orders-results" id="orders-page-first">
+            First
+          </a>
+        </li>
+        <li>
+          <a class="ui-pagination-end" href="/shop/orders?size=25" hx-get="/shop/orders?size=25" hx-push-url="true" hx-select="#orders-results" hx-swap="outerHTML" hx-sync="#orders:replace" hx-target="#orders-results" id="orders-page-prev">
+            Previous
+          </a>
+        </li>
+        <li>
+          <a class="ui-pagination-page" href="/shop/orders?size=25" hx-get="/shop/orders?size=25" hx-push-url="true" hx-select="#orders-results" hx-swap="outerHTML" hx-sync="#orders:replace" hx-target="#orders-results" id="orders-page-1">
+            <span class="ui-visually-hidden">
+              Page 1
+            </span>
+            <span aria-hidden="true">
+              1
+            </span>
+          </a>
+        </li>
+        <li>
+          <a aria-current="page" class="ui-pagination-page" href="/shop/orders?page=2&amp;size=25" hx-get="/shop/orders?page=2&amp;size=25" hx-push-url="true" hx-select="#orders-results" hx-swap="outerHTML" hx-sync="#orders:replace" hx-target="#orders-results" id="orders-page-2">
+            <span class="ui-visually-hidden">
+              Page 2
+            </span>
+            <span aria-hidden="true">
+              2
+            </span>
+          </a>
+        </li>
+        <li>
+          <a class="ui-pagination-page" href="/shop/orders?page=3&amp;size=25" hx-get="/shop/orders?page=3&amp;size=25" hx-push-url="true" hx-select="#orders-results" hx-swap="outerHTML" hx-sync="#orders:replace" hx-target="#orders-results" id="orders-page-3">
+            <span class="ui-visually-hidden">
+              Page 3
+            </span>
+            <span aria-hidden="true">
+              3
+            </span>
+          </a>
+        </li>
+        <li>
+          <a class="ui-pagination-end" href="/shop/orders?page=3&amp;size=25" hx-get="/shop/orders?page=3&amp;size=25" hx-push-url="true" hx-select="#orders-results" hx-swap="outerHTML" hx-sync="#orders:replace" hx-target="#orders-results" id="orders-page-next">
+            Next
+          </a>
+        </li>
+        <li>
+          <a class="ui-pagination-end" href="/shop/orders?page=3&amp;size=25" hx-get="/shop/orders?page=3&amp;size=25" hx-push-url="true" hx-select="#orders-results" hx-swap="outerHTML" hx-sync="#orders:replace" hx-target="#orders-results" id="orders-page-last">
+            Last
+          </a>
+        </li>
+      </ul>
+      <p class="ui-pagination-sizes">
+        <span aria-hidden="true">
+          Rows a page
+        </span>
+        <a aria-label="10 rows a page" class="ui-pagination-size" href="/shop/orders" hx-get="/shop/orders" hx-push-url="true" hx-select="#orders-results" hx-swap="outerHTML" hx-sync="#orders:replace" hx-target="#orders-results" id="orders-size-10">
+          10
+        </a>
+        <a aria-current="true" aria-label="25 rows a page" class="ui-pagination-size" href="/shop/orders?size=25" hx-get="/shop/orders?size=25" hx-push-url="true" hx-select="#orders-results" hx-swap="outerHTML" hx-sync="#orders:replace" hx-target="#orders-results" id="orders-size-25">
+          25
+        </a>
+        <a aria-label="50 rows a page" class="ui-pagination-size" href="/shop/orders?size=50" hx-get="/shop/orders?size=50" hx-push-url="true" hx-select="#orders-results" hx-swap="outerHTML" hx-sync="#orders:replace" hx-target="#orders-results" id="orders-size-50">
+          50
+        </a>
+      </p>
+    </nav>
+  </div>
+</ui-table>

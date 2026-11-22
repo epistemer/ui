@@ -8,7 +8,7 @@ All notable changes to this module. The format follows
 ## Unreleased
 
 Actions and tables, amendment A6 (server-state-interface.md), milestones
-T1 and T2. ui now requires models v0.4.0.
+T1–T3. ui now requires models v0.4.0.
 
 ### Added
 - `ui/actions`: `New` and its builders, `To`, `Unless`, `If`, `Resolve`,
@@ -23,6 +23,12 @@ T1 and T2. ui now requires models v0.4.0.
   `Rejected`), `Targeted`, and the view's types. On models v0.4.0's
   `column`.
 - `ui/tables/tablestest`: `Bind`, `Query`, `Errors`, `Check`.
+- `ui/components` (T3): `TableOf` (`Cell`, `Attrs`, `Page`, `Row`) and
+  `Pagination` (`Attrs`), with their CSS.
+- The ui script (T3): `<ui-table>` (the header checkbox, the count of
+  checked rows, status and focus after a swap), state requests built from
+  the live address, and `Reply`'s refresh.
+- `cmd/catalog` serves the toy shop's tables and actions at `/shop/orders`.
 - `ui/components`: `ActionButtons`, `ActionMenu` (`ID`, `LabelledBy`),
   `ActionForm`, `ActionDialog`, `ActionTitle`, `InActionDialog`, and
   `Reply` (`Toast`, `Replace`, `Remove`, `Refresh`, `Fail`, `Else`, `Go`,

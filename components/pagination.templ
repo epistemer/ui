@@ -1,0 +1,49 @@
+package components
+
+import (
+	"strconv"
+
+	"github.com/epistemer/ui/elements"
+	"github.com/epistemer/ui/tables"
+)
+
+templ paginationTmpl(p tables.Pager, attrs templ.Attributes) {
+	<nav { elements.Merge(templ.Attributes{"class": "ui-pagination", "aria-label": p.Label.T(ctx)}, []string{"aria-label"}, attrs)... }>
+		<p class="ui-pagination-range">{ pageRange.T(ctx, p.From, p.To, p.Total) }</p>
+		if !p.Unpaged && p.Pages > 1 {
+			<ul class="ui-pagination-pages">
+				@pageEnd(p, p.First, p.FirstID, pageFirst.T(ctx))
+				@pageEnd(p, p.Prev, p.PrevID, pagePrev.T(ctx))
+				for _, n := range p.Window {
+					<li>
+						<a class="ui-pagination-page" id={ n.ID } href={ n.URL } { pageLinkAttrs(p, n.URL, n.Current, "page")... }>
+							<span class="ui-visually-hidden">{ pageN.T(ctx, n.N) }</span>
+							<span aria-hidden="true">{ strconv.Itoa(n.N) }</span>
+						</a>
+					</li>
+				}
+				@pageEnd(p, p.Next, p.NextID, pageNext.T(ctx))
+				@pageEnd(p, p.Last, p.LastID, pageLast.T(ctx))
+			</ul>
+		}
+		if len(p.Sizes) > 0 {
+			<p class="ui-pagination-sizes">
+				<span aria-hidden="true">{ pageSize.T(ctx) }</span>
+				for _, s := range p.Sizes {
+					<a class="ui-pagination-size" aria-label={ pageSizeN.T(ctx, s.N) } href={ s.URL } { merge(sizeID(p, s.N), pageLinkAttrs(p, s.URL, s.Current, "true"))... }>{ strconv.Itoa(s.N) }</a>
+				}
+			</p>
+		}
+	</nav>
+}
+
+// A disabled end is not a link.
+templ pageEnd(p tables.Pager, u templ.SafeURL, id, text string) {
+	<li>
+		if u == "" {
+			<span class="ui-pagination-end" aria-disabled="true">{ text }</span>
+		} else {
+			<a class="ui-pagination-end" id={ id } href={ u } { pageLinkAttrs(p, u, false, "")... }>{ text }</a>
+		}
+	</li>
+}

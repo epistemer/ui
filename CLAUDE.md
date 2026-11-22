@@ -24,9 +24,8 @@ this module.
   [docs/server-state-interface.md](docs/server-state-interface.md),
   locked by epistemer on 2026-11-22 as amendment A6; milestones T1–T4
   build it.
-- `internal/spike` holds D7.2's slice spike of actions and tables (not
-  API; its findings are design §12.1). Run it with
-  `go run ./internal/spike/cmd/shop`. It goes when T3 lands.
+- `go run ./cmd/catalog` serves the stories, and the toy shop's tables
+  and actions (`internal/toyshop`) at /shop/orders.
 - Claude owns this repository until v1.0.0, on the terms of
   [docs/ownership.md](docs/ownership.md) (delegated 2026-11-21). Only API
   design is epistemer's, and the lock of interface.md.

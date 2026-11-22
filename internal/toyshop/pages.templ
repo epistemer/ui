@@ -1,0 +1,101 @@
+package toyshop
+
+import (
+	"fmt"
+	"strconv"
+
+	"github.com/epistemer/i18n"
+
+	"github.com/epistemer/ui/actions"
+	"github.com/epistemer/ui/components"
+	"github.com/epistemer/ui/elements"
+	"github.com/epistemer/ui/forms"
+	"github.com/epistemer/ui/inputs"
+	"github.com/epistemer/ui/layout"
+	"github.com/epistemer/ui/theme"
+)
+
+templ pageTmpl(th *theme.Theme, scripts templ.Component, title i18n.Ter, body templ.Component) {
+	@layout.Document(title).Head(th.Head(), orNothing(scripts)) {
+		@layout.App() {
+			@layout.AppBrand {
+				Bricks & Co
+			}
+			@layout.AppNav {
+				@layout.NavItem(OrdersRoute()) {
+					Orders
+				}
+			}
+			@layout.AppMain {
+				@body
+			}
+		}
+	}
+}
+
+templ ordersPage(orders, toys templ.Component) {
+	@layout.PageHeader(ordersTitle) {
+	}
+	@orders
+	<h2>Toys</h2>
+	@toys
+}
+
+templ orderPage(o OrderListView, items []actions.Item) {
+	@layout.PageHeader(i18n.Static(o.Email)).Breadcrumbs(layout.Crumb{Href: OrdersRoute(), Text: ordersTitle}, layout.Crumb{Text: i18n.Static(fmt.Sprintf("#%d", o.ID))}) {
+	}
+	@elements.Card() {
+		@elements.CardBody {
+			@components.DetailList() {
+				@components.DetailRow(i18n.Static("Customer")) {
+					@elements.Link(CustomerRoute(o.CustomerID), i18n.Static(o.Customer))
+				}
+				@components.DetailRow(i18n.Static("Status")) {
+					@statusCell(o)
+				}
+				@components.DetailRow(i18n.Static("Total")) {
+					@elements.Amount(money(o))
+				}
+			}
+		}
+		@elements.CardFooter {
+			@components.ActionButtons(items)
+		}
+	}
+}
+
+templ customerPage(id string) {
+	@layout.PageHeader(i18n.Static("Customer " + id)) {
+	}
+	<p>A customer's page, reached from a link in a cell.</p>
+}
+
+templ reassignBody(o OrderListView, f *forms.Form) {
+	{{ action := OrderReassignPost(o.ID).URL() }}
+	@components.ActionTitle(i18n.Static("Reassign order #" + strconv.FormatInt(o.ID, 10)))
+	<form method="post" action={ templ.SafeURL(action) } hx-post={ action } hx-target="#ui-action-dialog-body" hx-swap="innerHTML" novalidate>
+		for c := range f.Controls() {
+			@inputs.Field(c)
+		}
+		@elements.Button().Submit() {
+			Save
+		}
+	</form>
+}
+
+templ tagBody(chosen []int64, f *forms.Form) {
+	{{ action := OrdersTagPost().URL() }}
+	@components.ActionTitle(i18n.Static("Tag " + strconv.Itoa(len(chosen)) + " orders"))
+	<form method="post" action={ templ.SafeURL(action) } hx-post={ action } hx-target="#ui-action-dialog-body" hx-swap="innerHTML" novalidate>
+		for _, n := range chosen {
+			<input type="hidden" name={ Orders.SelectionName() } value={ strconv.FormatInt(n, 10) }/>
+		}
+		for c := range f.Controls() {
+			@inputs.Field(c)
+		}
+		@elements.Button().Submit() {
+			Save
+		}
+	</form>
+}
+
