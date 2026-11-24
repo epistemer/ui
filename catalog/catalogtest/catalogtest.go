@@ -105,6 +105,9 @@ func Check(t *testing.T, stories []catalog.Story, opts ...Option) {
 	// renders only some of ui. It isn't safe across parallel tests.
 	if themehook.ReverseCheck {
 		for _, p := range unused(uiCSS, used, o.prefixes) {
+			if themehook.ScriptSelectors[p] {
+				continue
+			}
 			t.Errorf("catalogtest: ui's CSS selects %s, which no story renders", p)
 		}
 	}

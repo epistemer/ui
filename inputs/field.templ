@@ -15,7 +15,7 @@ import (
 templ field(f FieldSpec, wrapper templ.Attributes) {
 	@ui.Scope(fieldID) {
 		<div { wrapper... }>
-			if f.c.Kind() == forms.KindCheckbox {
+			if f.isCheckboxRow() {
 				@help(f)
 				<div class="ui-field-row">
 					<input { f.controlAttrs(ctx)... }/>
@@ -24,7 +24,16 @@ templ field(f FieldSpec, wrapper templ.Attributes) {
 			} else {
 				@label(f)
 				@help(f)
-				if f.isSelect() {
+				if f.isTristate() {
+					<ui-tristate class="ui-tristate" data-ui-unset={ toggleUnset.T(ctx) }>
+						@selectTag(f)
+						<template class="ui-tristate-marks">
+							@icons.Check()
+							@icons.Minus()
+							@icons.X()
+						</template>
+					</ui-tristate>
+				} else if f.isSelect() {
 					@selectTag(f)
 				} else if f.c.Kind() == forms.KindMultiline {
 					<textarea { f.controlAttrs(ctx)... }>{ f.textareaValue() }</textarea>

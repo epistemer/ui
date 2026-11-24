@@ -1,0 +1,191 @@
+<form action="/catalog/none" class="catalog-form" method="post" novalidate="">
+  <div class="ui-field">
+    <label class="ui-field-label" for="field--t-1">
+      Wrapped as a gift?
+    </label>
+    <p class="ui-field-help" id="field--t-1-help">
+      Leave unset to decide at checkout.
+    </p>
+    <ui-tristate class="ui-tristate" data-ui-unset="No answer">
+      <select aria-describedby="field--t-1-help" class="ui-input" id="field--t-1" name="gift_wrap">
+        <option value="">
+          Choose…
+        </option>
+        <option value="true">
+          Yes
+        </option>
+        <option value="false">
+          No
+        </option>
+      </select>
+      <template class="ui-tristate-marks">
+        <svg aria-hidden="true" class="ui-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+          <path d="M20 6 9 17l-5-5"></path>
+        </svg>
+        <svg aria-hidden="true" class="ui-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+          <path d="M5 12h14"></path>
+        </svg>
+        <svg aria-hidden="true" class="ui-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+          <path d="M18 6 6 18"></path>
+          <path d="m6 6 12 12"></path>
+        </svg>
+      </template>
+    </ui-tristate>
+  </div>
+  <div class="ui-field">
+    <label class="ui-field-label" for="field--t-2">
+      Include gift receipt
+    </label>
+    <ui-tristate class="ui-tristate" data-ui-unset="No answer">
+      <select class="ui-input" id="field--t-2" name="include_receipt">
+        <option value="">
+          Choose…
+        </option>
+        <option selected="" value="true">
+          Yes
+        </option>
+        <option value="false">
+          No
+        </option>
+      </select>
+      <template class="ui-tristate-marks">
+        <svg aria-hidden="true" class="ui-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+          <path d="M20 6 9 17l-5-5"></path>
+        </svg>
+        <svg aria-hidden="true" class="ui-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+          <path d="M5 12h14"></path>
+        </svg>
+        <svg aria-hidden="true" class="ui-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+          <path d="M18 6 6 18"></path>
+          <path d="m6 6 12 12"></path>
+        </svg>
+      </template>
+    </ui-tristate>
+  </div>
+  <div class="ui-field">
+    <label class="ui-field-label" for="field--t-3">
+      Batteries included
+    </label>
+    <ui-tristate class="ui-tristate" data-ui-unset="No answer">
+      <select class="ui-input" id="field--t-3" name="batteries_included">
+        <option value="">
+          Choose…
+        </option>
+        <option value="true">
+          Yes
+        </option>
+        <option selected="" value="false">
+          No
+        </option>
+      </select>
+      <template class="ui-tristate-marks">
+        <svg aria-hidden="true" class="ui-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+          <path d="M20 6 9 17l-5-5"></path>
+        </svg>
+        <svg aria-hidden="true" class="ui-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+          <path d="M5 12h14"></path>
+        </svg>
+        <svg aria-hidden="true" class="ui-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+          <path d="M18 6 6 18"></path>
+          <path d="m6 6 12 12"></path>
+        </svg>
+      </template>
+    </ui-tristate>
+  </div>
+  <div class="ui-field">
+    <label class="ui-field-label" for="field--t-4">
+      Age suitability confirmed
+      <span aria-hidden="true" class="ui-field-required">
+        *
+      </span>
+    </label>
+    <ui-tristate class="ui-tristate" data-ui-unset="No answer">
+      <select aria-describedby="field--t-4-error" aria-invalid="true" class="ui-input" id="field--t-4" name="age_checked" required="">
+        <option value="">
+          Choose…
+        </option>
+        <option value="true">
+          Yes
+        </option>
+        <option value="false">
+          No
+        </option>
+      </select>
+      <template class="ui-tristate-marks">
+        <svg aria-hidden="true" class="ui-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+          <path d="M20 6 9 17l-5-5"></path>
+        </svg>
+        <svg aria-hidden="true" class="ui-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+          <path d="M5 12h14"></path>
+        </svg>
+        <svg aria-hidden="true" class="ui-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+          <path d="M18 6 6 18"></path>
+          <path d="m6 6 12 12"></path>
+        </svg>
+      </template>
+    </ui-tristate>
+    <p class="ui-field-error" id="field--t-4-error">
+      <svg aria-hidden="true" class="ui-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="10"></circle>
+        <path d="m15 9-6 6"></path>
+        <path d="m9 9 6 6"></path>
+      </svg>
+      <span class="ui-visually-hidden">
+        Error:
+      </span>
+      is required
+    </p>
+  </div>
+  <div class="ui-field" data-ui-when="{&#34;typ&#34;:&#34;c&#34;,&#34;k&#34;:&#34;gift_wrap&#34;,&#34;op&#34;:&#34;eq&#34;,&#34;v&#34;:&#34;true&#34;}" hidden="">
+    <label class="ui-field-label" for="field--t-5">
+      Express gift wrapping
+    </label>
+    <ui-tristate class="ui-tristate" data-ui-unset="No answer">
+      <select class="ui-input" data-ui-when-off="" disabled="" id="field--t-5" name="express_wrap">
+        <option value="">
+          Choose…
+        </option>
+        <option value="true">
+          Yes
+        </option>
+        <option value="false">
+          No
+        </option>
+      </select>
+      <template class="ui-tristate-marks">
+        <svg aria-hidden="true" class="ui-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+          <path d="M20 6 9 17l-5-5"></path>
+        </svg>
+        <svg aria-hidden="true" class="ui-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+          <path d="M5 12h14"></path>
+        </svg>
+        <svg aria-hidden="true" class="ui-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+          <path d="M18 6 6 18"></path>
+          <path d="m6 6 12 12"></path>
+        </svg>
+      </template>
+    </ui-tristate>
+  </div>
+  <div class="ui-field">
+    <p class="ui-field-help" id="field--t-6-help">
+      New releases once a month.
+    </p>
+    <div class="ui-field-row">
+      <input aria-describedby="field--t-6-help" class="ui-input ui-switch" id="field--t-6" name="email_updates" role="switch" type="checkbox" value="true">
+      <label class="ui-field-label" for="field--t-6">
+        Toy shop newsletter
+      </label>
+    </div>
+  </div>
+  <div class="ui-field">
+    <div class="ui-field-row">
+      <input checked="" class="ui-input ui-switch" id="field--t-7" name="in_stock_only" role="switch" type="checkbox" value="true">
+      <label class="ui-field-label" for="field--t-7">
+        Show in-stock toys only
+      </label>
+    </div>
+  </div>
+  <button class="ui-button" type="submit">
+    Save
+  </button>
+</form>

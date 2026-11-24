@@ -482,3 +482,144 @@ func TestFieldDirAttribute(t *testing.T) {
 		})
 	}
 }
+
+func TestTwoStateSwitch(t *testing.T) {
+	f := forms.New()
+	unticked := f.Checkbox("updates").Hint(forms.KindToggle).Label(i18n.Static("Email updates")).
+		Help(i18n.Static("Toy shop news only."))
+	ticked := f.Checkbox("in_stock").Hint(forms.KindToggle).Label(i18n.Static("In stock only"))
+	ticked.Set(true)
+	cond := f.Checkbox("rush").Hint(forms.KindToggle).Label(i18n.Static("Rush packing")).
+		When(unticked.Eq(true))
+
+	// Unticked: checkbox row shape, help before row, role="switch", class ui-input ui-switch, value="true", not checked.
+	html := render(t, Field(unticked.Control()).Attrs(templ.Attributes{"role": "button", "autocomplete": "off"}))
+	checkAll(t, html)
+	for _, want := range []string{
+		`class="ui-input ui-switch"`,
+		`type="checkbox"`,
+		`role="switch"`,
+		`value="true"`,
+		`autocomplete="off"`,
+		`<div class="ui-field-row">`,
+		`aria-describedby="field--t-1-help"`,
+	} {
+		if !strings.Contains(html, want) {
+			t.Errorf("unticked switch missing %s:\n%s", want, html)
+		}
+	}
+	if strings.Contains(html, "checked") || strings.Contains(html, `role="button"`) || strings.Contains(html, "<select") {
+		t.Errorf("unticked switch unexpected markup:\n%s", html)
+	}
+	if strings.Index(html, `class="ui-field-help"`) > strings.Index(html, `class="ui-field-row"`) {
+		t.Errorf("help should precede ui-field-row:\n%s", html)
+	}
+	if strings.Index(html, `<input `) > strings.Index(html, `<label `) {
+		t.Errorf("input should precede label:\n%s", html)
+	}
+
+	// Ticked: carries checked.
+	htmlTicked := render(t, Field(ticked.Control()))
+	checkAll(t, htmlTicked)
+	if !strings.Contains(htmlTicked, "checked") || !strings.Contains(htmlTicked, `role="switch"`) {
+		t.Errorf("ticked switch:\n%s", htmlTicked)
+	}
+
+	// Conditional inactive: hidden wrapper, disabled + data-ui-when-off on input.
+	htmlCond := render(t, Field(cond.Control()))
+	checkAll(t, htmlCond)
+	for _, want := range []string{`hidden`, `data-ui-when=`, `disabled`, `data-ui-when-off=""`} {
+		if !strings.Contains(htmlCond, want) {
+			t.Errorf("conditional switch missing %s:\n%s", want, htmlCond)
+		}
+	}
+
+	// Required with error.
+	fErr := forms.New()
+	req := fErr.Checkbox("agree").Hint(forms.KindToggle).Label(i18n.Static("Agree")).Required()
+	fErr.Bind(forms.FromValues(nil))
+	fErr.Validate(context.Background())
+	htmlErr := render(t, Field(req.Control()))
+	checkAll(t, htmlErr)
+	for _, want := range []string{`required`, `aria-invalid="true"`, `aria-describedby="field--t-1-error"`, `class="ui-field-error"`} {
+		if !strings.Contains(htmlErr, want) {
+			t.Errorf("error switch missing %s:\n%s", want, htmlErr)
+		}
+	}
+}
+
+func TestTristateToggle(t *testing.T) {
+	f := forms.New()
+	fresh := f.Bool("gift").Label(i18n.Static("Wrapped as a gift?")).Help(i18n.Static("Choose yes or no."))
+	yesF := f.Bool("receipt").Label(i18n.Static("Include receipt"))
+	yesF.Set(true)
+	noF := f.Bool("batteries").Label(i18n.Static("Batteries included"))
+	noF.Set(false)
+	cond := f.Bool("express").Label(i18n.Static("Express wrap")).When(fresh.Eq(true))
+
+	// Fresh: wrapped in <ui-tristate>, unset word, template with 3 SVG marks (Check, Minus, X), select with Choose/Yes/No.
+	html := render(t, Field(fresh.Control()).Attrs(templ.Attributes{"autocomplete": "off"}))
+	checkAll(t, html)
+	for _, want := range []string{
+		`<ui-tristate class="ui-tristate" data-ui-unset="No answer">`,
+		`<select `,
+		`autocomplete="off"`,
+		`<option value="">Choose…</option>`,
+		`<option value="true">Yes</option>`,
+		`<option value="false">No</option>`,
+		`<template class="ui-tristate-marks">`,
+		`</template></ui-tristate>`,
+		`aria-describedby="field--t-1-help"`,
+	} {
+		if !strings.Contains(html, want) {
+			t.Errorf("fresh tristate missing %s:\n%s", want, html)
+		}
+	}
+	if strings.Contains(html, "selected") {
+		t.Errorf("fresh tristate should have no selected option:\n%s", html)
+	}
+	// Three marks inside the template, in order: Check, Minus, X.
+	tplStart := strings.Index(html, `<template class="ui-tristate-marks">`)
+	tplEnd := strings.Index(html, `</template>`)
+	if tplStart < 0 || tplEnd < tplStart {
+		t.Fatalf("missing template in:\n%s", html)
+	}
+	tpl := html[tplStart:tplEnd]
+	if got := strings.Count(tpl, `<svg `); got != 3 {
+		t.Errorf("template has %d svg marks, want 3:\n%s", got, tpl)
+	}
+
+	// Yes / No selected options.
+	htmlYes := render(t, Field(yesF.Control()))
+	checkAll(t, htmlYes)
+	if !strings.Contains(htmlYes, `<option value="true" selected>Yes</option>`) {
+		t.Errorf("yes tristate:\n%s", htmlYes)
+	}
+	htmlNo := render(t, Field(noF.Control()))
+	checkAll(t, htmlNo)
+	if !strings.Contains(htmlNo, `<option value="false" selected>No</option>`) {
+		t.Errorf("no tristate:\n%s", htmlNo)
+	}
+
+	// Conditional inactive.
+	htmlCond := render(t, Field(cond.Control()))
+	checkAll(t, htmlCond)
+	for _, want := range []string{`hidden`, `data-ui-when=`, `disabled`, `data-ui-when-off=""`} {
+		if !strings.Contains(htmlCond, want) {
+			t.Errorf("conditional tristate missing %s:\n%s", want, htmlCond)
+		}
+	}
+
+	// Required with error.
+	fErr := forms.New()
+	req := fErr.Bool("age").Label(i18n.Static("Age checked")).Required()
+	fErr.Bind(forms.FromValues(nil))
+	fErr.Validate(context.Background())
+	htmlErr := render(t, Field(req.Control()))
+	checkAll(t, htmlErr)
+	for _, want := range []string{`required`, `aria-invalid="true"`, `aria-describedby="field--t-1-error"`, `class="ui-field-error"`} {
+		if !strings.Contains(htmlErr, want) {
+			t.Errorf("error tristate missing %s:\n%s", want, htmlErr)
+		}
+	}
+}

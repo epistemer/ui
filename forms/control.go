@@ -112,6 +112,12 @@ func (c Control) Required() bool {
 	return false
 }
 
+// TwoState reports whether the control is a Checkbox: two states, never
+// absent, whatever kind Hint gave it. Bool is three-state.
+func (c Control) TwoState() bool {
+	return c.fd != nil && c.fd.base.box
+}
+
 // Active reports whether the node's conditions, and those around it, hold
 // now: on initial values before Bind, on submitted text after. A renderer
 // hides and disables an inactive node.

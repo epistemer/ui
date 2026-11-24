@@ -648,7 +648,8 @@ func (f FieldSpec) Attrs(a templ.Attributes) FieldSpec
 | `KindNumber` | `<input type="number">` |
 | `KindDate`, `KindDateTime` | `<input type="date">`, `"datetime-local"` |
 | `KindCheckbox` | `<input type="checkbox" value="true">` before its label, `checked` by the server's ticked rule |
-| `KindToggle` | a `<select>` with an empty option, Yes and No: a checkbox can't say "no answer" (finding 19) |
+| `KindToggle` (`!TwoState()`, `Bool`) | a `<select>` with an empty option, Yes and No wrapped in `<ui-tristate class="ui-tristate" data-ui-unset="…">` with `<template class="ui-tristate-marks">` holding `icons.Check()`, `icons.Minus()`, `icons.X()` (yes, unset, no); ui's script upgrades it to a three-position switch *(A9)* |
+| `KindToggle` (`TwoState()`, `Checkbox` with `Hint(KindToggle)`) | `<input type="checkbox" role="switch" class="ui-input ui-switch" value="true">` in the checkbox's `ui-field-row`, `checked` by the server's ticked rule, styled by CSS without script *(A9)* |
 | `KindSelect`, `KindMultiSelect` | `<select>` (`multiple`); a single select gets an empty first option, `ui.inputs.field.choose`, unless its options have an empty value of their own (finding 11) |
 | `KindFile`, `KindFiles` | `<input type="file">` (`multiple`) |
 | `KindHidden` | `<input type="hidden">`, wrapped only when it carries a condition |
@@ -704,7 +705,10 @@ Every field but a hidden one renders, in this order:
   `value`, `checked`, `multiple`, `data-ui-when-off`.
 - Classes: `ui-field`, `ui-field-row`, `ui-field-label`,
   `ui-field-required`, `ui-field-help`, `ui-field-error`,
-  `ui-field-reveal`, `ui-input`, `ui-group`, `ui-group-legend`.
+  `ui-field-reveal`, `ui-input`, `ui-switch` *(A9)*, `ui-tristate` *(A9)*,
+  `ui-tristate-track` *(A9)*, `ui-tristate-knob` *(A9)*,
+  `ui-tristate-state` *(A9)*, `ui-tristate-marks` *(A9)*, `ui-group`,
+  `ui-group-legend`.
 - Kinds the spike rendered: all of §6.1 but lists; the password reveal and
   the `ui-field-row` wrappers are new. File inputs are forms' `KindFile`
   as they are; D7's uploads (previews, progress) are a component of their
@@ -1182,8 +1186,8 @@ rendering with an RTL locale in its context. [V14]
 
 ## 10. The ui script contract
 
-`ui.js` (ES2022 modules, served by `theme`, budget 12 kB gzipped for all
-modules, measured in CI) reads the attributes and elements below. They are
+`ui.js` (ES2022 modules, served by `theme`, budget 32 kB gzipped for all
+modules, measured in CI *(A9, Q8)*) reads the attributes and elements below. They are
 public API: an app may write them without ui's Go helpers, and changing
 their meaning is an amendment.
 
@@ -1253,7 +1257,38 @@ whose `.ui-toast-close` is pressed, moving focus as §7.5 says. Both set up
 in `connectedCallback`, so toasts an out-of-band swap appends work: each
 toast is an element of its own, not a child the region has to notice.
 
-### 10.6 Not in this lock
+### 10.6 `<ui-tristate>` *(A9)*
+
+A light-DOM custom element (`theme/js/tristate.js`) wrapping a `Bool`
+field's `<select>` and `<template class="ui-tristate-marks">` (holding the
+`Check`, `Minus` and `X` icons in yes, unset, no order), with
+`data-ui-unset` carrying the "no answer" word (`ui.inputs.toggle.unset`).
+When it connects:
+- It adds `<button type="button" class="ui-tristate-track" role="checkbox"
+  aria-checked="true|false|mixed" data-state="yes|no|unset">` holding
+  `<span class="ui-tristate-knob" aria-hidden="true">` (with a clone of the
+  state's mark) and `<span class="ui-tristate-state">` (visually hidden,
+  holding the state's word), plus a polite live region
+  (`<span class="ui-visually-hidden" role="status">`).
+- The button copies the select's `aria-describedby` plus the state word's
+  id, `aria-invalid`, and `aria-required="true"` (removing `required` from
+  the select); the `<label>`'s `for` moves to the button. The select stays
+  in the form with `ui-visually-hidden`, `tabindex="-1"`,
+  `aria-hidden="true"`, and a `MutationObserver` mirrors its `disabled`
+  attribute onto the button.
+- Positions run No (start), no answer (middle), Yes (end), mirrored in RTL;
+  pointer clicks pick the third (label clicks cycle to the next state),
+  Space cycles unset → yes → no → unset, ArrowLeft/ArrowRight move towards
+  their side and stop at the ends (RTL-aware), Home is No, End is Yes, and
+  Delete/Backspace clear to unset.
+- Each change sets the select's value, dispatches bubbling `input` and
+  `change` on it, and updates the live region; the switch re-reads the
+  select on `input`/`change` and after the form's `reset` (in a task).
+  Upgrading already-upgraded markup (an htmx history snapshot) replaces the
+  track and live region idempotently, and disconnecting cleans up form and
+  label listeners and the observer.
+
+### 10.7 Not in this lock
 
 `<ui-repeat>` (list rows) and `<ui-combobox>` (the remote select) come
 with D7.
@@ -1273,6 +1308,7 @@ with D7.
 | `ui.inputs.field.choose` | Choose… |
 | `ui.inputs.field.yes` | Yes |
 | `ui.inputs.field.no` | No |
+| `ui.inputs.toggle.unset` *(A9)* | No answer |
 | `ui.inputs.field.error` | Error: |
 | `ui.inputs.field.show_password` | Show password |
 | `ui.components.dialog.close` | Close |

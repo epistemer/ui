@@ -41,6 +41,7 @@ var (
 	choose       = i18n.Key("ui.inputs.field.choose", "Choose…")
 	yes          = i18n.Key("ui.inputs.field.yes", "Yes")
 	no           = i18n.Key("ui.inputs.field.no", "No")
+	toggleUnset  = i18n.Key("ui.inputs.toggle.unset", "No answer")
 	errorWord    = i18n.Key("ui.inputs.field.error", "Error:")
 	showPassword = i18n.Key("ui.inputs.field.show_password", "Show password")
 
@@ -127,10 +128,11 @@ type FieldSpec struct {
 }
 
 // Field starts a widget for c. Its kind picks the element:
-//   - <input> of the right type; a checkbox before its label;
+//   - <input> of the right type; a checkbox (or a two-state switch, a
+//     Checkbox with Hint(KindToggle)) before its label;
 //   - <textarea>, <select> (multiple for a multiselect);
-//   - a Yes/No select for a three-state toggle, which a checkbox can't
-//     express (it has no "no answer");
+//   - a Yes/No select wrapped in <ui-tristate> for a three-state toggle
+//     (Bool), which the ui script upgrades to a three-position switch;
 //   - <ui-combobox> for a remote select;
 //   - the upload shape for File, Files, Upload and Uploads;
 //   - a <fieldset> for a group, holding its children;
@@ -157,7 +159,10 @@ func (f FieldSpec) Attrs(a templ.Attributes) FieldSpec {
 	return f
 }
 
-var fieldOwned = []string{"id", "name", "type", "required", "disabled", "aria-invalid", "value", "checked", "multiple", "data-ui-when-off"}
+var (
+	fieldOwned  = []string{"id", "name", "type", "required", "disabled", "aria-invalid", "value", "checked", "multiple", "data-ui-when-off"}
+	switchOwned = append(slices.Clone(fieldOwned), "role")
+)
 
 // ltrTypes hold text that reads left to right in any locale (ADR 0004).
 var ltrTypes = map[string]bool{"email": true, "url": true, "tel": true}
@@ -182,6 +187,10 @@ func (f FieldSpec) inputType() string {
 		return "datetime-local"
 	case forms.KindCheckbox:
 		return "checkbox"
+	case forms.KindToggle:
+		if f.c.TwoState() {
+			return "checkbox"
+		}
 	case forms.KindHidden:
 		return "hidden"
 	case forms.KindFile, forms.KindFiles, forms.KindUpload, forms.KindUploads:
@@ -198,11 +207,31 @@ func (f FieldSpec) isUpload() bool {
 	return false
 }
 
+// isTwoStateSwitch reports whether the field is a Checkbox hinted as
+// KindToggle, rendered as a CSS-only two-state switch (confab-1-interface.md §3.2).
+func (f FieldSpec) isTwoStateSwitch() bool {
+	return f.c.Kind() == forms.KindToggle && f.c.TwoState()
+}
+
+// isCheckboxRow reports whether the field uses the checkbox row shape
+// (input before its label, help above, error below).
+func (f FieldSpec) isCheckboxRow() bool {
+	return f.c.Kind() == forms.KindCheckbox || f.isTwoStateSwitch()
+}
+
+// isTristate reports whether the field is a three-state toggle (Bool),
+// wrapped in <ui-tristate>.
+func (f FieldSpec) isTristate() bool {
+	return f.c.Kind() == forms.KindToggle && !f.c.TwoState()
+}
+
 // isSelect reports whether the field renders as a <select>.
 func (f FieldSpec) isSelect() bool {
 	switch f.c.Kind() {
-	case forms.KindSelect, forms.KindMultiSelect, forms.KindToggle:
+	case forms.KindSelect, forms.KindMultiSelect:
 		return true
+	case forms.KindToggle:
+		return !f.c.TwoState()
 	}
 	return false
 }
@@ -253,9 +282,12 @@ func (f FieldSpec) wrapperAttrs(class string) (templ.Attributes, error) {
 
 func (f FieldSpec) controlAttrs(ctx context.Context) templ.Attributes {
 	typ := f.inputType()
-	var ownClass = "ui-input"
-	if f.isUpload() {
+	ownClass := "ui-input"
+	switch {
+	case f.isUpload():
 		ownClass = "ui-input ui-upload-input"
+	case f.isTwoStateSwitch():
+		ownClass = "ui-input ui-switch"
 	}
 	own := templ.Attributes{
 		"class": ownClass,
@@ -288,6 +320,9 @@ func (f FieldSpec) controlAttrs(ctx context.Context) templ.Attributes {
 		}
 		switch typ {
 		case "checkbox":
+			if f.isTwoStateSwitch() {
+				own["role"] = "switch"
+			}
 			own["value"] = "true"
 			own["checked"] = ticked(f.value())
 		case "file":
@@ -330,7 +365,11 @@ func (f FieldSpec) controlAttrs(ctx context.Context) templ.Attributes {
 	for k, v := range f.c.Attrs() {
 		fromControl[k] = v
 	}
-	return elements.Merge(elements.Merge(own, fieldOwned, fromControl), fieldOwned, f.attrs)
+	owned := fieldOwned
+	if f.isTwoStateSwitch() {
+		owned = switchOwned
+	}
+	return elements.Merge(elements.Merge(own, owned, fromControl), owned, f.attrs)
 }
 
 // choices are the options of a select, a toggle's Yes and No included,

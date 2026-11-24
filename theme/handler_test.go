@@ -1,10 +1,14 @@
 package theme
 
 import (
+	"bytes"
+	"compress/gzip"
 	"context"
 	"fmt"
+	"io/fs"
 	"net/http"
 	"net/http/httptest"
+	"sort"
 	"strings"
 	"sync"
 	"testing"
@@ -29,6 +33,38 @@ func get(t *testing.T, h http.Handler, path string) *httptest.ResponseRecorder {
 	w := httptest.NewRecorder()
 	h.ServeHTTP(w, httptest.NewRequest("GET", path, nil))
 	return w
+}
+
+func TestScriptBudget(t *testing.T) {
+	const budget = 32 * 1024
+	files, err := fs.Glob(assetFS, "js/*.js")
+	if err != nil || len(files) == 0 {
+		t.Fatalf("no script modules: %v", err)
+	}
+	sort.Strings(files)
+	var raw bytes.Buffer
+	for _, f := range files {
+		b, err := assetFS.ReadFile(f)
+		if err != nil {
+			t.Fatal(err)
+		}
+		raw.Write(b)
+	}
+	var gz bytes.Buffer
+	w, err := gzip.NewWriterLevel(&gz, gzip.BestCompression)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := w.Write(raw.Bytes()); err != nil {
+		t.Fatal(err)
+	}
+	if err := w.Close(); err != nil {
+		t.Fatal(err)
+	}
+	t.Logf("theme/js: %d modules, %d bytes raw, %d bytes gzipped (budget %d bytes)", len(files), raw.Len(), gz.Len(), budget)
+	if gz.Len() > budget {
+		t.Errorf("theme/js gzipped size %d bytes exceeds budget %d bytes", gz.Len(), budget)
+	}
 }
 
 func TestBundle(t *testing.T) {

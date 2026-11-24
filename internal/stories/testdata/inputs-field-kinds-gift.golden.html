@@ -7,17 +7,31 @@
         *
       </span>
     </label>
-    <select class="ui-input" id="field--t-1" name="gift" required="">
-      <option value="">
-        Choose…
-      </option>
-      <option selected="" value="true">
-        Yes
-      </option>
-      <option value="false">
-        No
-      </option>
-    </select>
+    <ui-tristate class="ui-tristate" data-ui-unset="No answer">
+      <select class="ui-input" id="field--t-1" name="gift" required="">
+        <option value="">
+          Choose…
+        </option>
+        <option selected="" value="true">
+          Yes
+        </option>
+        <option value="false">
+          No
+        </option>
+      </select>
+      <template class="ui-tristate-marks">
+        <svg aria-hidden="true" class="ui-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+          <path d="M20 6 9 17l-5-5"></path>
+        </svg>
+        <svg aria-hidden="true" class="ui-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+          <path d="M5 12h14"></path>
+        </svg>
+        <svg aria-hidden="true" class="ui-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+          <path d="M18 6 6 18"></path>
+          <path d="m6 6 12 12"></path>
+        </svg>
+      </template>
+    </ui-tristate>
   </div>
   <fieldset class="ui-group" data-ui-when="{&#34;typ&#34;:&#34;c&#34;,&#34;k&#34;:&#34;gift&#34;,&#34;op&#34;:&#34;eq&#34;,&#34;v&#34;:&#34;true&#34;}">
     <legend class="ui-group-legend">
