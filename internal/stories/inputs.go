@@ -282,3 +282,30 @@ func nestedListForm() *forms.Form {
 	extra.Set("Gift wrap")
 	return f
 }
+
+// switchesForm shows the three-state Bool switch (fresh, Yes, No, required
+// with an error, and conditional) and the two-state Checkbox switch
+// (unticked and ticked).
+func switchesForm() *forms.Form {
+	f := forms.New()
+	gift := f.Bool("gift_wrap").Label(i18n.Static("Wrapped as a gift?")).
+		Help(i18n.Static("Leave unset to decide at checkout."))
+	f.Bool("include_receipt").Label(i18n.Static("Include gift receipt"))
+	f.Bool("batteries_included").Label(i18n.Static("Batteries included"))
+	f.Bool("age_checked").Label(i18n.Static("Age suitability confirmed")).Required()
+	f.Bool("express_wrap").Label(i18n.Static("Express gift wrapping")).
+		When(gift.Eq(true))
+	f.Checkbox("email_updates").Hint(forms.KindToggle).
+		Label(i18n.Static("Toy shop newsletter")).
+		Help(i18n.Static("New releases once a month."))
+	f.Checkbox("in_stock_only").Hint(forms.KindToggle).
+		Label(i18n.Static("Show in-stock toys only"))
+
+	f.Bind(forms.FromValues(url.Values{
+		"include_receipt":    {"true"},
+		"batteries_included": {"false"},
+		"in_stock_only":      {"true"},
+	}))
+	f.Validate(context.Background())
+	return f
+}

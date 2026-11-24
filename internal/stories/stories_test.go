@@ -15,7 +15,16 @@ import (
 // story (visual-interface.md §9.1).
 func TestStories(t *testing.T) {
 	themehook.ReverseCheck = true
-	defer func() { themehook.ReverseCheck = false }()
+	themehook.ScriptSelectors = map[string]bool{
+		".ui-tristate-track":             true,
+		".ui-tristate-track[data-state]": true,
+		".ui-tristate-knob":              true,
+		".ui-tristate-state":             true,
+	}
+	defer func() {
+		themehook.ReverseCheck = false
+		themehook.ScriptSelectors = nil
+	}()
 	catalogtest.Check(t, All())
 }
 

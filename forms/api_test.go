@@ -90,3 +90,41 @@ func TestFieldErrorAndChoice(t *testing.T) {
 
 // satisfies compiles only when E is an EnumValue and N an Integer.
 func satisfies[E forms.EnumValue, N forms.Integer]() {}
+
+func TestControlTwoState(t *testing.T) {
+	f := forms.New()
+	box := f.Checkbox("box")
+	boxToggle := f.Checkbox("box_toggle").Hint(forms.KindToggle)
+	boxHidden := f.Checkbox("box_hidden").Hint(forms.KindHidden)
+	tri := f.Bool("tri")
+	triBox := f.Bool("tri_box").Hint(forms.KindCheckbox)
+	txt := f.Text("txt")
+	txtToggle := f.Text("txt_toggle").Hint(forms.KindToggle)
+	grp := f.Group("grp", func(g *forms.Form) *forms.Form { return g })
+	lst := f.List("lst", func(g *forms.Form) int { return 0 })
+
+	for _, tc := range []struct {
+		name string
+		c    forms.Control
+		want bool
+	}{
+		{"checkbox", box.Control(), true},
+		{"checkbox hinted toggle", boxToggle.Control(), true},
+		{"checkbox hinted hidden", boxHidden.Control(), true},
+		{"bool", tri.Control(), false},
+		{"bool hinted checkbox", triBox.Control(), false},
+		{"text", txt.Control(), false},
+		{"text hinted toggle", txtToggle.Control(), false},
+		{"group", grp.Control(), false},
+		{"list", lst.Control(), false},
+		{"root", f.Control(), false},
+		{"zero", forms.Control{}, false},
+	} {
+		if got := tc.c.TwoState(); got != tc.want {
+			t.Errorf("%s: TwoState() = %v, want %v", tc.name, got, tc.want)
+		}
+	}
+	if boxToggle.Control().Kind() != forms.KindToggle {
+		t.Errorf("boxToggle Kind() = %v, want KindToggle", boxToggle.Control().Kind())
+	}
+}

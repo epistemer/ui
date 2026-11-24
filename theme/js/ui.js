@@ -10,6 +10,7 @@ import "./table.js";
 import "./combobox.js";
 import "./repeat.js";
 import "./upload.js";
+import "./tristate.js";
 
 // A disabled link (aria-disabled, no href) and anything inside it: no
 // click reaches htmx or any other listener. A capturing listener on the

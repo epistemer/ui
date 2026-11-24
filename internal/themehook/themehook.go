@@ -16,4 +16,9 @@ var (
 	// ReverseCheck makes catalogtest fail for every ui rule no story
 	// renders. Only ui's own catalogue test sets it.
 	ReverseCheck bool
+
+	// ScriptSelectors lists ui selectors created only by the client script
+	// at run time (such as <ui-tristate>'s upgraded track and knob), so
+	// ReverseCheck skips them while still catching dead rules.
+	ScriptSelectors map[string]bool
 )

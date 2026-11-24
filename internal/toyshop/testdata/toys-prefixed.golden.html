@@ -33,17 +33,31 @@
         <label class="ui-field-label" for="field--t-4">
           Electric
         </label>
-        <select class="ui-input" id="field--t-4" name="toys.electric">
-          <option value="">
-            Choose…
-          </option>
-          <option selected="" value="true">
-            Yes
-          </option>
-          <option value="false">
-            No
-          </option>
-        </select>
+        <ui-tristate class="ui-tristate" data-ui-unset="No answer">
+          <select class="ui-input" id="field--t-4" name="toys.electric">
+            <option value="">
+              Choose…
+            </option>
+            <option selected="" value="true">
+              Yes
+            </option>
+            <option value="false">
+              No
+            </option>
+          </select>
+          <template class="ui-tristate-marks">
+            <svg aria-hidden="true" class="ui-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+              <path d="M20 6 9 17l-5-5"></path>
+            </svg>
+            <svg aria-hidden="true" class="ui-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+              <path d="M5 12h14"></path>
+            </svg>
+            <svg aria-hidden="true" class="ui-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+              <path d="M18 6 6 18"></path>
+              <path d="m6 6 12 12"></path>
+            </svg>
+          </template>
+        </ui-tristate>
       </div>
     </div>
     <input name="q" type="hidden" value="layla">

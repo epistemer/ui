@@ -540,6 +540,7 @@ func (c Control) Remote() (search interface{ URL() string }, l listing.Labeler, 
 func (c Control) Stored() iter.Seq2[files.Stored, bool]                                             // amendment A7
 func (c Control) Lost() bool                                                                        // amendment A7
 func (c Control) Bounds() (min, max int)                                                            // amendment A7
+func (c Control) TwoState() bool                                                                    // amendment A9
 
 type Choice struct {
 	Value    string
@@ -573,9 +574,11 @@ const (
 func (k Kind) String() string
 ```
 
-`KindToggle` is `Bool`'s three states, rendered by ui/inputs as a select
-of Yes, No and an empty choice for no answer; it is not an on/off switch
-*(A8, a clarification; amendment A9 proposes the switch)*.
+`KindToggle` is `Bool`'s three states (rendered by ui/inputs as a select of
+Yes, No and an empty choice inside `<ui-tristate>`, which ui's script
+upgrades to a three-position switch), or a `Checkbox` given
+`Hint(KindToggle)` (a CSS-only two-state switch, distinguished by
+`Control.TwoState()`) *(A9)*.
 
 Defaults: `Text`, `Parsed` → `KindText`; `Int`, `Float`, `Number` →
 `KindNumber`; `Checkbox` → `KindCheckbox`; `Bool` → `KindToggle`; `Date` →
@@ -602,6 +605,9 @@ integer `KindRemote` field *(A7)*.
 - `Bounds()` *(amendment A7)* gives a list's effective bounds (`max` is
   `DefaultMaxItems` when `MaxItems` wasn't set), and zeros for any other
   control.
+- `TwoState()` *(amendment A9)* reports whether the control is a `Checkbox`
+  (two states, never absent, whatever kind `Hint` gave it); false for
+  everything else, `Bool` included.
 
 ## 6. Rules (`ui/forms/rule`)
 

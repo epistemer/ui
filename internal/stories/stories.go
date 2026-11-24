@@ -49,6 +49,7 @@ func All() []catalog.Story {
 			variant("upload", withGate(promotionForm(uploadForm()))),
 			variant("list", promotionForm(listForm())),
 			variant("list-nested", withGate(promotionForm(nestedListForm()))),
+			variant("switches", promotionForm(switchesForm())),
 		}},
 		{Name: "components/dialog", Variants: []catalog.Variant{
 			variant("basic", dialogBasic()),

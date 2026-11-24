@@ -59,13 +59,186 @@
 		opacity: 0.55;
 	}
 
-	&[type="checkbox"] {
+	&[type="checkbox"]:not(.ui-switch) {
 		inline-size: 1.25em;
 		min-block-size: 0;
 		block-size: 1.25em;
 		margin: 0;
 		padding: 0;
 		accent-color: var(--ui-color-brand);
+	}
+}
+
+/* Two-state switch (Checkbox with Hint(KindToggle)): CSS only, logical
+   properties so it mirrors in RTL, duration token zeroes under reduced
+   motion. */
+.ui-switch {
+	appearance: none;
+	position: relative;
+	display: inline-block;
+	flex: none;
+	inline-size: 2.75em;
+	min-block-size: 0;
+	block-size: 1.5em;
+	margin: 0;
+	padding: 0;
+	border: 1px solid transparent;
+	border-radius: var(--ui-radius-full);
+	background-color: var(--ui-color-border-strong);
+	cursor: pointer;
+	vertical-align: middle;
+	transition: background-color var(--ui-duration-s) var(--ui-ease);
+
+	&::before {
+		content: "";
+		position: absolute;
+		inset-block-start: 50%;
+		inset-inline-start: 0.125em;
+		inline-size: 1.125em;
+		block-size: 1.125em;
+		border-radius: var(--ui-radius-full);
+		background-color: var(--ui-color-surface);
+		box-shadow: var(--ui-shadow-1);
+		transform: translateY(-50%);
+		transition: inset-inline-start var(--ui-duration-s) var(--ui-ease);
+	}
+
+	&:checked {
+		background-color: var(--ui-color-brand);
+
+		&::before {
+			inset-inline-start: calc(100% - 1.125em - 0.125em);
+		}
+	}
+
+	&[aria-invalid="true"],
+	&:user-invalid {
+		border-color: var(--ui-color-danger-text);
+	}
+
+	&:disabled {
+		cursor: not-allowed;
+		opacity: 0.55;
+	}
+}
+
+/* Three-state switch (Bool): before <ui-tristate> upgrades it, the select
+   fills its grid cell like any other select. After upgrade, the track sits
+   at the start edge with the knob at no (start), unset (middle) or yes
+   (end), coloured by data-state. */
+.ui-tristate {
+	position: relative;
+	display: grid;
+}
+
+.ui-tristate-marks {
+	display: none;
+}
+
+.ui-tristate-track {
+	--_track: var(--ui-color-border-strong);
+
+	position: relative;
+	justify-self: start;
+	display: inline-flex;
+	align-items: center;
+	inline-size: 4em;
+	block-size: 1.75em;
+	margin: 0;
+	padding: 0;
+	border: 1px solid transparent;
+	border-radius: var(--ui-radius-full);
+	font: inherit;
+	color: var(--_track);
+	background-color: var(--_track);
+	cursor: pointer;
+	transition: background-color var(--ui-duration-s) var(--ui-ease);
+
+	&[data-state="no"] {
+		--_track: var(--ui-color-danger);
+	}
+
+	&[data-state="unset"] {
+		--_track: var(--ui-color-border-strong);
+	}
+
+	&[data-state="yes"] {
+		--_track: var(--ui-color-success);
+	}
+
+	&[aria-invalid="true"] {
+		border-color: var(--ui-color-danger-text);
+	}
+
+	&:disabled {
+		cursor: not-allowed;
+		opacity: 0.55;
+	}
+}
+
+.ui-tristate-knob {
+	position: absolute;
+	inset-block-start: 50%;
+	inset-inline-start: calc(50% - 0.6875em);
+	display: grid;
+	place-items: center;
+	inline-size: 1.375em;
+	block-size: 1.375em;
+	border-radius: var(--ui-radius-full);
+	background-color: var(--ui-color-surface);
+	box-shadow: var(--ui-shadow-1);
+	transform: translateY(-50%);
+	transition: inset-inline-start var(--ui-duration-s) var(--ui-ease);
+
+	& > .ui-icon {
+		inline-size: 0.9em;
+		block-size: 0.9em;
+	}
+
+	.ui-tristate-track[data-state="no"] > & {
+		inset-inline-start: 0.125em;
+	}
+
+	.ui-tristate-track[data-state="yes"] > & {
+		inset-inline-start: calc(100% - 1.375em - 0.125em);
+	}
+}
+
+.ui-tristate-state {
+	position: absolute;
+	inline-size: 1px;
+	block-size: 1px;
+	overflow: hidden;
+	clip-path: inset(50%);
+	white-space: nowrap;
+}
+
+@media (forced-colors: active) {
+	.ui-switch {
+		border-color: CanvasText;
+
+		&::before {
+			background-color: CanvasText;
+		}
+
+		&:checked {
+			border-color: Highlight;
+			background-color: Highlight;
+
+			&::before {
+				background-color: HighlightText;
+			}
+		}
+	}
+
+	.ui-tristate-track {
+		border-color: CanvasText;
+		background-color: Canvas;
+	}
+
+	.ui-tristate-knob {
+		color: Canvas;
+		background-color: CanvasText;
 	}
 }
 
