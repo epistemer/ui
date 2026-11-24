@@ -28,3 +28,9 @@
 | 16 | A click on the start side of an unset switch went to Yes | Valid | The pointer's third chooses the state |
 | 17 | Neutral toasts turned info after a redirect; Toast with Fail | Invalid / valid | An info toast has no tone, so the mapping is lossless; Toast with Fail stated |
 | 18 | JSON texts duplicate the options' words | Valid | Words from the options, one `data-ui-unset` |
+
+After the review, Claude checked the draft against the 1.77.0 files: the
+allowlist lacked `fill="currentColor"` on 34 circles, four name
+collisions are aliases with the same shapes, the 22 current icons are
+unchanged, and the GB (and CR) patterns do accept junk around a code.
+The script's size (24.2 kB gzipped against §10's 12 kB) became Q8.

@@ -9,6 +9,19 @@ taken for epistemer, what's next, and what's waiting on epistemer.
 
 
 
+## 2026-11-24 — C2: amendment A9 drafted
+
+**Landed** (Claude): [confab-1-interface.md](confab-1-interface.md), the
+exact signatures and markup of U1, U3 and U5–U8, reviewed by Gemini 4
+Carbon (High) ([0025](reviews/0025-a9-draft.md), 18 findings, 15 valid
+or partly, all taken in), then checked by Claude against Lucide 1.77.0's
+files (all 2,410 pass the allowlist; the 22 current icons are unchanged)
+and against the GB post code pattern (it accepts junk around a code).
+U1 mirrors handlers' flash as epistemer locked it today (handlers A7).
+
+**Waiting on epistemer:** the lock of A9, questions Q1–Q10 (each with a
+default; Q7 and Q8 marked ⚠). Nothing of A9 is built before it.
+
 ## 2026-11-24 — C1: Confab iteration 1, fixes within the terms
 
 **Landed** (Gemini 4 Neon (High) wrote the code in a worktree; Claude

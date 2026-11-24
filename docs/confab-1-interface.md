@@ -53,12 +53,17 @@ func HasPostCode(country string) bool
 
 - Changes §6.2's row and drops "It panics at construction if country is
   unknown" (interface §6). `PostCode("")` passes every value too.
-- **Values** are matched in upper case (`sw1a 1aa` is a GB code), as a
-  person types them; the rule never sees an absent value (§6.1).
+- **Country and value case** **[Q10]**: the country is compared trimmed
+  and in upper case, so `PostCode("gb")` checks GB's format instead of
+  passing everything as an unknown country; values are matched in upper
+  case (`sw1a 1aa` is a GB code). The rule never sees an absent value
+  (§6.1).
 - Fixed with it, a bug of the table: GB's pattern anchored only its first
   and last alternatives, so it accepted any text containing a valid post
-  code. Every pattern is now anchored as a whole, and a test checks each
-  country's pattern against a valid code and a code with junk around it.
+  code (checked: `junk SW1A 1AA junk` passes today). CR's has the same
+  fault. Every pattern is now compiled as `^(?:…)$`, and a test checks
+  each country's pattern against a valid code and a code with junk
+  around it.
 
 What Confab deletes: the `postCode` helper's `recover` in
 `internal/admin/events.go`; the rule is used directly,
@@ -284,8 +289,16 @@ func ArrowLeft() IconSpec  // always left
   the pin waits, on a name two icons would share, a Go keyword, a name
   starting with a digit (none in 1.77.0), or one of the package's own
   identifiers (`IconSpec`, `Size*`, `Color*`, `Labelled`, `More`,
-  `Warning`). Lucide's deprecated aliases are files too; each becomes a
-  function, which costs nothing an app doesn't call.
+  `Warning`). Two files whose names give the same function and whose
+  shapes are the same are one icon (1.77.0 has four: `arrow-up-01` and
+  `arrow-up-0-1`, …). Lucide's deprecated aliases are files too; each
+  becomes a function, which costs nothing an app doesn't call. Checked on
+  2026-11-24 over 1.77.0: 134 paired files, 8 of them in the not-mirrored
+  list, no other collision.
+- **A later pin never removes a name.** An icon a newer release drops or
+  renames keeps its function with its last shapes (the generator keeps
+  them in `icons/internal/lucide/kept.txt`), marked `// Deprecated:` with
+  the new name when there is one **[Q9]**.
 - **Today's names keep working**, with the same markup: `X`, `Plus`,
   `Minus`, `Check`, `ChevronDown`, `ChevronUp`, `Menu`, `Search`, `Info`,
   `CircleCheck`, `CircleX`, `Eye`, `EyeOff`, `Sun`, `Moon`, `User` are
@@ -323,14 +336,16 @@ func ArrowLeft() IconSpec  // always left
   | Element | Attributes | Value grammar |
   |---|---|---|
   | `path` | `d` | path data: `[MmLlHhVvCcSsQqTtAaZz0-9.,+\- ]+` |
-  | `circle` | `cx`, `cy`, `r` | a number |
+  | `circle` | `cx`, `cy`, `r`; `fill` | a number; `fill` only `currentColor` (34 dots in 1.77.0) |
   | `ellipse` | `cx`, `cy`, `rx`, `ry` | a number |
   | `line` | `x1`, `y1`, `x2`, `y2` | a number |
   | `polyline`, `polygon` | `points` | numbers, commas, spaces |
   | `rect` | `x`, `y`, `width`, `height`, `rx`, `ry` | a number |
 
   A number is `-?[0-9]*\.?[0-9]+`. The shapes are written back from the
-  parsed values, never from the file's text.
+  parsed values, never from the file's text. Checked on 2026-11-24: all
+  2,410 files of 1.77.0 pass, and the 22 icons ui has today have the same
+  shapes in the same order, so no golden changes.
 - **No registry**: each icon is its own function, so the linker drops the
   ones an app doesn't call. The catalogue's list is in an internal
   package nothing else imports.
@@ -357,8 +372,11 @@ calendar for its actions.
 
 ### 6.1 The flash ui declares
 
-Mirrors handlers' draft amendment A7 (`handlers/middleware.Flash`, neozp
-D4), whose method set satisfies it; ui imports no handlers.
+Mirrors handlers' amendment A7 (`handlers/middleware.Flash`, neozp D4),
+locked by epistemer on 2026-11-24 ([handlers#24](https://github.com/epistemer/handlers/pull/24),
+its ADR 0007 §4 and interface §11.8), whose method set satisfies it; ui
+imports no handlers. A rename at handlers' build follows here as a
+clarification.
 
 ```go
 package components
@@ -378,7 +396,7 @@ var Flash *ui.Provider[Flasher]
 
 - **Wiring.** Set `components.Flash` inside handlers' `Flash.Middleware`
   (whose `Add` panics outside it), in the same middleware that sets
-  `actions.Gate`. ui treats a nil interface as no flash; it can't see a
+  `actions.Gate`; the flash is one value for the app's lifetime. ui treats a nil interface as no flash; it can't see a
   typed nil inside the interface, so don't put one there.
 - **Tones and levels:** success ↔ `success`, info and no tone ↔ `info`
   (the same toast: an info toast has no `data-tone`), warning ↔
@@ -421,7 +439,11 @@ var Flash *ui.Provider[Flasher]
   level, after the toasts it already holds. Without a flash it renders as
   today.
 - An app that renders `Toasts()` itself gets the same. Nothing else reads
-  the flash.
+  the flash. handlers counts any HTML page as delivering the messages, so
+  every HTML layout renders `Toasts()` (ui's shells do).
+- `Messages` never returns what this request added: a toast for an
+  answer that doesn't redirect goes through `ToastSwap` or `Toast`, as
+  today.
 - A boosted page whose swap target isn't the body (`hx-target="#main"`)
   leaves the region out of the swap, so a flash it delivers doesn't show.
   ui's shells boost the body.
@@ -438,6 +460,8 @@ works.
 | `NavItem` refused by the gate renders nothing | an app whose gate refuses a nav link it wanted shown | U3 |
 | `PostCode` no longer panics for an unknown country | code that relied on the panic | U5 |
 | `Bool` fields render as a switch when the script runs | every app's three-state fields: the look changes, the posted values don't | U6 |
+| `Checkbox().Hint(KindToggle)` renders a two-state switch | where it rendered a three-state select (F26's surprise) | U6 |
+| a `required` `Bool` loses the browser's own check once upgraded | the server's `ErrRequired` answers instead | U6 |
 | icon functions return `IconSpec` | `func() templ.Component` values holding an icon function; a variable inferred from an icon | U8 |
 | `PostCode` matches values in upper case | an app that wanted lower case refused | U5 |
 | `Fail` without htmx flashes its message | an app that flashed it by hand shows it twice | U1 |
@@ -470,9 +494,25 @@ Each has a default (recommended); an unanswered one takes it.
   checked shapes (about 520 kB). *Alternative:* fetch at `go generate`
   time with the checksum, nothing vendored (generation and CI's drift
   check then need the network).
-- **Q7. Icons as Go, not `.templ`.** *Default:* the generator writes plain
+- **Q7. ⚠ Icons as Go, not `.templ`** (your answer said "as a templ
+  component"; the default departs from its letter, not from what renders).
+  *Default:* the generator writes plain
   Go: one function per icon returning an `IconSpec`, which is a
   `templ.Component`, rendered by one shared `Render` (about 10,000
   generated lines). *Alternative:* a `.templ` component per icon, as
   zpui's tool wrote for Flowbite (about 100,000 generated lines, the same
   markup).
+- **Q8. ⚠ The script's budget** (visual-interface §10: "budget 12 kB
+  gzipped for all modules, measured in CI"). It was never measured in CI,
+  and A6 and A7 took it past: the modules are 24.2 kB gzipped today
+  (2026-11-24), and `<ui-tristate>` adds about 2 kB. *Default:* the
+  budget becomes 32 kB gzipped for all modules, and a test measures it.
+  *Alternative:* keep 12 kB and minify the served script (a build step
+  and a dependency, against ADR 0005's plain modules).
+- **Q9. Icons a newer Lucide drops.** *Default:* every exported name stays,
+  with its last shapes, deprecated (§5.1). *Alternative:* a pin may drop
+  names before v1.0.0, listed in the CHANGELOG.
+- **Q10. Post codes' case.** *Default:* the country is trimmed and
+  upper-cased, the value matched in upper case (§2). *Alternative:* both
+  as given, as today; a lower-case country is then an unknown one and
+  passes everything.
