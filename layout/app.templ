@@ -49,11 +49,11 @@ templ navLink(attrs templ.Attributes) {
 	</a>
 }
 
-templ navSection(n NavSectionSpec) {
+templ navSection(n NavSectionSpec, content templ.Component) {
 	@ui.Scope(navSectionID) {
 		<div { n.attributes(ctx)... }>
 			<p class="ui-nav-section-label" id={ navSectionID.Part(ctx, "label") }>{ n.label.T(ctx) }</p>
-			{ children... }
+			@content
 		</div>
 	}
 }

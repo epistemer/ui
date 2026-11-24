@@ -80,10 +80,10 @@ func All() []catalog.Story {
 		{Name: "components/pagination", Variants: []catalog.Variant{variant("middle", pager("page=3"))}},
 		{Name: "components/detail-list", Variants: []catalog.Variant{variant("in-a-card", detailStory())}},
 		{Name: "layout/app", Variants: []catalog.Variant{
-			variant("shell", appShell(layout.SystemScheme, true)),
-			variant("dark-picked", appShell(layout.DarkScheme, true)),
+			variant("shell", withGate(appShell(layout.SystemScheme, true))),
+			variant("dark-picked", withGate(appShell(layout.DarkScheme, true))),
 			variant("no-nav", appShell(layout.LightScheme, false)),
-			variant("toast", toastInApp()),
+			variant("toast", withGate(toastInApp())),
 		}},
 		{Name: "layout/auth", Variants: []catalog.Variant{
 			variant("sign-in", authShell(signInFresh())),

@@ -14,6 +14,7 @@ import (
 	"github.com/epistemer/i18n/i18ntest"
 
 	"github.com/epistemer/ui"
+	"github.com/epistemer/ui/actions"
 )
 
 func renderCtx(t *testing.T, ctx context.Context, c templ.Component) string {
@@ -27,7 +28,7 @@ func renderCtx(t *testing.T, ctx context.Context, c templ.Component) string {
 
 func render(t *testing.T, c templ.Component) string {
 	t.Helper()
-	return renderCtx(t, context.Background(), c)
+	return renderCtx(t, actions.Gate.With(context.Background(), actions.AllowAll), c)
 }
 
 func panicsWith(t *testing.T, what, want string, c templ.Component) {
@@ -133,8 +134,49 @@ func TestPageHeader(t *testing.T) {
 func TestOwned(t *testing.T) {
 	html := render(t, with(NavItem(ui.URL("/a")).Current(true).Attrs(templ.Attributes{"href": "/b", "aria-current": "false", "class": "mine"}), templ.Raw("A")))
 	contains(t, html, `href="/a"`, `aria-current="page"`, `class="ui-nav-item mine"`)
-	html = render(t, with(NavSection(i18n.Static("Catalogue")).Attrs(templ.Attributes{"role": "list"}), templ.Raw("")))
+	html = render(t, with(NavSection(i18n.Static("Catalogue")).Attrs(templ.Attributes{"role": "list"}), templ.Raw("<span>Item</span>")))
 	contains(t, html, `role="group"`, `aria-labelledby="nav-section--t-1-label"`, `id="nav-section--t-1-label"`)
+}
+
+func TestNavGate(t *testing.T) {
+	// refused → nothing
+	refuseCtx := actions.Gate.With(context.Background(), func(l ui.Link) bool { return false })
+	item := NavItem(ui.URL("/orders"))
+	if html := renderCtx(t, refuseCtx, with(item, templ.Raw("Orders"))); html != "" {
+		t.Errorf("refused nav item rendered: %q", html)
+	}
+
+	// admitted → as today
+	admitCtx := actions.Gate.With(context.Background(), func(l ui.Link) bool { return true })
+	if html := renderCtx(t, admitCtx, with(item, templ.Raw("Orders"))); !strings.Contains(html, `href="/orders"`) {
+		t.Errorf("admitted nav item missing href: %q", html)
+	}
+
+	// no gate → the panic
+	panicsWith(t, "nav item without gate", "actions.Gate", NavItem(ui.URL("/orders")))
+
+	// a section whose items are all refused → nothing
+	gate := func(l ui.Link) bool {
+		return l.URL() == "/allowed"
+	}
+	ctx := actions.Gate.With(context.Background(), gate)
+
+	allRefusedSection := with(NavSection(i18n.Static("Admin")), with(NavItem(ui.URL("/refused")), templ.Raw("Refused")))
+	if html := renderCtx(t, ctx, allRefusedSection); html != "" {
+		t.Errorf("section with all items refused rendered: %q", html)
+	}
+
+	// a section with one admitted item → the section
+	mixedSection := with(NavSection(i18n.Static("Admin")), templ.ComponentFunc(func(ctx context.Context, w io.Writer) error {
+		if err := with(NavItem(ui.URL("/refused")), templ.Raw("Refused")).Render(ctx, w); err != nil {
+			return err
+		}
+		return with(NavItem(ui.URL("/allowed")), templ.Raw("Allowed")).Render(ctx, w)
+	}))
+	html := renderCtx(t, ctx, mixedSection)
+	if !strings.Contains(html, `ui-nav-section`) || !strings.Contains(html, `href="/allowed"`) || strings.Contains(html, `href="/refused"`) {
+		t.Errorf("mixed section output incorrect: %q", html)
+	}
 }
 
 func TestPanics(t *testing.T) {
@@ -150,6 +192,7 @@ func TestPanics(t *testing.T) {
 	panicsWith(t, "a nav item without an address", "no address", NavItem(nil))
 	panicsWith(t, "a nav item with a refused address", "no address", NavItem(ui.URL("javascript:alert(1)")))
 	panicsWith(t, "a nav item with an empty address", "no address", NavItem(ui.URL("")))
+	panicsWith(t, "a nav item without a gate", "actions.Gate", NavItem(ui.URL("/orders")))
 	panicsWith(t, "a crumb above the page with a refused address", "no address", PageHeader(i18n.Static("x")).Breadcrumbs(Crumb{Href: ui.URL("javascript:x"), Text: i18n.Static("Home")}, Crumb{Text: i18n.Static("Here")}))
 	panicsWith(t, "a nav section without a label", "no label", NavSection(i18n.Static(" ")))
 	panicsWith(t, "a scheme menu in sepia", "colour scheme", ColorSchemeMenu("sepia"))
