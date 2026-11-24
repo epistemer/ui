@@ -27,7 +27,10 @@ func All() []catalog.Story {
 			variant("sizes", buttonSizes()),
 			variant("states", buttonStates()),
 		}},
-		{Name: "icons/all", Variants: []catalog.Variant{variant("set", allIcons())}},
+		{Name: "icons/all", Variants: []catalog.Variant{
+			variant("set", allIcons()),
+			variant("options", iconOptions()),
+		}},
 		{Name: "elements/badge", Variants: []catalog.Variant{variant("tones", badges())}},
 		{Name: "elements/alert", Variants: []catalog.Variant{variant("levels", alerts())}},
 		{Name: "elements/card", Variants: []catalog.Variant{variant("regions", cards())}},

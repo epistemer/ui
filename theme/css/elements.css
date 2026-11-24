@@ -1,9 +1,20 @@
 /* Icons take the text colour and the font's size; directional ones mirror
-   in RTL. A labelled icon is the one carrying meaning. */
+   in RTL. Named sizes and role colours override them via data attributes. */
 .ui-icon {
 	inline-size: 1.25em;
 	block-size: 1.25em;
 	flex: none;
+
+	&[data-size="s"] { inline-size: var(--ui-space-4); block-size: var(--ui-space-4); }
+	&[data-size="m"] { inline-size: var(--ui-space-5); block-size: var(--ui-space-5); }
+	&[data-size="l"] { inline-size: var(--ui-space-6); block-size: var(--ui-space-6); }
+
+	&[data-color="muted"] { color: var(--ui-color-text-muted); }
+	&[data-color="brand"] { color: var(--ui-color-brand-text); }
+	&[data-color="danger"] { color: var(--ui-color-danger-text); }
+	&[data-color="warning"] { color: var(--ui-color-warning-text); }
+	&[data-color="success"] { color: var(--ui-color-success-text); }
+	&[data-color="info"] { color: var(--ui-color-info-text); }
 
 	&[data-mirror]:dir(rtl) {
 		transform: scaleX(-1);
