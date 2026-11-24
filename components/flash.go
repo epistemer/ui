@@ -28,26 +28,14 @@ type Flasher interface {
 // Toasts shows no flashed messages.
 var Flash = ui.NewProvider[Flasher](nil)
 
-// The flash's levels.
+// The flash's levels. Reply's toast has no tone, so it is info; Fail's
+// message is an error.
 const (
 	levelInfo    = "info"
 	levelSuccess = "success"
 	levelWarning = "warning"
 	levelError   = "error"
 )
-
-// levelOf is a toast tone's level: no tone and Info are info.
-func levelOf(t elements.Tone) string {
-	switch t {
-	case elements.Success:
-		return levelSuccess
-	case elements.Warning:
-		return levelWarning
-	case elements.Danger:
-		return levelError
-	}
-	return levelInfo
-}
 
 // toneOf is a level's toast tone; an unknown level reads as info, which
 // has no tone.
