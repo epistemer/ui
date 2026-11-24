@@ -152,9 +152,9 @@ func TestReply(t *testing.T) {
 		}
 	}
 	for name, f := range map[string]func(*ReplySpec){
-		"two changes":    func(a *ReplySpec) { a.Remove("a").Refresh("t") },
-		"Fail(nil)":      func(a *ReplySpec) { a.Fail(nil) },
-		"a blank id":     func(a *ReplySpec) { a.Remove(" ") },
+		"two changes": func(a *ReplySpec) { a.Remove("a").Refresh("t") },
+		"Fail(nil)":   func(a *ReplySpec) { a.Fail(nil) },
+		"a blank id":  func(a *ReplySpec) { a.Remove(" ") },
 	} {
 		func() {
 			defer func() {
