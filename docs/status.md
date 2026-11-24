@@ -19,6 +19,10 @@ answer 422 whenever htmx may be involved (F17). Checked in the pane: a
 combobox that connects before htmx upgrades on `htmx:load`; a boosted
 switch from an RTL page to an LTR one sets `dir`, and Back puts it back.
 
+**Review** [0024](reviews/0024-c1.md), Gemini 4 Carbon (High): 9
+findings, 7 valid and one partly, all fixed by Claude; the history
+handling moved to sessionStorage and htmx 2's real event order.
+
 **Next.** Amendment A9 (U1, U3, U5–U8), drafted for epistemer's lock.
 
 ## 2026-11-23 — U5: v0.4.0

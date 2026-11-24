@@ -19,9 +19,10 @@
 //
 // A field's handle can't share a name with a method of Form: the field
 // would hide the embedded method, and the constructor's f.Text("text")
-// would no longer compile. Text, Date, Time, File, Files, Int, Float,
-// Bool, Label, Group, List, Check, Fail, Valid, Err, Errors, When and
-// Control are taken; name the handle after what it holds (Body, StartsOn).
+// would no longer compile. Every exported method of Form is taken (Text,
+// Date, Time, File, Files, Int, Float, Bool, Label, Group, List, Check,
+// Fail, Valid, Err, Errors, When, Control, among others); name the handle
+// after what it holds (Body, StartsOn).
 //
 // A handler calls Submit, then reads typed values: f.Name.Value() is a
 // string, f.Kind.Value() the enum. Errors belong to the field that reported

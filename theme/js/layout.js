@@ -138,46 +138,69 @@ function syncHtmlFromResponse(xhr) {
 	return true;
 }
 
-const historyAttrs = new Map();
-let pendingHistoryPath = null;
+// lang and dir per page, for htmx's history cache, which restores only the
+// body. Kept in sessionStorage, as htmx keeps its cache, so a reload
+// between two boosted pages still restores the right ones.
+const historyKey = "ui-html-attrs";
+const historyLimit = 50;
 
-// Remember the initial page so pressing Back to it from htmx's history cache
-// restores its lang and dir even though it was never pushed through htmx.
-if (typeof location !== "undefined" && typeof location.pathname === "string") {
-	historyAttrs.set(location.pathname + (location.search ?? ""), readHtmlAttrs());
-}
-
-function rememberHistoryPath(event) {
-	const path = event.detail?.path;
-	if (path) historyAttrs.set(path, readHtmlAttrs());
-}
-
-// htmx 2 fires beforeHistoryUpdate and pushedIntoHistory/replacedInHistory
-// before afterSwap; note the path so afterSwap records the updated lang/dir.
-document.addEventListener("htmx:beforeHistorySave", rememberHistoryPath);
-document.addEventListener("htmx:beforeHistoryUpdate", (event) => {
-	pendingHistoryPath = event.detail?.history?.path ?? null;
-});
-document.addEventListener("htmx:pushedIntoHistory", rememberHistoryPath);
-document.addEventListener("htmx:replacedInHistory", rememberHistoryPath);
-
-document.addEventListener("htmx:afterSwap", (event) => {
-	const path = pendingHistoryPath;
-	pendingHistoryPath = null;
-	if (!event.detail?.boosted) return;
-	if (syncHtmlFromResponse(event.detail.xhr) && path) {
-		historyAttrs.set(path, readHtmlAttrs());
+function historyLoad() {
+	try {
+		return new Map(JSON.parse(sessionStorage.getItem(historyKey) ?? "[]"));
+	} catch {
+		return new Map();
 	}
+}
+
+const historyAttrs = historyLoad();
+
+// pathOf is a history path as htmx's historyRestore reports it: path and
+// query, without the fragment.
+function pathOf(path) {
+	try {
+		const u = new URL(path, location.href);
+		return u.pathname + u.search;
+	} catch {
+		return null;
+	}
+}
+
+function remember(path, attrs) {
+	const key = path && pathOf(path);
+	if (!key) return;
+	historyAttrs.delete(key);
+	historyAttrs.set(key, attrs);
+	while (historyAttrs.size > historyLimit) historyAttrs.delete(historyAttrs.keys().next().value);
+	try {
+		sessionStorage.setItem(historyKey, JSON.stringify([...historyAttrs]));
+	} catch {
+		// Storage full or refused: the page still works, Back may keep the
+		// current lang and dir.
+	}
+}
+
+const here = () => location.pathname + location.search;
+
+// The page as it is now, before htmx saves it to its cache.
+if (typeof location !== "undefined") remember(here(), readHtmlAttrs());
+// htmx saves the page it is leaving under its own path, also on Back,
+// when location already names the page it goes to.
+document.addEventListener("htmx:beforeHistorySave", (event) => remember(event.detail?.path ?? here(), readHtmlAttrs()));
+
+// A boosted page: htmx has already pushed or replaced the address (before
+// the swap), so location is the new page's. Only a swap of the whole body
+// is a page; a boosted link with its own target swaps a part.
+document.addEventListener("htmx:afterSwap", (event) => {
+	if (!event.detail?.boosted || event.detail.target !== document.body) return;
+	if (syncHtmlFromResponse(event.detail.xhr)) remember(here(), readHtmlAttrs());
 });
 
 document.addEventListener("htmx:historyCacheMissLoad", (event) => {
-	if (syncHtmlFromResponse(event.detail?.xhr) && event.detail?.path) {
-		historyAttrs.set(event.detail.path, readHtmlAttrs());
-	}
+	if (syncHtmlFromResponse(event.detail?.xhr)) remember(event.detail?.path, readHtmlAttrs());
 });
 
 document.addEventListener("htmx:historyRestore", (event) => {
-	if (event.detail?.cacheMiss) return;
-	const saved = historyAttrs.get(event.detail?.path);
+	const key = pathOf(event.detail?.path ?? "");
+	const saved = key && historyAttrs.get(key);
 	if (saved) applyHtmlAttrs(saved);
 });

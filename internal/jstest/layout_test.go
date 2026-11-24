@@ -17,15 +17,26 @@ type fakeLayoutEnv struct {
 	attrs     map[string]string
 	listeners map[string][]goja.Callable
 	parsed    []string
+	body      *goja.Object
+	loc       *goja.Object
+	storage   map[string]string
 }
 
 func newLayoutEnv(t *testing.T, initialPath string, initialAttrs map[string]string) *fakeLayoutEnv {
+	t.Helper()
+	return newLayoutEnvStorage(t, initialPath, initialAttrs, map[string]string{})
+}
+
+// newLayoutEnvStorage starts a page whose sessionStorage holds storage, as
+// a reload in the same tab finds it.
+func newLayoutEnvStorage(t *testing.T, initialPath string, initialAttrs, storage map[string]string) *fakeLayoutEnv {
 	t.Helper()
 	vm := goja.New()
 	env := &fakeLayoutEnv{
 		vm:        vm,
 		attrs:     map[string]string{},
 		listeners: map[string][]goja.Callable{},
+		storage:   storage,
 	}
 	for k, v := range initialAttrs {
 		env.attrs[strings.ToLower(k)] = v
@@ -60,6 +71,8 @@ func newLayoutEnv(t *testing.T, initialPath string, initialAttrs map[string]stri
 	}
 
 	doc := vm.NewObject()
+	env.body = vm.NewObject()
+	doc.Set("body", env.body)
 	doc.Set("documentElement", root)
 	doc.Set("addEventListener", addListener)
 	doc.Set("querySelectorAll", func(call goja.FunctionCall) goja.Value {
@@ -69,18 +82,35 @@ func newLayoutEnv(t *testing.T, initialPath string, initialAttrs map[string]stri
 	win := vm.NewObject()
 	win.Set("addEventListener", func(call goja.FunctionCall) goja.Value { return goja.Undefined() })
 
-	loc := vm.NewObject()
-	pathname, search, _ := strings.Cut(initialPath, "?")
-	loc.Set("pathname", pathname)
-	if search != "" {
-		loc.Set("search", "?"+search)
-	} else {
-		loc.Set("search", "")
+	env.loc = vm.NewObject()
+	env.goTo(initialPath)
+	ss := vm.NewObject()
+	ss.Set("getItem", func(call goja.FunctionCall) goja.Value {
+		if v, ok := env.storage[call.Argument(0).String()]; ok {
+			return vm.ToValue(v)
+		}
+		return goja.Null()
+	})
+	ss.Set("setItem", func(call goja.FunctionCall) goja.Value {
+		env.storage[call.Argument(0).String()] = call.Argument(1).String()
+		return goja.Undefined()
+	})
+	vm.Set("sessionStorage", ss)
+	// URL, as far as layout.js uses it: a path, query and fragment,
+	// absolute or relative to this origin.
+	if _, err := vm.RunString(`globalThis.URL = function (u) {
+		u = String(u).replace(/^https?:\/\/[^/]+/, "");
+		const h = u.indexOf("#"); if (h >= 0) u = u.slice(0, h);
+		const q = u.indexOf("?");
+		this.pathname = q >= 0 ? u.slice(0, q) : u;
+		this.search = q >= 0 ? u.slice(q) : "";
+	};`); err != nil {
+		t.Fatal(err)
 	}
 
 	vm.Set("document", doc)
 	vm.Set("window", win)
-	vm.Set("location", loc)
+	vm.Set("location", env.loc)
 	vm.Set("matchMedia", func(call goja.FunctionCall) goja.Value {
 		m := vm.NewObject()
 		m.Set("addEventListener", func(goja.FunctionCall) goja.Value { return goja.Undefined() })
@@ -141,6 +171,28 @@ func parseFakeHTMLStartTag(s string) map[string]string {
 	return out
 }
 
+// goTo sets the address, as htmx's pushState does before it swaps.
+func (e *fakeLayoutEnv) goTo(path string) {
+	pathname, search, _ := strings.Cut(path, "?")
+	e.loc.Set("pathname", pathname)
+	if search != "" {
+		e.loc.Set("search", "?"+search)
+	} else {
+		e.loc.Set("search", "")
+	}
+	e.loc.Set("href", "http://localhost"+path)
+}
+
+// boosted dispatches htmx 2's events for a boosted page to path: the
+// cache saves the page, the address changes, then the body is swapped.
+func (e *fakeLayoutEnv) boosted(t *testing.T, path, response string) {
+	t.Helper()
+	e.dispatch(t, "htmx:beforeHistorySave", map[string]any{"path": e.loc.Get("pathname").String() + e.loc.Get("search").String()})
+	e.goTo(path)
+	e.dispatch(t, "htmx:pushedIntoHistory", map[string]any{"path": path})
+	e.dispatch(t, "htmx:afterSwap", map[string]any{"boosted": true, "target": e.body, "xhr": map[string]any{"responseText": response}})
+}
+
 func (e *fakeLayoutEnv) dispatch(t *testing.T, typ string, detail map[string]any) {
 	t.Helper()
 	ev := e.vm.NewObject()
@@ -183,6 +235,7 @@ func TestLayoutBoostedHTMLAttrs(t *testing.T) {
 	// Boosted swap with a fragment (no <html> start tag) leaves lang/dir alone.
 	env.dispatch(t, "htmx:afterSwap", map[string]any{
 		"boosted": true,
+		"target":  env.body,
 		"xhr":     map[string]any{"responseText": `<main>fragment</main>`},
 	})
 	env.assertAttrs(t, map[string]string{"lang": "en", "dir": "ltr", "class": "app"})
@@ -190,6 +243,7 @@ func TestLayoutBoostedHTMLAttrs(t *testing.T) {
 	// Boosted swap with full page updates only lang and dir, and parses only the start tag.
 	env.dispatch(t, "htmx:afterSwap", map[string]any{
 		"boosted": true,
+		"target":  env.body,
 		"xhr": map[string]any{
 			"responseText": `<!doctype html><html lang="ar" dir="rtl" class="other" data-extra="1"><body><script>boom()</script></body></html>`,
 		},
@@ -202,6 +256,7 @@ func TestLayoutBoostedHTMLAttrs(t *testing.T) {
 	// Missing attribute on the response removes it from documentElement.
 	env.dispatch(t, "htmx:afterSwap", map[string]any{
 		"boosted": true,
+		"target":  env.body,
 		"xhr":     map[string]any{"responseText": `<!doctype html><html lang="fr"><body></body></html>`},
 	})
 	env.assertAttrs(t, map[string]string{"lang": "fr", "dir": "", "class": "app"})
@@ -209,6 +264,7 @@ func TestLayoutBoostedHTMLAttrs(t *testing.T) {
 	// Bare <html> removes both lang and dir.
 	env.dispatch(t, "htmx:afterSwap", map[string]any{
 		"boosted": true,
+		"target":  env.body,
 		"xhr":     map[string]any{"responseText": `<html><body></body></html>`},
 	})
 	env.assertAttrs(t, map[string]string{"lang": "", "dir": "", "class": "app"})
@@ -226,54 +282,44 @@ func TestLayoutBoostedHTMLAttrs(t *testing.T) {
 	env.assertAttrs(t, map[string]string{"lang": "ar-EG", "dir": "rtl", "class": "app"})
 }
 
+func TestLayoutBoostedPartIgnored(t *testing.T) {
+	env := newLayoutEnv(t, "/en", map[string]string{"lang": "en", "dir": "ltr"})
+	// A boosted link with a target of its own swaps a part, not the page.
+	env.dispatch(t, "htmx:afterSwap", map[string]any{
+		"boosted": true,
+		"target":  env.vm.NewObject(),
+		"xhr":     map[string]any{"responseText": `<html lang="ar" dir="rtl"><body></body></html>`},
+	})
+	env.assertAttrs(t, map[string]string{"lang": "en", "dir": "ltr"})
+}
+
 func TestLayoutHistoryCacheRestore(t *testing.T) {
-	t.Run("pushed_and_replaced_after_swap", func(t *testing.T) {
-		env := newLayoutEnv(t, "/en", map[string]string{"lang": "en", "dir": "ltr"})
+	env := newLayoutEnv(t, "/en", map[string]string{"lang": "en", "dir": "ltr"})
+	env.boosted(t, "/ar", `<!doctype html><html lang="ar" dir="rtl"><body></body></html>`)
+	env.assertAttrs(t, map[string]string{"lang": "ar", "dir": "rtl"})
+	env.boosted(t, "/fr?x=1", `<html lang="fr"><body></body></html>`)
+	env.assertAttrs(t, map[string]string{"lang": "fr", "dir": ""})
 
-		env.dispatch(t, "htmx:afterSwap", map[string]any{
-			"boosted": true,
-			"xhr":     map[string]any{"responseText": `<html lang="ar" dir="rtl"><body></body></html>`},
-		})
-		env.dispatch(t, "htmx:pushedIntoHistory", map[string]any{"path": "/ar"})
+	// Back and forward from htmx's cache, which restores only the body;
+	// htmx reports the path without its fragment.
+	// Back: location already names /ar when htmx saves /fr?x=1.
+	env.goTo("/ar")
+	env.dispatch(t, "htmx:beforeHistorySave", map[string]any{"path": "/fr?x=1"})
+	env.dispatch(t, "htmx:historyRestore", map[string]any{"path": "/ar"})
+	env.assertAttrs(t, map[string]string{"lang": "ar", "dir": "rtl"})
+	env.dispatch(t, "htmx:historyRestore", map[string]any{"path": "/en"})
+	env.assertAttrs(t, map[string]string{"lang": "en", "dir": "ltr"})
+	env.dispatch(t, "htmx:historyRestore", map[string]any{"path": "/fr?x=1"})
+	env.assertAttrs(t, map[string]string{"lang": "fr", "dir": ""})
 
-		env.dispatch(t, "htmx:afterSwap", map[string]any{
-			"boosted": true,
-			"xhr":     map[string]any{"responseText": `<html lang="fr"><body></body></html>`},
-		})
-		env.dispatch(t, "htmx:replacedInHistory", map[string]any{"path": "/fr"})
+	// An unknown path changes nothing.
+	env.dispatch(t, "htmx:historyRestore", map[string]any{"path": "/never-seen"})
+	env.assertAttrs(t, map[string]string{"lang": "fr", "dir": ""})
 
-		env.dispatch(t, "htmx:historyRestore", map[string]any{"path": "/ar"})
-		env.assertAttrs(t, map[string]string{"lang": "ar", "dir": "rtl"})
-
-		env.dispatch(t, "htmx:historyRestore", map[string]any{"path": "/fr"})
-		env.assertAttrs(t, map[string]string{"lang": "fr", "dir": ""})
-
-		env.dispatch(t, "htmx:historyRestore", map[string]any{"path": "/en"})
-		env.assertAttrs(t, map[string]string{"lang": "en", "dir": "ltr"})
-
-		// Unknown path changes nothing.
-		env.dispatch(t, "htmx:historyRestore", map[string]any{"path": "/never-seen"})
-		env.assertAttrs(t, map[string]string{"lang": "en", "dir": "ltr"})
-	})
-
-	t.Run("htmx2_order_push_before_swap", func(t *testing.T) {
-		env := newLayoutEnv(t, "/en", map[string]string{"lang": "en", "dir": "ltr"})
-
-		// htmx 2 fires beforeHistorySave, beforeHistoryUpdate, pushedIntoHistory, then afterSwap.
-		env.dispatch(t, "htmx:beforeHistorySave", map[string]any{"path": "/en"})
-		env.dispatch(t, "htmx:beforeHistoryUpdate", map[string]any{"history": map[string]any{"path": "/ar"}})
-		env.dispatch(t, "htmx:pushedIntoHistory", map[string]any{"path": "/ar"})
-		env.dispatch(t, "htmx:afterSwap", map[string]any{
-			"boosted": true,
-			"xhr":     map[string]any{"responseText": `<!doctype html><html lang="ar" dir="rtl"><body></body></html>`},
-		})
-		env.assertAttrs(t, map[string]string{"lang": "ar", "dir": "rtl"})
-
-		// Back to /en, then forward to /ar from cache.
-		env.dispatch(t, "htmx:historyRestore", map[string]any{"path": "/en"})
-		env.assertAttrs(t, map[string]string{"lang": "en", "dir": "ltr"})
-
-		env.dispatch(t, "htmx:historyRestore", map[string]any{"path": "/ar"})
-		env.assertAttrs(t, map[string]string{"lang": "ar", "dir": "rtl"})
-	})
+	// A reload of /ar in the same tab, then Back to /en from htmx's cache,
+	// which lives in sessionStorage too.
+	env.goTo("/ar")
+	reloaded := newLayoutEnvStorage(t, "/ar", map[string]string{"lang": "ar", "dir": "rtl"}, env.storage)
+	reloaded.dispatch(t, "htmx:historyRestore", map[string]any{"path": "/en"})
+	reloaded.assertAttrs(t, map[string]string{"lang": "en", "dir": "ltr"})
 }

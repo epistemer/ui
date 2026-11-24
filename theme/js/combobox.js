@@ -86,7 +86,9 @@ if (typeof HTMLElement !== "undefined") {
 			this.#up = true;
 			this.#t = textsOf(this);
 			const chosen = this.querySelector(":scope > .ui-combobox-chosen");
-			const name = chosen?.textContent.trim() ?? "";
+			// A late upgrade finds what the person typed meanwhile: the
+			// chosen name no longer goes with it.
+			const name = input.value === input.defaultValue ? (chosen?.textContent.trim() ?? "") : "";
 
 			const hidden = document.createElement("input");
 			hidden.type = "hidden";
@@ -220,24 +222,29 @@ if (typeof HTMLElement !== "undefined") {
 		static #watch() {
 			if (watching) return;
 			watching = true;
-			document.addEventListener("DOMContentLoaded", UICombobox.#tryWaiting);
-			window.addEventListener("load", UICombobox.#tryWaiting);
 			document.addEventListener("htmx:load", UICombobox.#tryWaiting);
 		}
 
-		static #tryWaiting() {
+		// htmx fires htmx:load on the body once it has processed it (and on
+		// each element it swaps in later), so an element inside the event's
+		// target is one htmx now handles.
+		static #tryWaiting(event) {
 			if (!globalThis.htmx) return;
-			document.removeEventListener("DOMContentLoaded", UICombobox.#tryWaiting);
-			window.removeEventListener("load", UICombobox.#tryWaiting);
-			document.removeEventListener("htmx:load", UICombobox.#tryWaiting);
-			watching = false;
-			const pending = [...waiting];
-			waiting.clear();
-			for (const el of pending) {
-				if (!el.isConnected || el.#up || !el.dataset.uiSearch) continue;
+			const root = event.target instanceof Node ? event.target : null;
+			for (const el of [...waiting]) {
+				if (!el.isConnected) {
+					waiting.delete(el);
+					continue;
+				}
+				if (!root?.contains(el)) continue;
+				waiting.delete(el);
+				if (el.#up || !el.dataset.uiSearch) continue;
 				const input = el.querySelector(":scope > input.ui-input");
-				if (!input) continue;
-				el.#upgrade(input);
+				if (input) el.#upgrade(input);
+			}
+			if (!waiting.size) {
+				document.removeEventListener("htmx:load", UICombobox.#tryWaiting);
+				watching = false;
 			}
 		}
 
