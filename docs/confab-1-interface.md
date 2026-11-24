@@ -434,10 +434,12 @@ var Flash *ui.Provider[Flasher]
 
 ### 6.3 Showing flashes
 
-- `Toasts()` (the region the shells render) renders, inside it, one
-  `Toast` per message of `Flash.Value(ctx).Messages(ctx)`, tone from the
-  level, after the toasts it already holds. Without a flash it renders as
-  today.
+- `Toasts()` (the region the shells render) renders one `Toast` per
+  message of `Flash.Value(ctx).Messages(ctx)`, tone from the level, right
+  after the region: each moves itself in when the script runs and is
+  announced, which a toast already inside a live region that appears with
+  it isn't. A message with blank text is skipped. Without a flash it
+  renders as today. *(Clarified by Claude at the build, C6.)*
 - An app that renders `Toasts()` itself gets the same. Nothing else reads
   the flash. handlers counts any HTML page as delivering the messages, so
   every HTML layout renders `Toasts()` (ui's shells do).

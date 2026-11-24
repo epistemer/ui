@@ -574,14 +574,19 @@ func (a *ReplySpec) Go(l ui.Link) error
 | `Replace(id, c)` | `c` replaces `#id` (`HX-Retarget: #id`, `HX-Reswap: outerHTML`); a `<tr>` travels as the answer's own content | 303 to `Else` |
 | `Remove(id)` | `#id` is removed (`HX-Retarget: #id`, `HX-Reswap: delete`) | 303 to `Else` |
 | `Refresh(table)` | the table reloads its results at its current URL (`ui-table-refresh`; `HX-Reswap: none`) | 303 to `Else` |
-| `Fail(err)` | 422, a danger toast with `errors.T(ctx, err)`, `HX-Reswap: none`: nothing changes, a dialog's form stays as it is | 303 to `Else`; the app's own flash says why |
+| `Fail(err)` | 422, a danger toast with `errors.T(ctx, err)`, `HX-Reswap: none`: nothing changes, a dialog's form stays as it is | 303 to `Else`; `errors.T(ctx, err)` goes to the request's `Flash` as an error *(A9)* |
 | no change | nothing changes (`HX-Reswap: none`) | 303 to `Else` |
 | `Go(l)` | the browser goes to `l` (`HX-Redirect`) | 303 to `l` |
 
+*(A9)* Without htmx, every 303 hands the toast to the request's
+`components.Flash`; `Go` does with htmx too. See
+[confab-1-interface.md](confab-1-interface.md) §6.
+
 - **One change per answer, ended by `Else` or `Go`.** A second change
-  (`Replace`, `Remove`, `Refresh`, `Fail`) panics; so do `Go` after a
-  change or a toast (the redirect would drop them), `Fail(nil)`, and a
+  (`Replace`, `Remove`, `Refresh`, `Fail`) panics; so do `Fail(nil)` and a
   blank id. `Fail` is a change, so `Reply(w, r).Fail(err).Else(l)`.
+  *(A9)* `Go` after a change or a toast no longer panics: the change is
+  dropped and the toast (or `Fail`'s message) goes to the flash.
 - `Toast` goes with any change through `ToastSwap`; `Fail`'s danger toast
   takes its place. `Fail` answers 422 whatever the error's kind: the script
   swaps a 422, and the toast is what people read.

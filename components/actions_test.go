@@ -155,10 +155,6 @@ func TestReply(t *testing.T) {
 		"two changes":    func(a *ReplySpec) { a.Remove("a").Refresh("t") },
 		"Fail(nil)":      func(a *ReplySpec) { a.Fail(nil) },
 		"a blank id":     func(a *ReplySpec) { a.Remove(" ") },
-		"Go after Toast": func(a *ReplySpec) { a.Toast(i18n.Static("x")).Go(ui.URL("/")) },
-		"Go after a change": func(a *ReplySpec) {
-			a.Remove("a").Go(ui.URL("/"))
-		},
 	} {
 		func() {
 			defer func() {
