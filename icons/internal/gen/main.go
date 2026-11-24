@@ -317,7 +317,7 @@ func validateTarEntry(hdr *tar.Header) error {
 		}
 	}
 	switch hdr.Typeflag {
-	case tar.TypeReg, tar.TypeRegA, tar.TypeDir:
+	case tar.TypeReg, tar.TypeDir: // the reader reports TypeRegA as TypeReg
 	case tar.TypeSymlink, tar.TypeLink:
 		return fmt.Errorf("tar entry %q is a link, which is refused", name)
 	default:
