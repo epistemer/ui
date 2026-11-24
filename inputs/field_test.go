@@ -411,3 +411,74 @@ func TestPreviewsPanicsOnNonUpload(t *testing.T) {
 	}()
 	Field(c).Previews()
 }
+
+func TestFieldDirAttribute(t *testing.T) {
+	lbl := &countLabeler{names: map[string]string{"7": "Ann Lee"}}
+	search := ui.URL("/customers/search")
+
+	f := forms.New()
+	text := f.Text("title").Label(i18n.Static("Title"))
+	multi := f.Text("bio").Label(i18n.Static("Bio")).Hint(forms.KindMultiline)
+	remote := f.Number[int64]("customer_id").Label(i18n.Static("Customer")).Remote(search, lbl)
+	email := f.Text("email").Label(i18n.Static("Email")).Is(rule.Email())
+	web := f.Text("url").Label(i18n.Static("URL")).Is(rule.URL())
+	tel := f.Text("phone").Label(i18n.Static("Phone")).Is(rule.Phone())
+	pass := f.Text("pw").Raw().Label(i18n.Static("Password")).Hint(forms.KindPassword)
+	num := f.Int("qty").Label(i18n.Static("Qty"))
+	date := f.Date("on").Label(i18n.Static("Date"))
+	dt := f.Time("at", "2006-01-02T15:04").Label(i18n.Static("DateTime"))
+	chk := f.Checkbox("ok").Label(i18n.Static("OK"))
+	sel := f.Bool("flag").Label(i18n.Static("Flag"))
+	file := f.File("doc").Label(i18n.Static("Doc"))
+	hid := f.Text("ref").Hint(forms.KindHidden)
+
+	for _, tc := range []struct {
+		name string
+		ctrl forms.Control
+		want string // expected dir attribute, or "" for absent
+	}{
+		{"text", text.Control(), `dir="auto"`},
+		{"multiline", multi.Control(), `dir="auto"`},
+		{"remote", remote.Control(), `dir="auto"`},
+		{"email", email.Control(), `dir="ltr"`},
+		{"url", web.Control(), `dir="ltr"`},
+		{"tel", tel.Control(), `dir="ltr"`},
+		{"password", pass.Control(), ""},
+		{"number", num.Control(), ""},
+		{"date", date.Control(), ""},
+		{"datetime", dt.Control(), ""},
+		{"checkbox", chk.Control(), ""},
+		{"select", sel.Control(), ""},
+		{"file", file.Control(), ""},
+		{"hidden", hid.Control(), ""},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			html := render(t, Field(tc.ctrl))
+			if tc.want == "" {
+				if strings.Contains(html, "dir=") {
+					t.Errorf("unexpected dir attribute in: %s", html)
+				}
+			} else if !strings.Contains(html, tc.want) {
+				t.Errorf("missing %s in: %s", tc.want, html)
+			}
+		})
+	}
+
+	// Attrs({"dir": "rtl"}) overrides both dir="auto" and dir="ltr".
+	for _, tc := range []struct {
+		name string
+		ctrl forms.Control
+	}{
+		{"text", text.Control()},
+		{"multiline", multi.Control()},
+		{"remote", remote.Control()},
+		{"email", email.Control()},
+	} {
+		t.Run("override_"+tc.name, func(t *testing.T) {
+			html := render(t, Field(tc.ctrl).Attrs(templ.Attributes{"dir": "rtl"}))
+			if !strings.Contains(html, `dir="rtl"`) || strings.Contains(html, `dir="auto"`) || strings.Contains(html, `dir="ltr"`) {
+				t.Errorf("dir override did not win: %s", html)
+			}
+		})
+	}
+}

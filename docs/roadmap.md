@@ -223,6 +223,22 @@ spike's code (`internal/spike`) is its draft, and goes when T3 lands.
 | ☑ | T3 | `TableOf` and `Pagination` (§4.1), their CSS (§6), `<ui-table>` and the state requests (§7); a page of the toy shop with demo endpoints; `internal/spike` removed | §4.1, §6 and §7 hold, with script off and with htmx, in LTR, RTL, light and dark |
 | ☑ | T4 | Release v0.3.0 | As V7 |
 
+## C — Confab's iteration 1
+
+From the example app's findings (2026-11-23) as epistemer answered them on
+2026-11-24 (the board's item "ui: API questions from Confab iteration 1").
+U2 (ui serving htmx) waits for the discussion of forking htmx v2.
+
+| ✓ | ID | Item | Done when |
+|---|---|---|---|
+| ☑ | C1 | Fixes within the terms: F23, F24, F27, F6's combobox, docs for F10, F17, F26 and U4 (clarifications A8) | Merged with green CI and a review |
+| ☐ | C2 | Amendment A9 drafted: U3 (`NavItem` and the gate), U5 (`PostCode`, `HasPostCode`), U6 (the switch), U7 (`AssertLabelled`), U8 (generated Lucide icons), U1 (`Reply` and handlers' flash) | epistemer locks it |
+| ☐ | C3 | Build A9's U3, U5, U7 | Contract holds, in tests |
+| ☐ | C4 | Build U6: the two- and three-state switch, CSS and script | Contract holds; checked in the pane, LTR and RTL, light and dark, keyboard, with script and without |
+| ☐ | C5 | Build U8: the icon generator, every Lucide icon, ADR | Contract holds; existing calls compile |
+| ☐ | C6 | Build U1 on handlers/middleware's flash | Contract holds; a toast survives `Go` and the no-script 303 |
+| ☐ | C7 | Release v0.5.0 | As V7 |
+
 ## Backlog
 
 - **A default slot for loose content** (brief §8, decision 6). Gate:

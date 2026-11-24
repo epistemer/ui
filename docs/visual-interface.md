@@ -642,8 +642,8 @@ func (f FieldSpec) Attrs(a templ.Attributes) FieldSpec
 
 | Kind | Element |
 |---|---|
-| `KindText` | `<input type="text">`, or the rule's `type` (`email`, `url`, `tel`), with `dir="ltr"` for those three |
-| `KindMultiline` | `<textarea>`, with a newline before the value so a leading newline survives the parser |
+| `KindText` | `<input type="text">`, or the rule's `type` (`email`, `url`, `tel`), with `dir="ltr"` for those three and `dir="auto"` for text *(A8)* |
+| `KindMultiline` | `<textarea dir="auto">` *(A8)*, with a newline before the value so a leading newline survives the parser |
 | `KindPassword` | `<input type="password">`, never with its value, and a reveal button (§6.3) |
 | `KindNumber` | `<input type="number">` |
 | `KindDate`, `KindDateTime` | `<input type="date">`, `"datetime-local"` |
@@ -1197,7 +1197,13 @@ their meaning is an amendment.
   narrow-screen navigation into a drawer.
 - It emits and needs nothing inline. It listens to htmx's
   `htmx:confirm` and `htmx:afterSwap` when htmx is on the page, and works
-  without htmx. *(Neither htmx path has run in a browser: the catalogue
+  without htmx.
+- *(A8)* htmx swaps only the body of a boosted page, so after a boosted
+  swap the script copies `lang` and `dir` from the response's `<html>`
+  start tag to the page's (nothing else, and an attribute the response
+  lacks is removed). It does the same when htmx loads a page for
+  back/forward, and puts back what it remembered for a path that htmx's
+  history cache restores. *(Neither htmx path has run in a browser: the catalogue
   loads no htmx (finding 17). The V milestone adds an htmx story.)*
 
 ### 10.2 Delegated listeners (stateless)

@@ -636,6 +636,10 @@ end, tabular), `ui-table-sort`, `ui-table-check`, `ui-table-all`,
 `.ui-button[aria-disabled="true"]`. The filter row's controls align on
 one line (finding 17).
 
+*(A8)* `.ui-table-scroll` is `position: relative`, so the visually hidden
+texts in its cells (absolutely positioned) take it as their containing
+block and never widen the page.
+
 ## 7. The ui script
 
 | Part | Does |

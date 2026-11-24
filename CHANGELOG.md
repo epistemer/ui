@@ -5,6 +5,28 @@ All notable changes to this module. The format follows
 [Semantic Versioning](https://semver.org/).
 
 
+## [Unreleased]
+
+From Confab's iteration 1 (findings of 2026-11-23, answered by epistemer on
+2026-11-24). Clarifications A8 (interface.md §10).
+
+### Fixed
+- `.ui-table-scroll` is `position: relative`: the visually hidden texts in
+  a table's cells no longer widen the page, which shifted RTL pages (F23).
+- `ui/inputs` renders `dir="auto"` on text inputs and textareas, so a
+  left-to-right value reads the right way round in a right-to-left page;
+  email, url and tel keep `dir="ltr"`, and `Attrs` can override it (F27).
+- The ui script copies `lang` and `dir` from a boosted page's `<html>`,
+  and from a page htmx loads or restores for back/forward (F24).
+- `<ui-combobox>` upgrades when htmx loads after it connected (a deferred
+  htmx after ui's script, or one injected later) instead of staying a text
+  input of the id (F6).
+
+### Documented
+- A form struct's handles can't be named after `Form`'s methods (F10);
+  `KindToggle` is a three-state select (F26); a table with a remote filter
+  is built in the handler's constructor at startup (F11, U4).
+
 ## [v0.4.0] - 2026-11-23
 
 Amendment A7 (rich-inputs-interface.md, locked 2026-11-22): the remote select, uploads and list fields. Requires models v0.4.0, as v0.3.0 did. `theme/themeschema` is unchanged at v0.2.0.

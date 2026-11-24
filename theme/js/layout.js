@@ -100,3 +100,84 @@ document.addEventListener("click", (event) => {
 
 document.addEventListener("htmx:historyRestore", syncSchemes);
 window.addEventListener("pageshow", (event) => event.persisted && syncSchemes());
+
+// Boosted navigation and history restore: htmx 2 swaps only the body, so
+// <html lang> and <html dir> would stay those of the first page. Read them
+// from the response's <html> start tag (parsed in isolation, never executing
+// the response) and remember them per path for htmx's history cache.
+const htmlStartTag =
+	/^\s*(?:<!--[\s\S]*?-->\s*)*(?:<!doctype[^>]*>\s*)?(?:<!--[\s\S]*?-->\s*)*(<html(?:\s+(?:[^>"']|"[^"]*"|'[^']*')*|\s*)>)/i;
+
+function readHtmlAttrs() {
+	const root = document.documentElement;
+	return {
+		lang: root.getAttribute("lang"),
+		dir: root.getAttribute("dir"),
+	};
+}
+
+function applyHtmlAttrs({ lang, dir }) {
+	const root = document.documentElement;
+	if (lang === null) root.removeAttribute("lang");
+	else root.setAttribute("lang", lang);
+	if (dir === null) root.removeAttribute("dir");
+	else root.setAttribute("dir", dir);
+}
+
+function syncHtmlFromResponse(xhr) {
+	const text = xhr?.responseText;
+	if (typeof text !== "string") return false;
+	const match = htmlStartTag.exec(text);
+	if (!match) return false;
+	const doc = new DOMParser().parseFromString(`${match[1]}</html>`, "text/html");
+	const root = doc.documentElement;
+	applyHtmlAttrs({
+		lang: root.getAttribute("lang"),
+		dir: root.getAttribute("dir"),
+	});
+	return true;
+}
+
+const historyAttrs = new Map();
+let pendingHistoryPath = null;
+
+// Remember the initial page so pressing Back to it from htmx's history cache
+// restores its lang and dir even though it was never pushed through htmx.
+if (typeof location !== "undefined" && typeof location.pathname === "string") {
+	historyAttrs.set(location.pathname + (location.search ?? ""), readHtmlAttrs());
+}
+
+function rememberHistoryPath(event) {
+	const path = event.detail?.path;
+	if (path) historyAttrs.set(path, readHtmlAttrs());
+}
+
+// htmx 2 fires beforeHistoryUpdate and pushedIntoHistory/replacedInHistory
+// before afterSwap; note the path so afterSwap records the updated lang/dir.
+document.addEventListener("htmx:beforeHistorySave", rememberHistoryPath);
+document.addEventListener("htmx:beforeHistoryUpdate", (event) => {
+	pendingHistoryPath = event.detail?.history?.path ?? null;
+});
+document.addEventListener("htmx:pushedIntoHistory", rememberHistoryPath);
+document.addEventListener("htmx:replacedInHistory", rememberHistoryPath);
+
+document.addEventListener("htmx:afterSwap", (event) => {
+	const path = pendingHistoryPath;
+	pendingHistoryPath = null;
+	if (!event.detail?.boosted) return;
+	if (syncHtmlFromResponse(event.detail.xhr) && path) {
+		historyAttrs.set(path, readHtmlAttrs());
+	}
+});
+
+document.addEventListener("htmx:historyCacheMissLoad", (event) => {
+	if (syncHtmlFromResponse(event.detail?.xhr) && event.detail?.path) {
+		historyAttrs.set(event.detail.path, readHtmlAttrs());
+	}
+});
+
+document.addEventListener("htmx:historyRestore", (event) => {
+	if (event.detail?.cacheMiss) return;
+	const saved = historyAttrs.get(event.detail?.path);
+	if (saved) applyHtmlAttrs(saved);
+});

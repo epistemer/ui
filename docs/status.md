@@ -9,6 +9,18 @@ taken for epistemer, what's next, and what's waiting on epistemer.
 
 
 
+## 2026-11-24 — C1: Confab iteration 1, fixes within the terms
+
+**Landed** (Gemini 4 Neon (High) wrote the code in a worktree; Claude
+reviewed it, removed a late `htmx.process` call the contract forbids, and
+wrote the docs): F23, F24, F27, F6's combobox part, recorded as
+clarifications A8; docs for F10, F26 and U4 (F11). The `ui` skill says to
+answer 422 whenever htmx may be involved (F17). Checked in the pane: a
+combobox that connects before htmx upgrades on `htmx:load`; a boosted
+switch from an RTL page to an LTR one sets `dir`, and Back puts it back.
+
+**Next.** Amendment A9 (U1, U3, U5–U8), drafted for epistemer's lock.
+
 ## 2026-11-23 — U5: v0.4.0
 
 **Landed** (Claude): the API checked both ways against

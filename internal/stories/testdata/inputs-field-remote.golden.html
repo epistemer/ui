@@ -10,7 +10,7 @@
       Search by name or email.
     </p>
     <ui-combobox class="ui-combobox" data-ui-search="/demo/customers/search" data-ui-texts="{&#34;clear&#34;:&#34;Clear Customer&#34;,&#34;failed&#34;:&#34;Couldn&#39;t search. Try again.&#34;,&#34;more&#34;:&#34;Keep typing to narrow these down&#34;,&#34;none&#34;:&#34;No matches&#34;,&#34;results&#34;:&#34;Results: %d&#34;}" hx-get="/demo/customers/search" hx-params="none" hx-select="[data-ui-suggestions] &gt; li" hx-swap="innerHTML" hx-sync="this:replace" hx-target="find .ui-combobox-options" hx-trigger="ui-search" id="field--t-1-combobox">
-      <input aria-describedby="field--t-1-chosen field--t-1-help" class="ui-input" id="field--t-1" inputmode="numeric" name="customer_id" required="" type="text" value="7">
+      <input aria-describedby="field--t-1-chosen field--t-1-help" class="ui-input" dir="auto" id="field--t-1" inputmode="numeric" name="customer_id" required="" type="text" value="7">
       <span class="ui-combobox-chosen" id="field--t-1-chosen">
         Ann Lee
       </span>
@@ -29,7 +29,7 @@
       Referred by
     </label>
     <ui-combobox class="ui-combobox" data-ui-search="/demo/customers/search" data-ui-texts="{&#34;clear&#34;:&#34;Clear Referred by&#34;,&#34;failed&#34;:&#34;Couldn&#39;t search. Try again.&#34;,&#34;more&#34;:&#34;Keep typing to narrow these down&#34;,&#34;none&#34;:&#34;No matches&#34;,&#34;results&#34;:&#34;Results: %d&#34;}" hx-get="/demo/customers/search" hx-params="none" hx-select="[data-ui-suggestions] &gt; li" hx-swap="innerHTML" hx-sync="this:replace" hx-target="find .ui-combobox-options" hx-trigger="ui-search" id="field--t-2-combobox">
-      <input aria-describedby="field--t-2-chosen" class="ui-input" id="field--t-2" name="referrer_id" type="text">
+      <input aria-describedby="field--t-2-chosen" class="ui-input" dir="auto" id="field--t-2" name="referrer_id" type="text">
       <span class="ui-combobox-chosen" id="field--t-2-chosen"></span>
       <button aria-label="Clear Referred by" class="ui-combobox-clear" hidden="" tabindex="-1" type="button">
         ×

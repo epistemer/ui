@@ -278,10 +278,13 @@ func (f FieldSpec) controlAttrs(ctx context.Context) templ.Attributes {
 			own["multiple"] = true
 		}
 	case f.c.Kind() == forms.KindMultiline:
+		own["dir"] = "auto"
 	default:
 		own["type"] = typ
 		if ltrTypes[typ] {
 			own["dir"] = "ltr"
+		} else if typ == "text" {
+			own["dir"] = "auto"
 		}
 		switch typ {
 		case "checkbox":

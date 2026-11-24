@@ -31,10 +31,17 @@ const anchors = () =>
 let seq = 0;
 
 if (typeof HTMLElement !== "undefined") {
-// requester is the element that made an htmx request. In htmx 2.0.11 the
-// swap events' detail.elt is the swap target (the listbox), so the
-// requesting element comes from requestConfig.
-const requester = (e) => e.detail?.requestConfig?.elt ?? e.detail?.elt;
+	// requester is the element that made an htmx request. In htmx 2.0.11 the
+	// swap events' detail.elt is the swap target (the listbox), so the
+	// requesting element comes from requestConfig.
+	const requester = (e) => e.detail?.requestConfig?.elt ?? e.detail?.elt;
+
+	// Comboboxes that connected before htmx loaded wait here until htmx appears
+	// (a deferred htmx script ordered after ui.js, or one injected later).
+	// htmx processes the whole body when it starts, so the element's own
+	// hx-* attributes need nothing more: the upgrade adds none.
+	const waiting = new Set();
+	let watching = false;
 
 	class UICombobox extends HTMLElement {
 		#up = false;
@@ -60,11 +67,22 @@ const requester = (e) => e.detail?.requestConfig?.elt ?? e.detail?.elt;
 				this.#bindReset();
 				return;
 			}
-			// Without a search link (the gate refused it) or without htmx it
-			// stays the text input of the id (§3.3, R7).
-			if (!this.dataset.uiSearch || !globalThis.htmx) return;
+			// Without a search link (the gate refused it) it stays the text input
+			// of the id (§3.3, R7).
+			if (!this.dataset.uiSearch) return;
 			const input = this.querySelector(":scope > input.ui-input");
 			if (!input) return;
+			// Without htmx yet, wait until it loads instead of staying a plain id input.
+			if (!globalThis.htmx) {
+				waiting.add(this);
+				UICombobox.#watch();
+				return;
+			}
+			this.#upgrade(input);
+		}
+
+		#upgrade(input) {
+			if (this.#up) return;
 			this.#up = true;
 			this.#t = textsOf(this);
 			const chosen = this.querySelector(":scope > .ui-combobox-chosen");
@@ -192,10 +210,35 @@ const requester = (e) => e.detail?.requestConfig?.elt ?? e.detail?.elt;
 		}
 
 		disconnectedCallback() {
+			waiting.delete(this);
 			this.#resetAC?.abort();
 			this.#resetAC = null;
 			this.#cancel();
 			if (this.#popup?.matches(":popover-open")) this.#popup.hidePopover();
+		}
+
+		static #watch() {
+			if (watching) return;
+			watching = true;
+			document.addEventListener("DOMContentLoaded", UICombobox.#tryWaiting);
+			window.addEventListener("load", UICombobox.#tryWaiting);
+			document.addEventListener("htmx:load", UICombobox.#tryWaiting);
+		}
+
+		static #tryWaiting() {
+			if (!globalThis.htmx) return;
+			document.removeEventListener("DOMContentLoaded", UICombobox.#tryWaiting);
+			window.removeEventListener("load", UICombobox.#tryWaiting);
+			document.removeEventListener("htmx:load", UICombobox.#tryWaiting);
+			watching = false;
+			const pending = [...waiting];
+			waiting.clear();
+			for (const el of pending) {
+				if (!el.isConnected || el.#up || !el.dataset.uiSearch) continue;
+				const input = el.querySelector(":scope > input.ui-input");
+				if (!input) continue;
+				el.#upgrade(input);
+			}
 		}
 
 		get #open() {
