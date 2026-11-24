@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | Accepted |
+| Status | Superseded by 0014 |
 | Date | 2026-11-22 |
 | Roadmap item | V3 |
 | Deciders | epistemer took V10's default at the D6 lock; Claude, as owner, records how |

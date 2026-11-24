@@ -97,6 +97,44 @@ templ allIcons() {
 	</div>
 }
 
+templ iconOptions() {
+	<div class="catalog-row">
+		@icons.Check()
+		@icons.Check().Size(icons.SizeS)
+		@icons.Check().Size(icons.SizeM)
+		@icons.Check().Size(icons.SizeL)
+	</div>
+	<div class="catalog-row">
+		@icons.Info().Color(icons.ColorCurrent)
+		@icons.Info().Color(icons.ColorMuted)
+		@icons.Info().Color(icons.ColorBrand)
+		@icons.Info().Color(icons.ColorDanger)
+		@icons.Info().Color(icons.ColorWarning)
+		@icons.Info().Color(icons.ColorSuccess)
+		@icons.Info().Color(icons.ColorInfo)
+	</div>
+	<div class="catalog-row">
+		@icons.Check().Label(i18n.Static("Verified"))
+		@icons.Check().Stroke(1)
+		@icons.Check().Stroke(1.5)
+		@icons.Check().Stroke(3)
+	</div>
+	<div class="catalog-row" dir="ltr">
+		<span>LTR:</span>
+		@icons.ArrowStart()
+		@icons.ArrowEnd()
+		@icons.ArrowLeft()
+		@icons.ArrowRight()
+	</div>
+	<div class="catalog-row" dir="rtl">
+		<span>RTL:</span>
+		@icons.ArrowStart()
+		@icons.ArrowEnd()
+		@icons.ArrowLeft()
+		@icons.ArrowRight()
+	</div>
+}
+
 templ badges() {
 	<div class="catalog-row">
 		@elements.Badge() {

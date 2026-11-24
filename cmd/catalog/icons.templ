@@ -1,0 +1,24 @@
+package main
+
+import (
+	"github.com/epistemer/i18n"
+
+	"github.com/epistemer/ui/internal/iconlist"
+	"github.com/epistemer/ui/layout"
+)
+
+templ iconsPage(head templ.Component, list []iconlist.Icon) {
+	@layout.Document(i18n.Static("Icons")).Head(head) {
+		<main class="ui-app-main">
+			<h1>Icons ({ len(list) })</h1>
+			<div class="ui-action-buttons">
+				for _, ic := range list {
+					<div class="ui-badge">
+						@ic.Spec()
+						<span>{ ic.Name }</span>
+					</div>
+				}
+			</div>
+		</main>
+	}
+}

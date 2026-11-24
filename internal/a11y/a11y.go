@@ -270,7 +270,7 @@ func Names(src string) ([]string, error) {
 // VariantAttrs are ui's variant attributes (Q3), selected by value.
 // Other data-* attributes on ui's elements are selected by presence;
 // data-ui-* attributes are behaviour hooks for the ui script, not styles.
-var VariantAttrs = []string{"data-variant", "data-size", "data-tone"}
+var VariantAttrs = []string{"data-variant", "data-size", "data-tone", "data-color"}
 
 func selector(class, key, val string) string {
 	if slices.Contains(VariantAttrs, key) {
