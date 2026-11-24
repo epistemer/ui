@@ -46,7 +46,8 @@ func Errors(f *forms.Form) []string {
 // AssertLabelled fails t once for every field, named group and list, at
 // any depth, whose label is still the default built from its name. A
 // list's members are checked once, on its template row, whether or not it
-// has items. The root and list items have no label of their own.
+// has items. The root and list items have no label of their own. Hidden
+// fields (KindHidden) aren't checked: nobody reads their label (A9).
 func AssertLabelled(t testing.TB, f *forms.Form) {
 	t.Helper()
 	if f == nil {
@@ -55,6 +56,9 @@ func AssertLabelled(t testing.TB, f *forms.Form) {
 	var walk func(c forms.Control)
 	walk = func(c forms.Control) {
 		t.Helper()
+		if c.Kind() == forms.KindHidden {
+			return
+		}
 		if c.Path() != "" && !hook.LabelSet(c) {
 			t.Errorf("formstest: %s has no label of its own", c.Path())
 		}

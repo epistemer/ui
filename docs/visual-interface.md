@@ -1058,9 +1058,14 @@ func ColorSchemeMenu(current ColorScheme) templ.Component
 - **Wide screens** (a media query): the nav is a static column and the
   toggle is hidden.
 - **NavItem**: `<a class="ui-nav-item" href>` with children as its text
-  and icon; `Current(true)` adds `aria-current="page"`. **NavSection**:
+  and icon; `Current(true)` adds `aria-current="page"`. At render, `NavItem`
+  asks `actions.Allowed(ctx, to)`: refused renders nothing; no gate in the
+  context panics, naming `actions.Gate` *(A9)*. A `NavItem` with no address
+  still panics first. **NavSection**:
   `<div class="ui-nav-section" role="group" aria-labelledby>` with
-  `<p class="ui-nav-section-label">` and its children, the items.
+  `<p class="ui-nav-section-label">` and its children, the items. `NavSection`
+  renders its children into a buffer and renders nothing when they wrote
+  only white space *(A9)*.
 - **`ColorSchemeMenu(current)`** [V13]: a Menu in the bar labelled
   `ui.layout.scheme.label`, with three items, system, light and dark
   (`ui.layout.scheme.*`), each `role="menuitemradio"` with

@@ -329,10 +329,9 @@ func TestPostCode(t *testing.T) {
 		t.Errorf("PostCode should have no attributes, got %s=%s", k, v)
 	}
 
-	defer func() {
-		if recover() == nil {
-			t.Error("PostCode with unknown country did not panic")
-		}
-	}()
-	rule.PostCode("UNKNOWN_COUNTRY")
+	// Unknown country must not panic and must pass any value
+	unknown := rule.PostCode("UNKNOWN_COUNTRY")
+	if err := rule.Check(ctx, "anything", unknown); err != nil {
+		t.Errorf("PostCode with unknown country failed: %v", err)
+	}
 }

@@ -169,6 +169,6 @@ var postcodeRegexes = make(map[string]*regexp.Regexp, len(postcodePatterns))
 
 func init() {
 	for country, pattern := range postcodePatterns {
-		postcodeRegexes[country] = regexp.MustCompile(pattern)
+		postcodeRegexes[country] = regexp.MustCompile("^(?:" + pattern + ")$")
 	}
 }

@@ -632,7 +632,7 @@ failure. `Check` runs rules in order and returns the first failure.
 | `string` | `MinLen(n int)`, `MaxLen(n int)` (runes) | `minlength`, `maxlength` |
 | `string` | `Matches(re *regexp.Regexp)` | `pattern` when `re` is valid in JavaScript too |
 | `string` | `Email()`, `URL()`, `Phone()` | `type` = `email`, `url`, `tel` |
-| `string` | `CountryCode()`, `CurrencyCode()`, `PostCode(country string)` | |
+| `string` | `CountryCode()`, `CurrencyCode()`, `PostCode(country string)` *(A9)* | |
 | `T cmp.Ordered` | `Min(v T)`, `Max(v T)`, `Between(lo, hi T)` | `min`, `max` for numbers |
 | `T interface{ Cmp(T) int }` | `AtLeast(v T)`, `AtMost(v T)` | |
 | `T comparable` | `OneOf(vs ...T)` | |
@@ -640,6 +640,9 @@ failure. `Check` runs rules in order and returns the first failure.
 | `*multipart.FileHeader` | `MinSize(bytes int64)`, `MaxSize(bytes int64)`, `ContentType(types ...string)` | `data-ui-max-size` *(A7)*, `accept` |
 | `files.Upload` *(A7)* | `Files(rules ...Rule[*multipart.FileHeader])`, `MinFiles(n int)`, `MaxFiles(n int)` | inner rules' attributes (`Files`) |
 | `[]T` | `MinItems(n int)`, `MaxItems(n int)`, `Each(rules ...Rule[T])` | |
+
+`HasPostCode(country string) bool` *(A9)* is not a rule: it reports
+whether `PostCode` knows a country's format.
 
 `Files` checks each added file and passes its inner rules' attributes on;
 `MinFiles` and `MaxFiles` count kept plus added files *(amendment A7)*.
@@ -692,8 +695,9 @@ func Submit(t testing.TB, ctx context.Context, f *forms.Form, values string) boo
 // failing node, with <key> the i18n key of the public error or "-".
 func Errors(f *forms.Form) []string
 
-// AssertLabelled fails t for every control, at any depth, whose label is
-// still the default built from its wire name.
+// AssertLabelled fails t once for every field, named group and list, at
+// any depth, whose label is still the default built from its name. Hidden
+// fields (KindHidden) aren't checked: nobody reads their label. *(A9)*
 func AssertLabelled(t testing.TB, f *forms.Form)
 ```
 
@@ -834,8 +838,10 @@ above precise without changing its intent.
 - `Email` accepts what `net/mail.ParseAddress` accepts with no display
   name. `Phone` accepts E.164 after removing spaces, dashes, dots and
   parentheses. `CountryCode` is ISO 3166-1 alpha-2, `CurrencyCode` ISO
-  4217, both upper case. `PostCode(country)` panics for a country it has no
-  pattern for.
+  4217, both upper case. `PostCode(country)` checks the postal code for
+  `country`, compared trimmed and in upper case; an unknown (or empty)
+  country passes every value *(A9)*. `HasPostCode(country)` reports whether
+  `PostCode` knows country's format, comparing as `PostCode` does *(A9)*.
 - `ContentType` sniffs the file's first 512 bytes with
   `http.DetectContentType` and compares media types without parameters;
   `image/*` matches a family. A file that can't be read fails the rule.
@@ -858,9 +864,9 @@ above precise without changing its intent.
 - `Context` options apply in order; one that installs `WithIDs` overrides
   `Sequence("t")`.
 - `formstest.Submit` fails with `t.Fatalf`. `AssertLabelled` checks fields,
-  named groups and lists, not the root or list items, and reads whether a
-  label was set through an internal package of forms, not by comparing
-  text.
+  named groups and lists, not the root, list items, or hidden fields
+  (`KindHidden`) *(A9)*, and reads whether a label was set through an internal
+  package of forms, not by comparing text.
 
 ## 10. Amendments
 

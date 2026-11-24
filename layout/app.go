@@ -1,6 +1,7 @@
 package layout
 
 import (
+	"bytes"
 	"context"
 	"io"
 	"strings"
@@ -9,6 +10,7 @@ import (
 	"github.com/epistemer/i18n"
 
 	"github.com/epistemer/ui"
+	"github.com/epistemer/ui/actions"
 	"github.com/epistemer/ui/elements"
 	"github.com/epistemer/ui/internal/links"
 )
@@ -62,13 +64,14 @@ func requireMain(ctx context.Context) error {
 // NavItemSpec is a link in the app's navigation. Children are its text
 // and icon.
 type NavItemSpec struct {
+	link    ui.Link
 	href    templ.SafeURL
 	current bool
 	attrs   templ.Attributes
 }
 
 // NavItem starts a link to to. Rendering one with no address panics.
-func NavItem(to ui.Link) NavItemSpec { return NavItemSpec{href: links.Href(to)} }
+func NavItem(to ui.Link) NavItemSpec { return NavItemSpec{link: to, href: links.Href(to)} }
 
 // Current marks the item as the page shown when c is true
 // (aria-current="page").
@@ -86,6 +89,9 @@ var navItemOwned = []string{"href", "aria-current"}
 func (n NavItemSpec) Render(ctx context.Context, w io.Writer) error {
 	if n.href == "" {
 		panic("layout: NavItem with no address: a navigation item is a link")
+	}
+	if !actions.Allowed(ctx, n.link) {
+		return nil
 	}
 	own := templ.Attributes{"class": "ui-nav-item", "href": n.href}
 	if n.current {
@@ -119,7 +125,15 @@ func (n NavSectionSpec) Render(ctx context.Context, w io.Writer) error {
 	if n.label == nil || strings.TrimSpace(n.label.T(ctx)) == "" {
 		panic("layout: NavSection with no label: a group needs its name")
 	}
-	return navSection(n).Render(ctx, w)
+	var buf bytes.Buffer
+	children, ctx := templ.GetChildren(ctx), templ.ClearChildren(ctx)
+	if err := children.Render(ctx, &buf); err != nil {
+		return err
+	}
+	if len(bytes.TrimSpace(buf.Bytes())) == 0 {
+		return nil
+	}
+	return navSection(n, templ.Raw(buf.String())).Render(ctx, w)
 }
 
 func (n NavSectionSpec) attributes(ctx context.Context) templ.Attributes {

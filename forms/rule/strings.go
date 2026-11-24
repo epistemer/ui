@@ -133,21 +133,29 @@ func CurrencyCode() Rule[string] {
 	}
 }
 
-// PostCode checks that the string matches the postal code format for country.
-// It panics at construction if country is unknown.
+// PostCode checks the format of a postal code for country, an ISO 3166-1
+// alpha-2 code, compared trimmed and in upper case. A country it doesn't
+// know passes every value.
 func PostCode(country string) Rule[string] {
-	re, ok := postcodeRegexes[country]
+	re, ok := postcodeRegexes[strings.ToUpper(strings.TrimSpace(country))]
 	if !ok {
-		panic("rule: unknown country for PostCode: " + country)
+		return Rule[string]{} // the zero Rule passes every value
 	}
 	return Rule[string]{
 		check: func(_ context.Context, v string) error {
-			if !re.MatchString(v) {
+			if !re.MatchString(strings.ToUpper(v)) {
 				return ErrPostCode
 			}
 			return nil
 		},
 	}
+}
+
+// HasPostCode reports whether PostCode knows country's format, comparing
+// as PostCode does.
+func HasPostCode(country string) bool {
+	_, ok := postcodeRegexes[strings.ToUpper(strings.TrimSpace(country))]
+	return ok
 }
 
 // goOnly lists regexp syntax that RE2 accepts and a browser's pattern
