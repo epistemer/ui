@@ -130,7 +130,7 @@ func (n NavSectionSpec) Render(ctx context.Context, w io.Writer) error {
 	if err := children.Render(ctx, &buf); err != nil {
 		return err
 	}
-	if strings.TrimSpace(buf.String()) == "" {
+	if len(bytes.TrimSpace(buf.Bytes())) == 0 {
 		return nil
 	}
 	return navSection(n, templ.Raw(buf.String())).Render(ctx, w)

@@ -632,7 +632,7 @@ failure. `Check` runs rules in order and returns the first failure.
 | `string` | `MinLen(n int)`, `MaxLen(n int)` (runes) | `minlength`, `maxlength` |
 | `string` | `Matches(re *regexp.Regexp)` | `pattern` when `re` is valid in JavaScript too |
 | `string` | `Email()`, `URL()`, `Phone()` | `type` = `email`, `url`, `tel` |
-| `string` | `CountryCode()`, `CurrencyCode()`, `PostCode(country string)` *(A9)*, `HasPostCode(country string) bool` *(A9)* | |
+| `string` | `CountryCode()`, `CurrencyCode()`, `PostCode(country string)` *(A9)* | |
 | `T cmp.Ordered` | `Min(v T)`, `Max(v T)`, `Between(lo, hi T)` | `min`, `max` for numbers |
 | `T interface{ Cmp(T) int }` | `AtLeast(v T)`, `AtMost(v T)` | |
 | `T comparable` | `OneOf(vs ...T)` | |
@@ -640,6 +640,9 @@ failure. `Check` runs rules in order and returns the first failure.
 | `*multipart.FileHeader` | `MinSize(bytes int64)`, `MaxSize(bytes int64)`, `ContentType(types ...string)` | `data-ui-max-size` *(A7)*, `accept` |
 | `files.Upload` *(A7)* | `Files(rules ...Rule[*multipart.FileHeader])`, `MinFiles(n int)`, `MaxFiles(n int)` | inner rules' attributes (`Files`) |
 | `[]T` | `MinItems(n int)`, `MaxItems(n int)`, `Each(rules ...Rule[T])` | |
+
+`HasPostCode(country string) bool` *(A9)* is not a rule: it reports
+whether `PostCode` knows a country's format.
 
 `Files` checks each added file and passes its inner rules' attributes on;
 `MinFiles` and `MaxFiles` count kept plus added files *(amendment A7)*.

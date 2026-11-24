@@ -3,49 +3,69 @@ package rule
 import (
 	"context"
 	"regexp/syntax"
-	"strings"
 	"testing"
 )
 
-func generateSample(re *syntax.Regexp) string {
+// samples gives short strings re matches: every branch of an
+// alternation, and an optional part both absent and present, so a test
+// reaches each alternative of a pattern (the anchoring bug of GB and CR
+// lived in a later one). It stops growing at limit strings.
+func samples(re *syntax.Regexp, limit int) []string {
+	cross := func(a, b []string) []string {
+		var out []string
+		for _, x := range a {
+			for _, y := range b {
+				if len(out) == limit {
+					return out
+				}
+				out = append(out, x+y)
+			}
+		}
+		return out
+	}
 	switch re.Op {
 	case syntax.OpLiteral:
-		return string(re.Rune)
+		return []string{string(re.Rune)}
 	case syntax.OpCharClass:
-		if len(re.Rune) > 0 {
-			return string(re.Rune[0])
+		if len(re.Rune) == 0 {
+			return nil
 		}
-		return ""
+		return []string{string(re.Rune[0])}
 	case syntax.OpAnyCharNotNL, syntax.OpAnyChar:
-		return "a"
-	case syntax.OpBeginText, syntax.OpEndText, syntax.OpBeginLine, syntax.OpEndLine, syntax.OpWordBoundary, syntax.OpNoWordBoundary, syntax.OpEmptyMatch:
-		return ""
+		return []string{"A"}
 	case syntax.OpCapture:
-		return generateSample(re.Sub[0])
+		return samples(re.Sub[0], limit)
 	case syntax.OpConcat:
-		var sb strings.Builder
+		out := []string{""}
 		for _, sub := range re.Sub {
-			sb.WriteString(generateSample(sub))
+			out = cross(out, samples(sub, limit))
 		}
-		return sb.String()
+		return out
 	case syntax.OpAlternate:
-		if len(re.Sub) > 0 {
-			return generateSample(re.Sub[0])
+		var out []string
+		for _, sub := range re.Sub {
+			for _, x := range samples(sub, limit) {
+				if len(out) < limit {
+					out = append(out, x)
+				}
+			}
 		}
-		return ""
-	case syntax.OpStar, syntax.OpQuest:
-		return ""
+		return out
+	case syntax.OpQuest, syntax.OpStar:
+		return append([]string{""}, samples(re.Sub[0], limit)...)
 	case syntax.OpPlus:
-		return generateSample(re.Sub[0])
+		return samples(re.Sub[0], limit)
 	case syntax.OpRepeat:
-		var sb strings.Builder
-		s := generateSample(re.Sub[0])
-		for i := 0; i < re.Min; i++ {
-			sb.WriteString(s)
+		out := []string{""}
+		for range re.Min {
+			out = cross(out, samples(re.Sub[0], limit))
 		}
-		return sb.String()
-	default:
-		return ""
+		if re.Min == 0 {
+			out = append(out, samples(re.Sub[0], limit)...)
+		}
+		return out
+	default: // anchors, empty match, word boundaries
+		return []string{""}
 	}
 }
 
@@ -56,13 +76,22 @@ func TestPostcodePatternSamples(t *testing.T) {
 			if err != nil {
 				t.Fatalf("syntax.Parse(%q): %v", country, err)
 			}
-			sample := generateSample(parsed)
 			re := postcodeRegexes[country]
-			if !re.MatchString(sample) {
-				t.Errorf("%s: sample %q does not match pattern %s", country, sample, pattern)
+			got := samples(parsed, 64)
+			if len(got) == 0 {
+				t.Fatalf("%s: no sample of %s", country, pattern)
 			}
-			if re.MatchString("junk " + sample + " junk") {
-				t.Errorf("%s: pattern matched junk around sample %q", country, sample)
+			for _, sample := range got {
+				if !re.MatchString(sample) {
+					t.Errorf("%s: sample %q does not match pattern %s", country, sample, pattern)
+				}
+				// Junk on either side: an alternative anchored at one end
+				// only (CR's) passes junk on the other.
+				for _, junk := range []string{"junk " + sample + " junk", "junk " + sample, sample + " junk"} {
+					if re.MatchString(junk) {
+						t.Errorf("%s: pattern matched %q", country, junk)
+					}
+				}
 			}
 		})
 	}

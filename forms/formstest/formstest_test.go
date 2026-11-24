@@ -2,6 +2,7 @@ package formstest_test
 
 import (
 	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/epistemer/ui/forms"
@@ -33,7 +34,7 @@ func TestAssertLabelled(t *testing.T) {
 	f.Text("title")
 	rec2 := &recorder{TB: t}
 	formstest.AssertLabelled(rec2, f)
-	if len(rec2.errs) == 0 {
-		t.Error("text field without label should fail AssertLabelled")
+	if len(rec2.errs) != 1 || !strings.Contains(rec2.errs[0], "title") {
+		t.Errorf("want one failure, for title (the hidden field skipped): %q", rec2.errs)
 	}
 }

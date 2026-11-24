@@ -139,11 +139,7 @@ func CurrencyCode() Rule[string] {
 func PostCode(country string) Rule[string] {
 	re, ok := postcodeRegexes[strings.ToUpper(strings.TrimSpace(country))]
 	if !ok {
-		return Rule[string]{
-			check: func(_ context.Context, _ string) error {
-				return nil
-			},
-		}
+		return Rule[string]{} // the zero Rule passes every value
 	}
 	return Rule[string]{
 		check: func(_ context.Context, v string) error {
