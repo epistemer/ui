@@ -19,8 +19,9 @@ files (all 2,410 pass the allowlist; the 22 current icons are unchanged)
 and against the GB post code pattern (it accepts junk around a code).
 U1 mirrors handlers' flash as epistemer locked it today (handlers A7).
 
-**Waiting on epistemer:** the lock of A9, questions Q1–Q10 (each with a
-default; Q7 and Q8 marked ⚠). Nothing of A9 is built before it.
+**Locked** by epistemer on 2026-11-24 with the defaults of Q1–Q10 (Q7:
+icons as plain Go; Q8: the script's budget is 32 kB gzipped, measured
+by a test). Next: C3–C6 build it, then v0.5.0.
 
 ## 2026-11-24 — C1: Confab iteration 1, fixes within the terms
 

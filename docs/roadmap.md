@@ -232,9 +232,9 @@ U2 (ui serving htmx) waits for the discussion of forking htmx v2.
 | ✓ | ID | Item | Done when |
 |---|---|---|---|
 | ☑ | C1 | Fixes within the terms: F23, F24, F27, F6's combobox, docs for F10, F17, F26 and U4 (clarifications A8) | Merged with green CI and a review |
-| ☐ | C2 | Amendment A9 drafted in [confab-1-interface.md](confab-1-interface.md) (review 0025): U3 (`NavItem` and the gate), U5 (`PostCode`, `HasPostCode`), U6 (the switch), U7 (`AssertLabelled`), U8 (generated Lucide icons), U1 (`Reply` and handlers' flash) | epistemer locks it |
+| ☑ | C2 | Amendment A9 in [confab-1-interface.md](confab-1-interface.md) (review 0025), locked 2026-11-24: U3 (`NavItem` and the gate), U5 (`PostCode`, `HasPostCode`), U6 (the switch), U7 (`AssertLabelled`), U8 (generated Lucide icons), U1 (`Reply` and handlers' flash) | epistemer locks it |
 | ☐ | C3 | Build A9's U3, U5, U7 | Contract holds, in tests |
-| ☐ | C4 | Build U6: the two- and three-state switch, CSS and script | Contract holds; checked in the pane, LTR and RTL, light and dark, keyboard, with script and without |
+| ☐ | C4 | Build U6: the two- and three-state switch, CSS and script; Q8's budget test | Contract holds; checked in the pane, LTR and RTL, light and dark, keyboard, with script and without |
 | ☐ | C5 | Build U8: the icon generator, every Lucide icon, ADR | Contract holds; existing calls compile |
 | ☐ | C6 | Build U1 on handlers/middleware's flash | Contract holds; a toast survives `Go` and the no-script 303 |
 | ☐ | C7 | Release v0.5.0 | As V7 |

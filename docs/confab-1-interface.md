@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | **Draft**, for epistemer's lock. Each question in §8 has a default; any left unanswered takes it |
+| Status | **Locked by epistemer on 2026-11-24** with the defaults of Q1–Q10 (Q7 and Q8 included). A change that alters what an app writes or gets back is an amendment |
 | Date | 2026-11-24 |
 | From | Confab's findings F7, F9, F20, F25, F26, F30 (example repo, docs/findings.md), as epistemer answered U1, U3 and U5–U8 on 2026-11-24 (the board's item "ui: API questions from Confab iteration 1") |
 | Amends | [interface.md](interface.md) §5.10, §6.2, §7; [visual-interface.md](visual-interface.md) §4, §6.1, §8.2, §10, §11; [server-state-interface.md](server-state-interface.md) §4.4; ADR 0007 (superseded by ADR 0014) |
@@ -467,9 +467,9 @@ works.
 | `Fail` without htmx flashes its message | an app that flashed it by hand shows it twice | U1 |
 | `Go` after a toast or change redirects instead of panicking | none that worked | U1 |
 
-## 8. Questions for the lock
+## 8. Questions of the lock
 
-Each has a default (recommended); an unanswered one takes it.
+Answered by epistemer on 2026-11-24: every default.
 
 - **Q1. A `NavItem` with no gate in the context.** *Default:* panics, as
   `actions.Allowed` does (S9): a forgotten gate shows up on the first
