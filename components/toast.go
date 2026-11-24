@@ -15,8 +15,10 @@ import (
 
 // Toasts is the page's region for toasts (§7.5), rendered once by the
 // shell, outside what htmx swaps: a manual popover, so it shows above an
-// open modal dialog, and a polite live region.
-func Toasts() templ.Component { return toastRegion() }
+// open modal dialog, and a polite live region. After it come the messages
+// the request's Flash delivers, as toasts (A9): each moves itself into the
+// region when it connects, so it is announced.
+func Toasts() templ.Component { return templ.Join(toastRegion(), flashed()) }
 
 // ToastSpec is a message that arrives later (§7.5): the tone's icon and
 // hidden word, the text, and a close button. Success and info toasts time

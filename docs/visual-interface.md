@@ -937,9 +937,10 @@ func ToastSwap(toasts ...templ.Component) templ.Component
   `data-ui-timeout="6000"`; warning and danger toasts stay until closed
   (WCAG 2.2.1, 2.2.4). Tones as Alert's: the four message tones only.
 - **Where a toast renders.** Anywhere: in an htmx response through
-  `ToastSwap`, or in a full page (a message after a redirect, from the
-  app's own flash storage), where the page renders `Toast` wherever it
-  likes. Each `<ui-toast>` moves itself into the region when it connects,
+  `ToastSwap`, or in a full page (a message after a redirect), where the
+  page renders `Toast` wherever it likes. *(A9)* `Toasts()` renders,
+  after the region, one toast per message of the request's
+  `components.Flash` ([confab-1-interface.md](confab-1-interface.md) §6). Each `<ui-toast>` moves itself into the region when it connects,
   so a full page's toast is inserted after load and announced like one
   that arrives by htmx. Without the script it stays where it was rendered,
   as static text.

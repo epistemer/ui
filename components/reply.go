@@ -75,7 +75,7 @@ func (a *ReplySpec) Refresh(tableID string) *ReplySpec { return a.set(refreshCha
 
 // Fail answers a refusal: with htmx, 422 and a danger toast with err's
 // text for people, and nothing changes; without, the redirect to Else,
-// where the app's own flash says why. Fail(nil) panics.
+// with that text in the request's Flash (A9). Fail(nil) panics.
 func (a *ReplySpec) Fail(err error) *ReplySpec {
 	if err == nil {
 		panic("components: Reply.Fail(nil)")
@@ -103,15 +103,33 @@ func local(l ui.Link) (string, bool) {
 
 func htmx(r *http.Request) bool { return r.Header.Get("HX-Request") == "true" }
 
+// carry hands what the answer would have shown to the request's Flash,
+// before a redirect drops it: Fail's message as an error, else the toast.
+// Without a Flash it is dropped (A9, Q5).
+func (a *ReplySpec) carry() {
+	ctx := a.r.Context()
+	f := Flash.Value(ctx)
+	if f == nil {
+		return
+	}
+	switch {
+	case a.change == failChange:
+		f.Add(ctx, levelError, reasonTer{a.err})
+	case a.toast != nil:
+		f.Add(ctx, levelInfo, a.toast)
+	}
+}
+
 // Else sends the answer. A request without htmx is redirected to l with
-// 303. An address that isn't local returns ErrNotLocal, and nothing is
-// written.
+// 303, and the toast (or Fail's message) goes to the request's Flash. An
+// address that isn't local returns ErrNotLocal, and nothing is written.
 func (a *ReplySpec) Else(l ui.Link) error {
 	u, ok := local(l)
 	if !ok {
 		return ErrNotLocal
 	}
 	if !htmx(a.r) {
+		a.carry()
 		http.Redirect(a.w, a.r, u, http.StatusSeeOther)
 		return nil
 	}
@@ -163,16 +181,16 @@ func (a *ReplySpec) Else(l ui.Link) error {
 	return err
 }
 
-// Go sends the browser to l, with htmx or without, instead of a change.
-// After a change or a toast it panics: the redirect would drop them.
+// Go sends the browser to l, with htmx or without. A change set before it
+// is dropped (the page it goes to shows the result); the toast, or Fail's
+// message, goes to the request's Flash (A9). An address that isn't local
+// returns ErrNotLocal, and nothing is written or flashed.
 func (a *ReplySpec) Go(l ui.Link) error {
-	if a.change != noChange || a.toast != nil {
-		panic("components: Reply.Go after a change or a toast: the redirect drops them; the app's flash carries a message to the next page")
-	}
 	u, ok := local(l)
 	if !ok {
 		return ErrNotLocal
 	}
+	a.carry()
 	if !htmx(a.r) {
 		http.Redirect(a.w, a.r, u, http.StatusSeeOther)
 		return nil
