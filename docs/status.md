@@ -9,6 +9,25 @@ taken for epistemer, what's next, and what's waiting on epistemer.
 
 
 
+## 2026-11-24 — C3–C7: A9 built, v0.5.0
+
+**Landed:** C3 (#52: `NavItem` and the gate, `PostCode`/`HasPostCode`,
+`AssertLabelled`), C4 (#53: the switches, `Control.TwoState`,
+`<ui-tristate>`, the 32 kB script test), C5 (#54: every Lucide 1.77.0
+icon generated, `IconSpec`, ADR 0014), C6 (#55: `Reply` and the flash,
+`components.Flasher`), and the release v0.5.0. Gemini 3.8 Flash (High),
+Gemini 4 Neon (High) and Gemini 4 Hydrogen (High) built C3, C4 and C5;
+Claude built C6, reviewed every diff, and checked the switches and icons in
+the pane. Review [0026](reviews/0026-a9-build.md).
+
+**Decided for epistemer (clarifications):** flashed toasts render right
+after the toast region, not inside it, so they're announced; LI's post code
+pattern had GB's bug and is fixed with it.
+
+**Next.** Confab moves to v0.5.0. U2 (serving htmx) waits for the htmx v2
+fork discussion. A post-release Gemini review of C4–C6 when its quota is
+back (GPT-OSS 120B stood in).
+
 ## 2026-11-24 — C2: amendment A9 drafted
 
 **Landed** (Claude): [confab-1-interface.md](confab-1-interface.md), the

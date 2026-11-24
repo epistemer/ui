@@ -289,7 +289,7 @@ that keeps or removes the files a record has (`Form.Upload`/`Uploads`), or
 a list whose rows people add and remove (`<ui-repeat>`); `inputs.Field`
 draws each.
 
-Status: v0.4.0. The designs are [docs/brief.md](docs/brief.md),
+Status: v0.5.0. The designs are [docs/brief.md](docs/brief.md),
 [docs/forms-design.md](docs/forms-design.md) and
 [docs/visual-design.md](docs/visual-design.md); the contracts are
 [docs/interface.md](docs/interface.md) and

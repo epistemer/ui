@@ -5,12 +5,47 @@ All notable changes to this module. The format follows
 [Semantic Versioning](https://semver.org/).
 
 
-## [Unreleased]
+## [v0.5.0] - 2026-11-24
 
 From Confab's iteration 1 (findings of 2026-11-23, answered by epistemer on
-2026-11-24). Clarifications A8 (interface.md §10).
+2026-11-24): clarifications A8 and amendment A9
+([confab-1-interface.md](docs/confab-1-interface.md), locked 2026-11-24
+with the defaults of Q1–Q10). `theme/themeschema` is unchanged at v0.2.0.
+
+### Added
+- `ui/icons` (A9 U8, ADR 0014): every icon of Lucide 1.77.0 (2,532
+  functions, 126 of them `…Start`/`…End` variants that mirror in RTL),
+  generated as Go from vendored, checked shapes (`go generate ./icons`);
+  `IconSpec` with `Size`, `Stroke`, `Color`, `Label` and `Attrs`. The
+  catalogue lists every icon at `/icons`.
+- `ui/forms`: `Control.TwoState` (A9 U6).
+- `ui/inputs`: a `Checkbox` with `Hint(KindToggle)` renders a two-state
+  switch (`role="switch"`, CSS only); a `Bool` renders its select inside
+  `<ui-tristate>`, which ui's script upgrades to a three-position switch
+  (No, no answer, Yes). New key `ui.inputs.toggle.unset` (A9 U6).
+- `ui/forms/rule`: `HasPostCode` (A9 U5).
+- `ui/components`: `Flasher` and `Flash`, mirroring handlers/middleware's
+  flash; `Toasts` shows the messages the request's flash delivers (A9 U1).
+- A test holds the ui script to 32 kB gzipped (A9 Q8).
+
+### Changed
+- `layout.NavItem` asks `actions.Allowed`: refused, it renders nothing; with
+  no `actions.Gate` in the context it panics. A `NavSection` whose items all
+  render nothing renders nothing (A9 U3).
+- `rule.PostCode` passes a country it doesn't know instead of panicking;
+  the country is compared trimmed and in upper case, the value in upper
+  case (A9 U5).
+- `components.Reply`: `Go` no longer panics after a toast or a change (the
+  change is dropped); the toast, or `Fail`'s message, goes to the request's
+  `Flash` on `Go` and on the no-script 303 (A9 U1).
+- `formstest.AssertLabelled` skips hidden fields (A9 U7).
+- The 22 icon functions return `IconSpec`, a `templ.Component`: a
+  `func() templ.Component` holding one, or a variable inferred from one and
+  given another component, no longer compiles (A9 U8).
 
 ### Fixed
+- The GB, CR and LI post code patterns accepted junk around a valid code;
+  every pattern is anchored as a whole.
 - `.ui-table-scroll` is `position: relative`: the visually hidden texts in
   a table's cells no longer widen the page, which shifted RTL pages (F23).
 - `ui/inputs` renders `dir="auto"` on text inputs and textareas, so a
@@ -22,7 +57,7 @@ From Confab's iteration 1 (findings of 2026-11-23, answered by epistemer on
   htmx after ui's script, or one injected later) instead of staying a text
   input of the id (F6).
 
-### Documented
+### Documented (clarifications A8)
 - A form struct's handles can't be named after `Form`'s methods (F10);
   `KindToggle` is a three-state select (F26); a table with a remote filter
   is built in the handler's constructor at startup (F11, U4).
