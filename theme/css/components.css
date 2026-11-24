@@ -400,6 +400,8 @@
 /* A named, focusable scroll region, so a keyboard scrolls a wide table;
    its headers stick. */
 .ui-table-scroll {
+	/* Contains visually hidden cell labels so they don't widen the page. */
+	position: relative;
 	max-block-size: 70dvb;
 	overflow: auto;
 	border: 1px solid var(--ui-color-border);

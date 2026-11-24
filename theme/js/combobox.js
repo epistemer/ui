@@ -31,10 +31,17 @@ const anchors = () =>
 let seq = 0;
 
 if (typeof HTMLElement !== "undefined") {
-// requester is the element that made an htmx request. In htmx 2.0.11 the
-// swap events' detail.elt is the swap target (the listbox), so the
-// requesting element comes from requestConfig.
-const requester = (e) => e.detail?.requestConfig?.elt ?? e.detail?.elt;
+	// requester is the element that made an htmx request. In htmx 2.0.11 the
+	// swap events' detail.elt is the swap target (the listbox), so the
+	// requesting element comes from requestConfig.
+	const requester = (e) => e.detail?.requestConfig?.elt ?? e.detail?.elt;
+
+	// Comboboxes that connected before htmx loaded wait here until htmx appears
+	// (a deferred htmx script ordered after ui.js, or one injected later).
+	// htmx processes the whole body when it starts, so the element's own
+	// hx-* attributes need nothing more: the upgrade adds none.
+	const waiting = new Set();
+	let watching = false;
 
 	class UICombobox extends HTMLElement {
 		#up = false;
@@ -60,15 +67,28 @@ const requester = (e) => e.detail?.requestConfig?.elt ?? e.detail?.elt;
 				this.#bindReset();
 				return;
 			}
-			// Without a search link (the gate refused it) or without htmx it
-			// stays the text input of the id (§3.3, R7).
-			if (!this.dataset.uiSearch || !globalThis.htmx) return;
+			// Without a search link (the gate refused it) it stays the text input
+			// of the id (§3.3, R7).
+			if (!this.dataset.uiSearch) return;
 			const input = this.querySelector(":scope > input.ui-input");
 			if (!input) return;
+			// Without htmx yet, wait until it loads instead of staying a plain id input.
+			if (!globalThis.htmx) {
+				waiting.add(this);
+				UICombobox.#watch();
+				return;
+			}
+			this.#upgrade(input);
+		}
+
+		#upgrade(input) {
+			if (this.#up) return;
 			this.#up = true;
 			this.#t = textsOf(this);
 			const chosen = this.querySelector(":scope > .ui-combobox-chosen");
-			const name = chosen?.textContent.trim() ?? "";
+			// A late upgrade finds what the person typed meanwhile: the
+			// chosen name no longer goes with it.
+			const name = input.value === input.defaultValue ? (chosen?.textContent.trim() ?? "") : "";
 
 			const hidden = document.createElement("input");
 			hidden.type = "hidden";
@@ -192,10 +212,40 @@ const requester = (e) => e.detail?.requestConfig?.elt ?? e.detail?.elt;
 		}
 
 		disconnectedCallback() {
+			waiting.delete(this);
 			this.#resetAC?.abort();
 			this.#resetAC = null;
 			this.#cancel();
 			if (this.#popup?.matches(":popover-open")) this.#popup.hidePopover();
+		}
+
+		static #watch() {
+			if (watching) return;
+			watching = true;
+			document.addEventListener("htmx:load", UICombobox.#tryWaiting);
+		}
+
+		// htmx fires htmx:load on the body once it has processed it (and on
+		// each element it swaps in later), so an element inside the event's
+		// target is one htmx now handles.
+		static #tryWaiting(event) {
+			if (!globalThis.htmx) return;
+			const root = event.target instanceof Node ? event.target : null;
+			for (const el of [...waiting]) {
+				if (!el.isConnected) {
+					waiting.delete(el);
+					continue;
+				}
+				if (!root?.contains(el)) continue;
+				waiting.delete(el);
+				if (el.#up || !el.dataset.uiSearch) continue;
+				const input = el.querySelector(":scope > input.ui-input");
+				if (input) el.#upgrade(input);
+			}
+			if (!waiting.size) {
+				document.removeEventListener("htmx:load", UICombobox.#tryWaiting);
+				watching = false;
+			}
 		}
 
 		get #open() {

@@ -224,6 +224,12 @@ func (f *Form) Active() bool
   false.
 - A form is not safe for concurrent use. One instance serves one request.
 
+*(A8, a clarification.)* A form struct's field handles can't be named
+after a method of `Form` (`Text`, `Date`, `Time`, `File`, `Files`, `Int`,
+`Float`, `Bool`, `Label`, `Group`, `List`, `Check`, `Fail`, `Valid`, `Err`,
+`Errors`, `When`, `Control`, …): the field hides the embedded method. It is
+the cost of embedding.
+
 ### 5.2 Source
 
 ```go
@@ -567,6 +573,10 @@ const (
 func (k Kind) String() string
 ```
 
+`KindToggle` is `Bool`'s three states, rendered by ui/inputs as a select
+of Yes, No and an empty choice for no answer; it is not an on/off switch
+*(A8, a clarification; amendment A9 proposes the switch)*.
+
 Defaults: `Text`, `Parsed` → `KindText`; `Int`, `Float`, `Number` →
 `KindNumber`; `Checkbox` → `KindCheckbox`; `Bool` → `KindToggle`; `Date` →
 `KindDate`; `Time` → `KindDateTime`; `Enum` or any field with options →
@@ -860,6 +870,7 @@ entry in status.md.
 | A5 | 2026-11-22 | §4A (new); visual-interface.md §2.7, §5.1, §5.3, §5.4, §7.3, §7.4, §8.2, §8.4, §13.4 | An address is a link: the kernel gains `Link` and `URL`, and eight signatures of the visual packages take a `ui.Link` where they took a `templ.SafeURL` (ADR 0008). Locked by epistemer. Built by the roadmap's item A5, before v0.2.0 is tagged |
 | A6 | 2026-11-22 | visual-interface.md §5.1, §7.3, §8.2, §8.3, §13.5; [server-state-interface.md](server-state-interface.md) | Actions and tables: `ui/actions`, `ui/tables` and their test kits; `Unavailable` on Button and MenuItem, `MenuSpec.ID`, the shells' action form and dialog. Locked by epistemer with the defaults of T1–T11 |
 | A7 | 2026-11-22 | §5.3, §5.4, §5.10, §6.2 (forms); visual-interface.md §6, §7, §10, §13.6; server-state-interface.md §6; [rich-inputs-interface.md](rich-inputs-interface.md) | The remote select, uploads and list fields: `Field[T].Remote`, `Form.Upload`/`Uploads` over the new `ui/forms/files`, `Control.Remote`/`Stored`/`Lost`/`Bounds`, a new list's blank items, `rule.Files`/`MinFiles`/`MaxFiles`; §5.8's rule for items stays. Locked by epistemer with R1–R28 and L1–L7 (some answered, the rest on defaults) |
+| A8 | 2026-11-24 | §5.1, §5.10; visual-interface.md §6.1, §10.1; server-state-interface.md §6; rich-inputs-interface.md §5, §6 | Clarifications by Claude from Confab's iteration 1 (findings F6, F10, F11, F23, F24, F26, F27): text inputs and textareas render `dir="auto"` (email, url, tel keep `dir="ltr"`; the rules' `Attrs` are unchanged); `.ui-table-scroll` is `position: relative`; the script copies `lang` and `dir` from a boosted page; `<ui-combobox>` upgrades when htmx loads after it connects; a form's handles can't be named after `Form`'s methods; `KindToggle` is a three-state select; a table with a remote filter is built in the handler's constructor |
 
 **The visual packages.** Their contract is
 [visual-interface.md](visual-interface.md), locked by epistemer on

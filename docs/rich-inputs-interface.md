@@ -256,12 +256,32 @@ func (c Column[R]) Remote(search ui.Link, l listing.Labeler) Column[R]
   a new field, `View[R].Err`, which `TableOf(…).Page(v)` returns from its
   render, so the handler answers 500; an app that renders a view itself
   checks it. `Page`'s signature is unchanged.
+- *(A8, a clarification.)* A `Labeler` usually reads the database, which
+  exists only at run time, so a table with a remote filter can't be a
+  package-level variable as other tables are. Build it in the handler's
+  constructor, at startup, and call its `Check` there, so a declaration
+  mistake stops the start rather than a request:
+
+  ```go
+  func NewOrders(q *db.Queries) (*Orders, error) {
+  	t := tables.New("orders", c.ID,
+  		tables.Col(c.CustomerID).Hidden().Filter().Remote(adminroutes.CustomerSearch(), customers{q}),
+  		…)
+  	if err := t.Check(); err != nil {
+  		return nil, err
+  	}
+  	return &Orders{table: t, view: components.TableOf(t)}, nil
+  }
+  ```
+
+  Don't build it lazily in a request (`sync.Once`): a panic there leaves
+  it unbuilt for every later request.
 
 ## 6. The script (amends visual-interface.md §10)
 
 | Element or behaviour | Does |
 |---|---|
-| `<ui-combobox>` | Upgrades the shape of §3.1 when it has `data-ui-search` and `globalThis.htmx` exists (otherwise the field stays the text input of the id): the hidden input takes the name; the visible one becomes `role="combobox"` (`aria-autocomplete="list"`, `aria-expanded`, `aria-controls`), with a clear button (`tabindex="-1"`). It removes `inputmode` and the chosen span, and that span's id from `aria-describedby`; unconverted text stays in the visible input. Searching (design §3.3): it debounces typing itself (250 ms) and then dispatches `ui-search` on itself (at once for Down and Alt+Down); adds `q` in `htmx:configRequest`, keeping the link's query; when the text is committed clears its timer and aborts a request in flight with an `htmx:abort` event; in its own `htmx:beforeSwap` listener, stopping the event there, refuses anything but a 200 whose `responseURL` has the link's origin and path and whose body holds `data-ui-suggestions`; after a swap gives each option the id `<input id>-opt-<n>`, removes the `data-ui-more` item and puts the `more` text in the status, counts and announces; on a refused answer, `htmx:responseError` or `htmx:sendError` says it failed. It never references the `htmx` object but to test that it exists. Keyboard and events as design §3.4 *(the htmx search not spiked: the spike's script used `fetch`)* |
+| `<ui-combobox>` | Upgrades the shape of §3.1 when it has `data-ui-search` and `globalThis.htmx` exists (otherwise the field stays the text input of the id; one that connected before htmx loaded upgrades when htmx appears, on `DOMContentLoaded`, `load` or htmx's first `htmx:load`, A8): the hidden input takes the name; the visible one becomes `role="combobox"` (`aria-autocomplete="list"`, `aria-expanded`, `aria-controls`), with a clear button (`tabindex="-1"`). It removes `inputmode` and the chosen span, and that span's id from `aria-describedby`; unconverted text stays in the visible input. Searching (design §3.3): it debounces typing itself (250 ms) and then dispatches `ui-search` on itself (at once for Down and Alt+Down); adds `q` in `htmx:configRequest`, keeping the link's query; when the text is committed clears its timer and aborts a request in flight with an `htmx:abort` event; in its own `htmx:beforeSwap` listener, stopping the event there, refuses anything but a 200 whose `responseURL` has the link's origin and path and whose body holds `data-ui-suggestions`; after a swap gives each option the id `<input id>-opt-<n>`, removes the `data-ui-more` item and puts the `more` text in the status, counts and announces; on a refused answer, `htmx:responseError` or `htmx:sendError` says it failed. It never references the `htmx` object but to test that it exists. Keyboard and events as design §3.4 *(the htmx search not spiked: the spike's script used `fetch`)* |
 | `<ui-repeat>` | Shows its own Add and Remove buttons; clones the template, rewriting its own path prefix in `name`, `data-ui-path` and `data-ui-when` at every depth, suffixing this level's ids and every reference to them; rewrites the clone while it is detached, appends it, then calls `globalThis.htmx?.process(item)` on it; renumbers legends and Remove buttons; evaluates conditions before focusing the first visible, enabled control; announces; marks Add and Remove unavailable at the bounds with the reason (`aria-disabled`) |
 | Uploads | Keep cards over the checkboxes; the chosen list with Remove (through `DataTransfer`); size and type checks with `setCustomValidity` and a capturing `submit` refusal (forms are `novalidate`); the drop highlight; the type check defers to the server for a file the system gives no type; progress from the request's own `xhr.upload` (`htmx:beforeSend`); a 413 with files chosen puts `body_too_large` on the upload fields and keeps the form (a send error is left to htmx); choosing files again clears it |
 
